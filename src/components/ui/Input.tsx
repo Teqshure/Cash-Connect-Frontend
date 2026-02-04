@@ -31,11 +31,11 @@ export const Input = ({
         inline
           ? "flex items-center gap-4"
           : variant === "underline"
-          ? "space-y-0"
-          : "space-y-1.5"
+            ? "space-y-0"
+            : "space-y-1.5"
       } ${
         variant === "underline"
-          ? "border-b border-primary/30 focus-within:border-primary"
+          ? "border-b border-primary/30 focus-within:border-primary-dark"
           : ""
       }`}
     >
@@ -43,7 +43,7 @@ export const Input = ({
         <label
           className={`text-sm font-medium ${
             inline ? "whitespace-nowrap mb-0" : "block"
-          } ${variant === "underline" ? "text-primary mb-0" : "text-zinc-700"}`}
+          } ${variant === "underline" ? "text-primary-dark mb-0" : "text-zinc-700"}`}
         >
           {label}
         </label>

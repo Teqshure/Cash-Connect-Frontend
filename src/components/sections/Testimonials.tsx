@@ -40,7 +40,7 @@ export const Testimonials = () => {
                 <input
                   type="text"
                   placeholder="Enter your email"
-                  className="w-full bg-[#efefef] rounded-xl px-5 py-4 text-sm border-none outline-none focus:ring-1 focus:ring-emerald-200 placeholder:text-primary-dark font-medium"
+                  className="w-full bg-[#efefef] text-black rounded-xl px-5 py-4 text-sm border-none outline-none focus:ring-1 focus:ring-emerald-200 placeholder:text-primary-dark font-medium"
                 />
               </div>
               <div>
@@ -49,7 +49,7 @@ export const Testimonials = () => {
                 </label>
                 <textarea
                   placeholder="What are you say ?"
-                  className="w-full bg-[#efefef] rounded-xl px-5 py-3 text-sm border-none outline-none focus:ring-1 focus:ring-emerald-200 resize-none h-20 placeholder:text-primary-dark font-medium"
+                  className="w-full bg-[#efefef] text-black rounded-xl px-5 py-3 text-sm border-none outline-none focus:ring-1 focus:ring-emerald-200 resize-none h-20 placeholder:text-primary-dark font-medium"
                 ></textarea>
               </div>
 
@@ -57,7 +57,7 @@ export const Testimonials = () => {
                 Send Message
               </Button>
             </div>
-            <div className="text-right bottom-1 pt-0 mt-2 mb-6">
+            <div className="text-right bottom-1 pt-0 mb-6">
               <span className="text-[11px] font-semibold text-primary-light  tracking-wide cursor-pointer hover:text-emerald-700 transition-colors">
                 <span className="text-primary-dark">or </span> Start Free Trial
               </span>

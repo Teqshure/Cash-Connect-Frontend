@@ -29,7 +29,6 @@ export const Hero = () => {
         {/* Left Floating Card - Great Job */}
         <div className="absolute top-1/2 -translate-y-[120%] lg:-translate-y-1/2 left-0 hidden lg:block z-20">
           <div className="bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 min-w-45 animate-in fade-in slide-in-from-left-4 duration-700">
-            ``
             <div className="w-10 h-10 rounded-full bg-zinc-200 overflow-hidden relative">
               {/* Avatar image would go here */}
               <Image

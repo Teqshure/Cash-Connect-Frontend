@@ -24,20 +24,12 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="space-y-8 px-4 sm:px-0 w-full">
-      <div className="flex justify-end mb-4">
-        <Link href="/select-country">
-          <button className="flex items-center text-sm font-bold text-primary hover:text-primary-hover transition-colors">
-            English (UK) <span className="ml-1">▼</span>
-          </button>
-        </Link>
-      </div>
-
+    <div className="space-y-8 w-full">
       <div className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight text-primary">
+        <h1 className="text-2xl lg:text-4xl font-bold tracking-tight text-primary-dark">
           Forgot Password
         </h1>
-        <p className="text-primary/80 font-medium text-sm leading-relaxed">
+        <p className="text-primary-dark font-medium text-[12px] max-w-[320px] leading-relaxed">
           Please enter your email address. You will receive link to create a new
           password via email.
         </p>
@@ -71,7 +63,7 @@ export default function ForgotPasswordPage() {
         />
 
         <Button
-          className="w-full h-12 text-base font-semibold rounded-xl bg-primary hover:bg-primary-hover shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
+          className="w-full h-12 text-base font-semibold rounded-xl bg-primary-dark hover:bg-primary-hover shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
           disabled={isLoading || !!successMessage}
         >
           {isLoading ? (
@@ -85,11 +77,11 @@ export default function ForgotPasswordPage() {
         </Button>
 
         <div className="text-sm">
-          <p className="text-primary font-bold">
+          <p className="text-primary-dark font-medium">
             New User?{" "}
             <Link
               href="/signup"
-              className="font-bold text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
+              className="text-primary-light hover:text-emerald-700 underline underline-offset-4"
             >
               Sign Up Here
             </Link>

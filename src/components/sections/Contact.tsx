@@ -85,7 +85,7 @@ export const Contact = () => {
               {/* Name Row */}
               <div className="grid grid-cols-2 gap-x-4 md:gap-x-12 gap-y-12">
                 <div className="space-y-2">
-                  <label className="text-lg font-bold text-primary block">
+                  <label className="  lg:text-lg font-medium text-sm text-primary-dark block">
                     Your Name
                   </label>
                   <input
@@ -94,7 +94,7 @@ export const Contact = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-lg font-bold text-primary-light block">
+                  <label className="lg:text-lg font-medium text-sm text-primary-dark block">
                     Your Name
                   </label>
                   <input
@@ -105,7 +105,7 @@ export const Contact = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-lg font-bold text-primary-light block">
+                <label className="lg:text-lg font-medium text-sm text-primary-dark block">
                   Your Subject
                 </label>
                 <input
@@ -116,15 +116,15 @@ export const Contact = () => {
 
               <div className="space-y-2">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xl font-bold text-primary-light block">
+                  <label className="lg:text-lg font-medium text-sm text-primary-light block">
                     Message
                   </label>
-                  <span className="text-primary font-semibold text-lg">
+                  <span className="text-primary-dark font-medium lg:text-lg text-sm">
                     Write Your message here
                   </span>
                 </div>
                 <textarea
-                  rows={4}
+                  rows={2}
                   className="w-full border-b border-primary/30 focus:border-primary outline-none py-2 text-zinc-700 bg-transparent resize-none transition-all"
                 />
               </div>

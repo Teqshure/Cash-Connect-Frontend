@@ -16,9 +16,9 @@ export const ProductHero = () => {
       background="white"
       className="pt-15 lg:pt-45 pb-12 lg:pb-20 relative overflow-hidden"
     >
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Background Decorations - Anchored to Container */}
-        <div className="absolute top-[-20%] left-0 -translate-x-1/2 w-110 h-110 bg-primary opacity-15 rounded-full blur-[70px] pointer-events-none -z-10" />
+        <div className="absolute top-[-20%] left-0 -translate-x-1/2 lg:w-110 lg:h-110 w-60 h-60 bg-primary opacity-15 rounded-full blur-[70px] pointer-events-none -z-10" />
         {/* <div className="absolute bottom-[-10%] left-0 -translate-x-1/3 w-125 h-125 bg-primary opacity-20 rounded-full blur-[100px] pointer-events-none -z-10" /> */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
           {/* Left: Content */}
@@ -27,10 +27,10 @@ export const ProductHero = () => {
               <span className="text-emerald-500 font-bold tracking-widest uppercase text-xs mb-4 block">
                 Cash Connect
               </span>
-              <h1 className="text-3xl  lg:text-6xl font-bold text-primary-dark tracking-tight leading-tight mb-6">
+              <h1 className="text-lg  lg:text-4xl font-semibold lg:font-bold text-primary-dark tracking-tight leading-tight mb-6">
                 Sell Your Gift Cards Instantly and Securely
               </h1>
-              <p className="lg:text-lg text-md text-primary leading-relaxed font-medium max-w-xl">
+              <p className="lg:text-lg text-[10px] text-primary leading-relaxed font-medium max-w-xl">
                 Get instant value for your unused gift cards. Fast payout, best
                 rates, and 24/7 support.
               </p>
@@ -38,12 +38,12 @@ export const ProductHero = () => {
 
             <div className="flex flex-row items-center gap-4">
               <Link href="/signup">
-                <Button className="rounded-full bg-[#00D67D] hover:bg-emerald-500 text-white font-bold px-10 py-4 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 whitespace-nowrap">
+                <button className="rounded-full bg-primary hover:bg-emerald-500 text-white text-[8px] lg:text-[15px] font-bold lg:px-10 lg:py-4 px-6 py-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 whitespace-nowrap">
                   Sell Now
-                </Button>
+                </button>
               </Link>
               <Link href="/contact">
-                <button className="rounded-full bg-[#007042] px-10 py-4 text-[15px] font-bold text-white hover:bg-[#005a35] transition-all cursor-pointer whitespace-nowrap">
+                <button className="rounded-full bg-primary-dark lg:px-10 lg:py-4 text-[8px] lg:text-[15px] px-6  py-2 font-bold text-white hover:bg-[#005a35] transition-all cursor-pointer whitespace-nowrap">
                   Check Rate
                 </button>
               </Link>

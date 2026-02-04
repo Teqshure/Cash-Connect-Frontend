@@ -20,7 +20,7 @@ export default function SelectCountryPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCountries = COUNTRIES.filter((country) =>
-    country.name.toLowerCase().includes(searchQuery.toLowerCase())
+    country.name.toLowerCase().includes(searchQuery.toLowerCase()),
   ).slice(0, 3);
 
   const selectedCountryCode = selectedCountry
@@ -28,14 +28,9 @@ export default function SelectCountryPage() {
     : null;
 
   return (
-    <div className="space-y-8 shadow-2xl p-4 py-8 rounded-2xl">
+    <div className="space-y-6 w-full">
       <div className="space-y-2 text-center">
-        <div className="flex justify-end mb-4">
-          {/* <button className="flex items-center text-sm font-bold text-primary hover:text-primary-hover transition-colors">
-            English (UK) <span className="ml-1">▼</span>
-          </button> */}
-        </div>
-        <h1 className="text-1xl text-left font-bold tracking-tight text-primary">
+        <h1 className="text-lg lg:text-4xl font-semibold text-left tracking-tight text-primary-dark">
           Select Country
         </h1>
       </div>
@@ -136,12 +131,12 @@ export default function SelectCountryPage() {
         )}
       </div>
 
-      <div className="text-right text-sm pt-8">
-        <p className="text-emerald-700 font-bold">
+      <div className="text-right text-sm pt-4">
+        <p className="text-primary-dark font-normal">
           New User?{" "}
           <Link
             href="/signup"
-            className="font-bold underline decoration-2 decoration-emerald-500/30 underline-offset-4 hover:text-emerald-800"
+            className="font-normal text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
           >
             Sign Up Here
           </Link>

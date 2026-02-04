@@ -33,7 +33,7 @@ export const ProductFeature = ({
       background={backgroundColor as any}
       className="py-12 md:py-20 relative overflow-hidden"
     >
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         <div
           className={`flex flex-col ${
             isImageRight ? "lg:flex-row" : "lg:flex-row-reverse"

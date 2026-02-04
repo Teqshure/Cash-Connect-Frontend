@@ -58,7 +58,7 @@ function ResetPasswordForm() {
           The reset link is invalid or has expired. Please request a new one.
         </p>
         <Link href="/forgot-password">
-          <Button className="mt-4 bg-primary hover:bg-primary-hover text-white rounded-xl px-8">
+          <Button className="mt-4 bg-primary-dark hover:bg-primary-hover text-white rounded-xl px-8">
             Request New Link
           </Button>
         </Link>

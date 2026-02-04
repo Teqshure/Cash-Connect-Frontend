@@ -108,11 +108,11 @@ export const AboutTestimonials = () => {
           <Arrow className="hidden lg:block -scale-y-100 absolute -top-60 rotate-5 left-100  w-[70%] text-emerald-300 pointer-events-none" />
           <Coin2 className="hidden lg:block absolute top-10 left-220" />
           {/* Green Header Block */}
-          <div className="rounded-3xl py-4 px-10 mt-10 inline-block mb-16 shadow-lg w-[60%] relative z-10 bg-linear-to-r from-[#00B86B] to-primary-dark">
+          <div className="rounded-3xl py-4 px-10 mt-10 inline-block mb-16 shadow-lg w-[52%] relative z-10 bg-linear-to-r from-[#00B86B] to-primary-dark">
             <h2 className="text-5xl font-bold text-white">Testimonials</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 lg:gap-x-24 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 lg:gap-x-24 w-[90%]">
             {testimonials.map((item, idx) => (
               <div key={idx} className="flex flex-col gap-8 relative bg-white">
                 <h4 className="text-primary-dark font-bold mb-10 text-sm uppercase tracking-wide">
@@ -140,7 +140,7 @@ export const AboutTestimonials = () => {
                     {item.avatars.map((src, i) => (
                       <div
                         key={i}
-                        className="w-12 h-12 rounded-full border-2 border-white overflow-hidden relative shadow-sm"
+                        className="w-20 h-20 rounded-full border-2 border-white overflow-hidden relative shadow-sm"
                       >
                         <Image
                           src={src}
@@ -151,7 +151,7 @@ export const AboutTestimonials = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="w-9 h-9 rounded-full border border-emerald-400 flex items-center justify-center text-emerald-500 bg-white hover:bg-emerald-50 transition-colors cursor-pointer">
+                  <div className="w-20 h-20 rounded-full border border-emerald-400 flex items-center justify-center text-emerald-500 bg-white hover:bg-emerald-50 transition-colors cursor-pointer">
                     <svg
                       width="14"
                       height="14"

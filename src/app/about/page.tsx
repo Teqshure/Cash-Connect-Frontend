@@ -21,8 +21,8 @@ export default function AboutPage() {
         <Section className="relative pt-10 lg:pt-30 pb-10 overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 relative z-10 ">
             {/* Background Decorations - Anchored to Container */}
-            <div className="absolute top-[-20%] left-[-15%] w-[70%] h-[70%] bg-emerald-100/60 rounded-full blur-[100px] -z-10 pointer-events-none" />
-            <div className="rounded-full bg-primary p-10 w-20 h-20 blur-2xl absolute -left-10 top-1/2 -translate-y-1/2 opacity-60 -z-10 pointer-events-none" />
+            {/* <div className="absolute top-[-20%] left-[-15%] w-[70%] h-[70%] bg-emerald-100/60 rounded-full blur-[100px] -z-10 pointer-events-none" /> */}
+            <div className="rounded-full bg-primary p-10 w-40 h-40 blur-3xl absolute -left-10 top-1/2 -translate-y-1/2 opacity-60 -z-10 pointer-events-none" />
 
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {/* LEFT – higher content */}
@@ -31,20 +31,20 @@ export default function AboutPage() {
                   About Us
                 </p>
 
-                <h1 className="max-w-xl text-md lg:text-3xl  leading-tight text-gray-700 ">
+                <h1 className="max-w-xl text-md lg:text-3xl  font-mediumleading-tight text-gray-500 ">
                   Simplifying digital exchange for everyone, everywhere,
                   anytime.
                 </h1>
 
                 <div className="mt-8">
-                  <button className="rounded-full bg-[#00B86B] px-8 py-5 text-sm font-semibold text-white hover:bg-green-700 transition">
+                  <button className="rounded-full bg-[#00B86B] lg:px-8 px-4 lg:py-5 py-3 text-[12px] lg:text-sm font-normal lgfont-semibold text-white hover:bg-green-700 transition">
                     Get Started
                   </button>
                 </div>
               </div>
 
               {/* RIGHT – pushed downward */}
-              <div className="hidden lg:flex items-end pb-13">
+              <div className="hidden lg:flex ml-auto items-end pb-13">
                 <p className="max-w-md text-base leading-relaxed text-gray-500">
                   Whether you're a crypto trader or a gift card holder, our
                   mission is to make exchanging as simple and rewarding as
@@ -72,7 +72,7 @@ export default function AboutPage() {
 
               <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 max-w-md text-white">
                 <h3 className="mb-2 text-lg font-semibold">Our Story</h3>
-                <p className="text-xs md:text-sm leading-relaxed text-white/90">
+                <p className="text-[10px] lg:text-sm leading-relaxed text-white/90">
                   Our journey began with one goal: to simplify trading, maximize
                   value, and protect users through a platform built on trust,
                   transparency, global access, and reliable support.
@@ -81,22 +81,22 @@ export default function AboutPage() {
             </div>
 
             {/* VISION + MISSION – SAME HEIGHT AS IMAGE */}
-            <div className="grid grid-cols-2 gap-3  lg:flex lg:flex-col lg:h-[580px] lg:gap-6">
-              <div className="flex-1 rounded-3xl bg-green-100 py-20 lg:py-20 px-5 md:p-8">
+            <div className="grid grid-cols-2 gap-3  lg:flex lg:flex-col  lg:h-[580px] lg:gap-6">
+              <div className="flex-1 rounded-3xl bg-green-100 py-10 lg:py-20 px-5 md:p-8">
                 <h3 className="mb-2 md:mb-3 text-base lg:text-lg font-semibold text-green-800">
                   Our Vision
                 </h3>
-                <p className="text-xs md:text-sm leading-relaxed text-green-800/80">
+                <p className="text-[10px] lg:text-sm leading-relaxed text-green-800/80">
                   To lead digital exchange with trust, speed, innovation, and
                   inclusivity everywhere.
                 </p>
               </div>
 
-              <div className="flex-1 rounded-3xl bg-[#00B86B] py-20 lg:py-20 px-5 md:p-8 text-white">
-                <h3 className="mb-2 md:mb-3 text-base lg:text-lg font-semibold">
+              <div className="flex-1 rounded-3xl bg-primary py-10   lg:py-20 px-5 md:p-8 text-white">
+                <h3 className="mb-2 md:mb-3 text-base lg:text-lg  font-semibold">
                   Our Mission
                 </h3>
-                <p className="text-xs md:text-sm leading-relaxed text-white/90">
+                <p className="text-[10px] lg:text-sm leading-relaxed text-white/90">
                   Delivering fast, trusted, and user-first exchange experiences
                   daily.
                 </p>
@@ -115,7 +115,7 @@ export default function AboutPage() {
               Our Services
             </p>
 
-            <h2 className="text-2xl font-semibold mb-5 lg:mb-0 leading-snug text-[#5c5c5c] lg:text-3xl max-w-2xl">
+            <h2 className="text-[15px]  font-normal lg:font-semibold mb-5 lg:mb-0 leading-snug text-[#5c5c5c] lg:text-3xl lg:max-w-2xl">
               Simplifying digital exchange for everyone, everywhere, anytime.
             </h2>
             <Arrow className="hidden lg:block item-center absolute top-[-80%] right-[10%] opacity-80" />

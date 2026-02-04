@@ -6,8 +6,8 @@ import Instagram from "../icons/instagram";
 
 export const Footer = () => {
   return (
-    <footer className="relative mt-10 bg-[#F8FAFE] rounded-t-3xl">
-      <div className="  pt-10 pb-12 relative shadow-sm">
+    <footer className="relative mt-10  ml-[5%] mr-[5%] lg:ml-0 lg:mr-0 rounded-t-3xl bg-[#f8fafe]">
+      <div className="  pt-10 pb-12 relative ">
         <div className="mx-auto max-w-7xl px-8 lg:px-12">
           <div className="grid grid-cols-12 gap-y-12 gap-x-4 lg:gap-8">
             {/* Brand Column - Mobile: 1/2 width (50%), Desktop: 4/12 width (33%) */}

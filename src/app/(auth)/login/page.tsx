@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import Google from "@/components/icons/google";
 import Apple from "@/components/icons/apple";
+import Facebook from "@/components/icons/facebook";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -32,16 +33,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="space-y-8 w-full">
-      <div className="flex justify-end mb-4">
-        <Link href="/select-country">
-          <button className="flex items-center text-sm font-bold text-primary hover:text-primary-hover transition-colors">
-            English (UK) <span className="ml-1">▼</span>
-          </button>
-        </Link>
-      </div>
+    <div className="space-y-8 w-full overflow-hidden">
       <div className="space-y-1">
-        <h1 className="text-4xl font-black text-center tracking-tight text-primary pb-8">
+        <p className="text-gray-500 lg:hidden block text-[8px]">
+          Welcome back!!!
+        </p>
+        <h1 className="text-lg lg:text-4xl font-semibold lg:text-center text-primary-dark lg:mb-8">
           Log In
         </h1>
       </div>
@@ -56,18 +53,18 @@ export default function LoginPage() {
         )}
 
         {/* Desktop: Social Login at Top */}
-        <div className="hidden md:block space-y-4">
-          <div className="flex gap-4">
+        <div className="hidden lg:block space-y-6">
+          <div className="flex gap-6">
             <button
               type="button"
-              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600"
+              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 cursor-pointer"
             >
               <Google className="h-5 w-5" />
               <span className="text-sm">Log In with Google</span>
             </button>
             <button
               type="button"
-              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600"
+              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 cursor-pointer"
             >
               <Apple className="h-5 w-5 text-black" />
               <span className="text-sm">Log In with Apple</span>
@@ -128,7 +125,7 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <Link
               href="/forgot-password"
-              className="text-primary hover:text-primary-hover font-semibold text-xs"
+              className="text-primary hover:text-primary-hover lg:hidden block font-normal text-xs"
             >
               Forgot Password ?
             </Link>
@@ -138,7 +135,7 @@ export default function LoginPage() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 text-base font-semibold rounded-xl bg-primary hover:bg-primary-hover shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
+          className="w-full h-12 text-base font-semibold rounded-xl bg-primary-dark hover:bg-primary-hover shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
@@ -151,25 +148,31 @@ export default function LoginPage() {
         </Button>
 
         {/* Mobile: Social Login at Bottom */}
-        <div className="space-y-4 pt-4 md:hidden">
-          <div className="text-center text-sm font-semibold text-zinc-600">
+        <div className="space-y-4 pt-4 lg:hidden">
+          <div className="text-center text-[10px] font-normal text-zinc-600">
             Continue with
           </div>
           <div className="flex justify-center items-center gap-6">
             <button
               type="button"
-              className="hover:scale-110 transition-transform"
+              className="hover:scale-110 transition-transform cursor-pointer"
+            >
+              <Facebook className="h-6 w-6" />
+            </button>
+            <button
+              type="button"
+              className="hover:scale-110 transition-transform cursor-pointer"
             >
               <Google className="h-5 w-5" />
             </button>
             <button
               type="button"
-              className="hover:scale-110 transition-transform"
+              className="hover:scale-110 transition-transform cursor-pointer"
             >
               <Apple className="h-6 w-6 text-black" />
             </button>
           </div>
-          <p className="text-center text-zinc-600 font-bold text-xs mt-4">
+          <p className="text-center text-primary-dark font-normal text-xs mt-4">
             New User?{" "}
             <Link
               href="/signup"
@@ -181,14 +184,22 @@ export default function LoginPage() {
         </div>
 
         {/* Desktop: New User Link */}
-        <div className="hidden md:block text-center pt-2">
-          <p className="text-center text-zinc-600 font-bold text-xs">
+        <div className="hidden lg:flex pt-3 justify-between items-centermt-6">
+          <p className="text-primary-dark font-bold text-[12px]">
             New User?{" "}
             <Link
               href="/signup"
-              className="font-bold text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
+              className="text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
             >
               Sign Up Here
+            </Link>
+          </p>
+          <p className="text-primary-dark font-bold text-[10px]">
+            <Link
+              href="/forgot-password"
+              className="text-primary hover:text-primary-hover decoration-2 decoration-primary/30 underline-offset-4"
+            >
+              Forget password?
             </Link>
           </p>
         </div>

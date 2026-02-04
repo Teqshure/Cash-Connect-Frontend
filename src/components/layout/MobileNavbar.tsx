@@ -6,6 +6,7 @@ import { useState } from "react";
 import Menu from "../icons/menu";
 import Close from "../icons/close";
 import { Button } from "../ui/Button";
+import Menu2 from "../icons/menu2";
 
 export const MobileNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,7 +21,7 @@ export const MobileNavbar = () => {
   ];
 
   return (
-    <nav className="lg:hidden relative z-50">
+    <nav className="lg:hidden fixed top-0 left-0 right-0 z-100">
       {/* Top Bar - Acts as persistent header */}
       <div className="bg-[#007042] text-white flex items-center justify-between px-4 py-4">
         <Link href="/" className="flex flex-col leading-none group">
@@ -36,7 +37,7 @@ export const MobileNavbar = () => {
               <Close className="w-5 h-5 text-[#007042]" />
             </div>
           ) : (
-            <Menu className="w-6 h-6 text-white" />
+            <Menu2 className="w-6 h-6 text-white" />
           )}
         </button>
       </div>
