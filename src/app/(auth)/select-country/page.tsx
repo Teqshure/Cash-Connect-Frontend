@@ -23,6 +23,10 @@ export default function SelectCountryPage() {
     country.name.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 3);
 
+  const selectedCountryCode = selectedCountry
+    ? COUNTRIES.find((c) => c.name === selectedCountry)?.code
+    : null;
+
   return (
     <div className="space-y-8 shadow-2xl p-4 py-8 rounded-2xl">
       <div className="space-y-2 text-center">
@@ -39,8 +43,23 @@ export default function SelectCountryPage() {
       <div className="relative space-y-4">
         {/* Dropdown Trigger / Search Input */}
         <div className="relative group" onClick={() => setIsOpen(true)}>
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-            <Search className="h-5 w-5" />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 flex items-center justify-center">
+            {selectedCountryCode ? (
+              <div className="w-6 h-4 overflow-hidden rounded-sm shadow-sm border border-zinc-100">
+                <ReactCountryFlag
+                  countryCode={selectedCountryCode}
+                  svg
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                  title={selectedCountry || ""}
+                />
+              </div>
+            ) : (
+              <Search className="h-5 w-5" />
+            )}
           </div>
           <input
             type="text"

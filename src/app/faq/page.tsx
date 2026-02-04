@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Section } from "@/components/ui/Section";
+import { FAQ } from "@/components/sections/FAQ";
 
 export default function FAQPage() {
   return (
@@ -15,6 +16,7 @@ export default function FAQPage() {
             Find answers to common questions about our platform and services.
           </p>
         </Section>
+        <FAQ />
       </main>
       <Footer />
     </div>

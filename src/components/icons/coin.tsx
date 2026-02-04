@@ -10,19 +10,19 @@ const Coin = (props: SVGProps<SVGSVGElement>) => (
     xmlnsXlink="http://www.w3.org/1999/xlink"
     {...props}
   >
-    <g filter="url(#filter0_f_151_179)">
+    <g filter="url(#coin_filter_coin)">
       <rect
         x={11.7}
         y={88.7056}
         width={164.008}
         height={134.592}
         transform="rotate(-28.0034 11.7 88.7056)"
-        fill="url(#pattern0_151_179)"
+        fill="url(#coin_pattern_coin)"
       />
     </g>
     <defs>
       <filter
-        id="filter0_f_151_179"
+        id="coin_filter_coin"
         x={0.0000123978}
         y={0.000195503}
         width={231.4}
@@ -30,31 +30,28 @@ const Coin = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="coin_BackgroundImageFix" />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="BackgroundImageFix"
+          in2="coin_BackgroundImageFix"
           result="shape"
         />
-        <feGaussianBlur
-          stdDeviation={5.85}
-          result="effect1_foregroundBlur_151_179"
-        />
+        <feGaussianBlur stdDeviation={5.85} result="coin_effect_coin_blur" />
       </filter>
       <pattern
-        id="pattern0_151_179"
+        id="coin_pattern_coin"
         patternContentUnits="objectBoundingBox"
         width={1}
         height={1}
       >
         <use
-          xlinkHref="#image0_151_179"
+          xlinkHref="#coin_image_coin"
           transform="matrix(0.00160282 0 0 0.00195312 0.0896772 0)"
         />
       </pattern>
       <image
-        id="image0_151_179"
+        id="coin_image_coin"
         width={512}
         height={512}
         preserveAspectRatio="none"

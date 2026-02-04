@@ -10,18 +10,18 @@ const Cart = (props: SVGProps<SVGSVGElement>) => (
     xmlnsXlink="http://www.w3.org/1999/xlink"
     {...props}
   >
-    <rect width={40} height={40} fill="url(#pattern0_228_1527)" />
+    <rect width={40} height={40} fill="url(#cart_pattern_cart)" />
     <defs>
       <pattern
-        id="pattern0_228_1527"
+        id="cart_pattern_cart"
         patternContentUnits="objectBoundingBox"
         width={1}
         height={1}
       >
-        <use xlinkHref="#image0_228_1527" transform="scale(0.00195312)" />
+        <use xlinkHref="#cart_image_cart" transform="scale(0.00195312)" />
       </pattern>
       <image
-        id="image0_228_1527"
+        id="cart_image_cart"
         width={512}
         height={512}
         preserveAspectRatio="none"

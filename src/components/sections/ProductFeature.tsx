@@ -13,6 +13,7 @@ interface ProductFeatureProps {
   backgroundColor?: string;
   buttonText?: string;
   buttonLink?: string;
+  label?: string;
 }
 
 export const ProductFeature = ({
@@ -23,15 +24,16 @@ export const ProductFeature = ({
   backgroundColor = "white",
   buttonText = "Get Started",
   buttonLink = "/signup",
+  label,
 }: ProductFeatureProps) => {
   const isImageRight = imagePosition === "right";
 
   return (
     <Section
       background={backgroundColor as any}
-      className="py-20 relative overflow-hidden"
+      className="py-12 md:py-20 relative overflow-hidden"
     >
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-4">
         <div
           className={`flex flex-col ${
             isImageRight ? "lg:flex-row" : "lg:flex-row-reverse"
@@ -39,6 +41,11 @@ export const ProductFeature = ({
         >
           {/* Content */}
           <div className="w-full lg:w-1/2 space-y-6">
+            {label && (
+              <span className="text-emerald-500 font-bold tracking-widest uppercase text-xs block mb-2">
+                {label}
+              </span>
+            )}
             <h2 className="text-3xl md:text-4xl font-extrabold text-[#007042] tracking-tight leading-tight">
               {title}
             </h2>

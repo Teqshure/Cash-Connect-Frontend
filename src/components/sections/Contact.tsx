@@ -10,120 +10,127 @@ const heroImage = require("../../../public/images/gift-card-right.png");
 
 export const Contact = () => {
   return (
-    <Section background="white" className="py-24 relative overflow-hidden">
-      {/* Background Decorations */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] bg-emerald-50/60 rounded-full blur-[100px]" />
-      </div>
-
-      <div className="container w-full relative z-10">
-        <div className="flex w-full flex-col lg:flex-row  justify-between">
-          <div className="mb-16">
-            <span className="text-emerald-500 font-bold tracking-widest uppercase text-xs mb-3 block">
-              Get in Touch
+    <Section
+      background="white"
+      className="py-34 relative pt-15 lg:pt-40 overflow-hidden"
+    >
+      <div className="container w-full relative z-10 max-w-6xl">
+        {/* Background Decorations - Anchored to Container */}
+        <div className="absolute top-[-15%] left-[-20%] w-150 h-150 bg-primary opacity-15 rounded-full blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute bottom-[3%] right-[-10%] w-125 h-125 bg-primary opacity-15 rounded-full blur-[100px] pointer-events-none -z-10" />
+        <div className="flex w-full flex-col lg:flex-row justify-between mb-16">
+          <div>
+            <span className="text-primary font-bold tracking-widest uppercase text-xs mb-3 block">
+              Contact Us
             </span>
-            <h2 className="text-2xl md:text-3xl font-light text-gray-800  tracking-tight leading-tight max-w-2xl">
+            <h2 className="text-2xl md:text-3xl font-light text-gray-800 tracking-tight leading-tight max-w-xl">
               Simplifying digital exchange for everyone, everywhere, anytime.
             </h2>
           </div>
-          <Image src={heroImage} alt="Hero" width={200} height={200} />
+          <div className="hidden lg:block px-40 relative -top-10">
+            <Image
+              src={heroImage}
+              alt="Hero"
+              width={200}
+              height={200}
+              className="object-contain"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-20">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-20 items-start">
           {/* Left: Contact Info Card - Green */}
-          <div className="w-full lg:w-[40%] bg-gradient-to-br from-[#00D67D] to-[#007042] rounded-[2.5rem] p-12 text-white relative overflow-hidden flex flex-col justify-between min-h-[550px] shadow-2xl shadow-emerald-500/20">
+          <div className="w-full lg:w-[40%] bg-primary-dark rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden flex flex-col justify-center min-h-137.5 ">
             {/* Background Decoration */}
-            <div className="absolute bottom-[-100px] right-[-100px] w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute top-[-50px] left-[-50px] w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+            <div className="absolute -bottom-25 -right-25 w-80 h-80 bg-[#00E096] rounded-full p-2 opacity-60 blur-3xl pointer-events-none" />
 
-            <div className="relative z-10">
-              <h3 className="text-2xl font-bold mb-4">Contact Information</h3>
-              <p className="text-emerald-50 font-medium mb-12 leading-relaxed">
-                Fill up the form and our Team will get back to you within 24
-                hours.
+            <div className="  mb-10 pl-2">
+              <span className="text-primary-light text-sm font-medium mb-14 block">
+                Cash Connect
+              </span>
+              <h3 className=" text-2xl font-semibold mb-6">
+                Contact Information
+              </h3>
+              <p className="text-emerald-50 font-normal mb-12 leading-relaxed opacity-90 text-base max-w-xs">
+                We'll create high-quality linkable content and build
               </p>
 
-              <div className="space-y-8">
-                <div className="flex items-start gap-4">
-                  <Phone className="w-6 h-6 text-white mt-1" />
-                  <div className="text-emerald-50 font-medium">
-                    <p>+234 816 718 245</p>
-                    <p>+234 908 178 345</p>
+              <div className="space-y-8 mt-12">
+                <div className="flex items-start gap-5">
+                  <Phone className="w-6 h-6 text-white mt-1 shrink-0" />
+                  <div className="text-white font-small text-base">
+                    <p>+23489876345</p>
+                    <p>+23489876345</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <Mail className="w-6 h-6 text-white mt-1" />
-                  <div className="text-emerald-50 font-medium">
-                    <p>hello.cashconnect@gmail.com</p>
+                <div className="flex items-center gap-5">
+                  <Mail className="w-6 h-6 text-white shrink-0" />
+                  <div className="text-white font-medium text-base">
+                    <p>flawlesssocials@gmail.com</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <MapPin className="w-6 h-6 text-white mt-1" />
-                  <div className="text-emerald-50 font-medium">
+                <div className="flex items-center gap-5">
+                  <MapPin className="w-6 h-6 text-white shrink-0" />
+                  <div className="text-white font-medium text-base">
                     <p>University of Nigeria Nsukka</p>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Social Icons placeholders */}
-            <div className="flex gap-4 mt-auto relative z-10">
-              {/* Add social icons if needed */}
-            </div>
           </div>
 
           {/* Right: Contact Form */}
-          <div className="w-full lg:w-[60%]rounded-[2.5rem] p-10 md:p-12 ">
-            <form className="space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-[#007042] uppercase tracking-widest block">
+          <div className="w-full lg:w-[60%] lg:pl-10 pt-4">
+            <form className="space-y-12">
+              {/* Name Row */}
+              <div className="grid grid-cols-2 gap-x-4 md:gap-x-12 gap-y-12">
+                <div className="space-y-2">
+                  <label className="text-lg font-bold text-primary block">
                     Your Name
                   </label>
                   <input
                     type="text"
-                    className="w-full border-b-2 border-emerald-200 focus:border-[#00D67D] outline-none py-3 text-zinc-700 bg-transparent transition-all placeholder:text-zinc-400 font-medium"
-                    placeholder="John Doe"
+                    className="w-full border-b border-primary/30 focus:border-primary outline-none py-2 text-zinc-700 bg-transparent transition-all placeholder:text-transparent"
                   />
                 </div>
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-[#007042] uppercase tracking-widest block">
-                    Your Phone
+                <div className="space-y-2">
+                  <label className="text-lg font-bold text-primary-light block">
+                    Your Name
                   </label>
                   <input
-                    type="tel"
-                    className="w-full border-b-2 border-emerald-200 focus:border-[#00D67D] outline-none py-3 text-zinc-700 bg-transparent transition-all placeholder:text-zinc-400 font-medium"
-                    placeholder="+123 456 7890"
+                    type="text"
+                    className="w-full border-b border-primary/30 focus:border-primary outline-none py-2 text-zinc-700 bg-transparent transition-all placeholder:text-transparent"
                   />
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-[#007042] uppercase tracking-widest block">
+              <div className="space-y-2">
+                <label className="text-lg font-bold text-primary-light block">
                   Your Subject
                 </label>
                 <input
                   type="text"
-                  className="w-full border-b-2 border-emerald-200 focus:border-[#00D67D] outline-none py-3 text-zinc-700 bg-transparent transition-all placeholder:text-zinc-400 font-medium"
-                  placeholder="Trading Inquiry"
+                  className="w-full border-b border-primary/30 focus:border-primary outline-none py-2 text-zinc-700 bg-transparent transition-all placeholder:text-transparent"
                 />
               </div>
 
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-[#007042] uppercase tracking-widest block">
-                  Message
-                </label>
+              <div className="space-y-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xl font-bold text-primary-light block">
+                    Message
+                  </label>
+                  <span className="text-primary font-semibold text-lg">
+                    Write Your message here
+                  </span>
+                </div>
                 <textarea
-                  rows={5}
-                  className="w-full border-b-2 border-emerald-200 focus:border-[#00D67D] outline-none py-3 text-zinc-700 bg-transparent resize-none transition-all placeholder:text-zinc-400 font-medium"
-                  placeholder="Write your message here..."
+                  rows={4}
+                  className="w-full border-b border-primary/30 focus:border-primary outline-none py-2 text-zinc-700 bg-transparent resize-none transition-all"
                 />
               </div>
 
-              <div className="pt-6">
-                <Button className="rounded-full bg-gradient-to-r from-[#00D67D] to-[#007042] hover:shadow-2xl hover:shadow-emerald-500/30 text-white font-bold px-12 py-4 shadow-xl shadow-emerald-500/20 w-auto transition-all hover:scale-105">
+              <div className="pt-4">
+                <Button className="rounded-full bg-[#00B86B] hover:bg-primary-dark text-white font-semibold px-8 py-3 w-fit text-sm border-none shadow-none">
                   Send Message
                 </Button>
               </div>

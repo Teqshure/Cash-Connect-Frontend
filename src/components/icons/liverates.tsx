@@ -9,7 +9,7 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g filter="url(#filter0_d_95_3748)">
+    <g filter="url(#liverate_filter0_d_95_3748)">
       <rect
         x={50}
         y={30}
@@ -25,7 +25,7 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
       d="M84.474 79.056V82.07H80.382V94.5H76.62V82.07H72.528V79.056H84.474ZM89.904 84.27C90.344 83.5953 90.894 83.0673 91.554 82.686C92.214 82.29 92.9474 82.092 93.754 82.092V86.074H92.72C91.7814 86.074 91.0774 86.2793 90.608 86.69C90.1387 87.086 89.904 87.79 89.904 88.802V94.5H86.142V82.224H89.904V84.27ZM94.5842 88.34C94.5842 87.0787 94.8189 85.9713 95.2882 85.018C95.7722 84.0647 96.4249 83.3313 97.2462 82.818C98.0675 82.3047 98.9842 82.048 99.9962 82.048C100.862 82.048 101.617 82.224 102.262 82.576C102.922 82.928 103.428 83.39 103.78 83.962V82.224H107.542V94.5H103.78V92.762C103.414 93.334 102.9 93.796 102.24 94.148C101.595 94.5 100.84 94.676 99.9742 94.676C98.9769 94.676 98.0675 94.4193 97.2462 93.906C96.4249 93.378 95.7722 92.6373 95.2882 91.684C94.8189 90.716 94.5842 89.6013 94.5842 88.34ZM103.78 88.362C103.78 87.4233 103.516 86.6827 102.988 86.14C102.475 85.5973 101.844 85.326 101.096 85.326C100.348 85.326 99.7102 85.5973 99.1822 86.14C98.6689 86.668 98.4122 87.4013 98.4122 88.34C98.4122 89.2787 98.6689 90.0267 99.1822 90.584C99.7102 91.1267 100.348 91.398 101.096 91.398C101.844 91.398 102.475 91.1267 102.988 90.584C103.516 90.0413 103.78 89.3007 103.78 88.362ZM117.524 82.092C118.961 82.092 120.105 82.5613 120.956 83.5C121.821 84.424 122.254 85.7 122.254 87.328V94.5H118.514V87.834C118.514 87.0127 118.301 86.3747 117.876 85.92C117.451 85.4653 116.879 85.238 116.16 85.238C115.441 85.238 114.869 85.4653 114.444 85.92C114.019 86.3747 113.806 87.0127 113.806 87.834V94.5H110.044V82.224H113.806V83.852C114.187 83.3093 114.701 82.884 115.346 82.576C115.991 82.2533 116.717 82.092 117.524 82.092ZM129.642 94.676C128.571 94.676 127.618 94.4927 126.782 94.126C125.946 93.7593 125.286 93.2607 124.802 92.63C124.318 91.9847 124.047 91.266 123.988 90.474H127.706C127.75 90.8993 127.948 91.244 128.3 91.508C128.652 91.772 129.085 91.904 129.598 91.904C130.067 91.904 130.427 91.816 130.676 91.64C130.94 91.4493 131.072 91.2073 131.072 90.914C131.072 90.562 130.889 90.3053 130.522 90.144C130.155 89.968 129.561 89.7773 128.74 89.572C127.86 89.3667 127.127 89.154 126.54 88.934C125.953 88.6993 125.447 88.34 125.022 87.856C124.597 87.3573 124.384 86.69 124.384 85.854C124.384 85.15 124.575 84.512 124.956 83.94C125.352 83.3533 125.924 82.8913 126.672 82.554C127.435 82.2167 128.337 82.048 129.378 82.048C130.918 82.048 132.128 82.4293 133.008 83.192C133.903 83.9547 134.416 84.9667 134.548 86.228H131.072C131.013 85.8027 130.823 85.4653 130.5 85.216C130.192 84.9667 129.781 84.842 129.268 84.842C128.828 84.842 128.491 84.93 128.256 85.106C128.021 85.2673 127.904 85.4947 127.904 85.788C127.904 86.14 128.087 86.404 128.454 86.58C128.835 86.756 129.422 86.932 130.214 87.108C131.123 87.3427 131.864 87.5773 132.436 87.812C133.008 88.032 133.507 88.3987 133.932 88.912C134.372 89.4107 134.599 90.0853 134.614 90.936C134.614 91.6547 134.409 92.3 133.998 92.872C133.602 93.4293 133.023 93.8693 132.26 94.192C131.512 94.5147 130.639 94.676 129.642 94.676ZM135.948 88.34C135.948 87.0787 136.182 85.9713 136.652 85.018C137.136 84.0647 137.788 83.3313 138.61 82.818C139.431 82.3047 140.348 82.048 141.36 82.048C142.225 82.048 142.98 82.224 143.626 82.576C144.286 82.928 144.792 83.39 145.144 83.962V82.224H148.906V94.5H145.144V92.762C144.777 93.334 144.264 93.796 143.604 94.148C142.958 94.5 142.203 94.676 141.338 94.676C140.34 94.676 139.431 94.4193 138.61 93.906C137.788 93.378 137.136 92.6373 136.652 91.684C136.182 90.716 135.948 89.6013 135.948 88.34ZM145.144 88.362C145.144 87.4233 144.88 86.6827 144.352 86.14C143.838 85.5973 143.208 85.326 142.46 85.326C141.712 85.326 141.074 85.5973 140.546 86.14C140.032 86.668 139.776 87.4013 139.776 88.34C139.776 89.2787 140.032 90.0267 140.546 90.584C141.074 91.1267 141.712 91.398 142.46 91.398C143.208 91.398 143.838 91.1267 144.352 90.584C144.88 90.0413 145.144 89.3007 145.144 88.362ZM150.659 88.362C150.659 87.086 150.916 85.9713 151.429 85.018C151.957 84.0647 152.683 83.3313 153.607 82.818C154.546 82.3047 155.617 82.048 156.819 82.048C158.359 82.048 159.643 82.4513 160.669 83.258C161.711 84.0647 162.393 85.2013 162.715 86.668H158.711C158.374 85.7293 157.721 85.26 156.753 85.26C156.064 85.26 155.514 85.5313 155.103 86.074C154.693 86.602 154.487 87.3647 154.487 88.362C154.487 89.3593 154.693 90.1293 155.103 90.672C155.514 91.2 156.064 91.464 156.753 91.464C157.721 91.464 158.374 90.9947 158.711 90.056H162.715C162.393 91.4933 161.711 92.6227 160.669 93.444C159.628 94.2653 158.345 94.676 156.819 94.676C155.617 94.676 154.546 94.4193 153.607 93.906C152.683 93.3927 151.957 92.6593 151.429 91.706C150.916 90.7527 150.659 89.638 150.659 88.362ZM171.35 91.31V94.5H169.436C168.072 94.5 167.008 94.17 166.246 93.51C165.483 92.8353 165.102 91.7427 165.102 90.232V85.348H163.606V82.224H165.102V79.232H168.864V82.224H171.328V85.348H168.864V90.276C168.864 90.6427 168.952 90.9067 169.128 91.068C169.304 91.2293 169.597 91.31 170.008 91.31H171.35ZM175.117 80.948C174.457 80.948 173.914 80.7573 173.489 80.376C173.078 79.98 172.873 79.496 172.873 78.924C172.873 78.3373 173.078 77.8533 173.489 77.472C173.914 77.076 174.457 76.878 175.117 76.878C175.762 76.878 176.29 77.076 176.701 77.472C177.126 77.8533 177.339 78.3373 177.339 78.924C177.339 79.496 177.126 79.98 176.701 80.376C176.29 80.7573 175.762 80.948 175.117 80.948ZM176.987 82.224V94.5H173.225V82.224H176.987ZM185.081 94.676C183.879 94.676 182.793 94.4193 181.825 93.906C180.872 93.3927 180.117 92.6593 179.559 91.706C179.017 90.7527 178.745 89.638 178.745 88.362C178.745 87.1007 179.024 85.9933 179.581 85.04C180.139 84.072 180.901 83.3313 181.869 82.818C182.837 82.3047 183.923 82.048 185.125 82.048C186.328 82.048 187.413 82.3047 188.381 82.818C189.349 83.3313 190.112 84.072 190.669 85.04C191.227 85.9933 191.505 87.1007 191.505 88.362C191.505 89.6233 191.219 90.738 190.647 91.706C190.09 92.6593 189.32 93.3927 188.337 93.906C187.369 94.4193 186.284 94.676 185.081 94.676ZM185.081 91.42C185.8 91.42 186.409 91.156 186.907 90.628C187.421 90.1 187.677 89.3447 187.677 88.362C187.677 87.3793 187.428 86.624 186.929 86.096C186.445 85.568 185.844 85.304 185.125 85.304C184.392 85.304 183.783 85.568 183.299 86.096C182.815 86.6093 182.573 87.3647 182.573 88.362C182.573 89.3447 182.808 90.1 183.277 90.628C183.761 91.156 184.363 91.42 185.081 91.42ZM200.761 82.092C202.199 82.092 203.343 82.5613 204.193 83.5C205.059 84.424 205.491 85.7 205.491 87.328V94.5H201.751V87.834C201.751 87.0127 201.539 86.3747 201.113 85.92C200.688 85.4653 200.116 85.238 199.397 85.238C198.679 85.238 198.107 85.4653 197.681 85.92C197.256 86.3747 197.043 87.0127 197.043 87.834V94.5H193.281V82.224H197.043V83.852C197.425 83.3093 197.938 82.884 198.583 82.576C199.229 82.2533 199.955 82.092 200.761 82.092Z"
       fill="#007A4D"
     />
-    <g filter="url(#filter1_d_95_3748)">
+    <g filter="url(#liverate_filter1_d_95_3748)">
       <rect
         x={313.5}
         y={68.5}
@@ -272,7 +272,7 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
       fill="#007A4D"
     />
     <rect x={429} y={30} width={726} height={549} rx={20} fill="#FCFCFC" />
-    <g filter="url(#filter2_d_95_3748)">
+    <g filter="url(#liverate_filter2_d_95_3748)">
       <rect
         x={981.5}
         y={69.5}
@@ -371,7 +371,7 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
       fillRule="evenodd"
       clipRule="evenodd"
       d="M528 469L528 273.995L528 211L528 215.221L536 239.098L544 259.704L559.5 211L570.143 308.339L576.163 328.669L582.184 326.631L588.204 348.873L594.225 293.545L600.245 288.261L606.265 281.116L612.286 304.741L618.306 272.008L624.327 259.704L630.347 236.607L636.367 215.221L642.388 215.724L648.408 239.098L654.429 233.135L660.134 211.533L667.622 255.777L675.111 229.124L678.51 216.907L684.531 241.589L690.551 267.227L696.571 313.246L702.592 335.034L708.612 318.127L714.633 313.95L720.653 344.545L726.673 341.878L732.694 324.014L738.714 323.612L744.735 358.283L750.755 381.48L756.775 385.355L762.796 385.28L768.816 429.99L774.837 405.66L780.857 446.998L786.878 456.207L792.898 434.443L798.918 454.32L804.939 450.244L810.959 413.484L816.98 421.737L823 417.334L829.02 443.45L835.041 440.431L841.061 434.292L847.082 455.276L853.102 436.179L859.122 449.162L865.143 424.781L871.163 411.723L877.184 408.352L883.204 389.632L889.224 381.556L895.245 398.992L901.265 348.017L907.286 364.472L913.306 365.529L919.327 312.944L925.347 319.913L931.367 293.168L937.388 277.015L943.408 248.634L949.429 244.357L955.449 223.7L961.469 238.545L967.49 293.52L973.51 284.789L979.531 289.318L985.551 309.547L991.571 315.837L997.592 348.646L1003.61 337.047L1009.63 319.183L1015.65 284.714L1021.67 343.413L1027.69 349.929L1033.71 353.829L1039.73 343.69L1045.76 347.438L1051.78 346.759L1057.8 356.773L1063.82 354.509L1069.84 352.974L1075.86 352.647L1081.88 363.491L1087.9 348.722L1093.92 369.026L1099.94 392.098L1105.96 394.086L1111.98 369.957L1118 388.978V469"
-      fill="url(#paint0_linear_95_3748)"
+      fill="url(#liverate_paint0_linear_95_3748)"
     />
     <path
       d="M528 469L528 273.995L528 211L528 215.221L536 239.098L544 259.704L559.5 211L570.143 308.339L576.163 328.669L582.184 326.631L588.204 348.873L594.225 293.545L600.245 288.261L606.265 281.116L612.286 304.741L618.306 272.008L624.327 259.704L630.347 236.607L636.367 215.221L642.388 215.724L648.408 239.098L654.429 233.135L660.134 211.533L667.622 255.777L675.111 229.124L678.51 216.907L684.531 241.589L690.551 267.227L696.571 313.246L702.592 335.034L708.612 318.127L714.633 313.95L720.653 344.545L726.673 341.878L732.694 324.014L738.714 323.612L744.735 358.283L750.755 381.48L756.775 385.355L762.796 385.28L768.816 429.99L774.837 405.66L780.857 446.998L786.878 456.207L792.898 434.443L798.918 454.32L804.939 450.244L810.959 413.484L816.98 421.737L823 417.334L829.02 443.45L835.041 440.431L841.061 434.292L847.082 455.276L853.102 436.179L859.122 449.162L865.143 424.781L871.163 411.723L877.184 408.352L883.204 389.632L889.224 381.556L895.245 398.992L901.265 348.017L907.286 364.472L913.306 365.529L919.327 312.944L925.347 319.913L931.367 293.168L937.388 277.015L943.408 248.634L949.429 244.357L955.449 223.7L961.469 238.545L967.49 293.52L973.51 284.789L979.531 289.318L985.551 309.547L991.571 315.837L997.592 348.646L1003.61 337.047L1009.63 319.183L1015.65 284.714L1021.67 343.413L1027.69 349.929L1033.71 353.829L1039.73 343.69L1045.76 347.438L1051.78 346.759L1057.8 356.773L1063.82 354.509L1069.84 352.974L1075.86 352.647L1081.88 363.491L1087.9 348.722L1093.92 369.026L1099.94 392.098L1105.96 394.086L1111.98 369.957L1118 388.978V469"
@@ -425,7 +425,7 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
     />
     <rect x={520} y={182} width={11} height={293} rx={5.5} fill="#F9F9F9" />
     <rect x={1112} y={355} width={9} height={119} rx={4.5} fill="#F9F9F9" />
-    <g filter="url(#filter3_d_95_3748)">
+    <g filter="url(#liverate_filter3_d_95_3748)">
       <rect
         x={970}
         y={159}
@@ -440,15 +440,15 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         fill="black"
       />
     </g>
-    <g filter="url(#filter4_d_95_3748)">
+    <g filter="url(#liverate_filter4_d_95_3748)">
       <circle cx={956} cy={224} r={9} fill="white" />
     </g>
-    <g filter="url(#filter5_d_95_3748)">
+    <g filter="url(#liverate_filter5_d_95_3748)">
       <circle cx={956} cy={224} r={7} fill="#E19334" />
     </g>
     <defs>
       <filter
-        id="filter0_d_95_3748"
+        id="liverate_filter0_d_95_3748"
         x={0}
         y={0}
         width={455}
@@ -456,34 +456,34 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="liverate_BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
+          result="liverate_hardAlpha"
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={25} />
-        <feComposite in2="hardAlpha" operator="out" />
+        <feComposite in2="liverate_hardAlpha" operator="out" />
         <feColorMatrix
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0"
         />
         <feBlend
           mode="normal"
-          in2="BackgroundImageFix"
-          result="effect1_dropShadow_95_3748"
+          in2="liverate_BackgroundImageFix"
+          result="liverate_effect1_dropShadow_95_3748"
         />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="effect1_dropShadow_95_3748"
-          result="shape"
+          in2="liverate_effect1_dropShadow_95_3748"
+          result="liverate_shape"
         />
       </filter>
       <filter
-        id="filter1_d_95_3748"
+        id="liverate_filter1_d_95_3748"
         x={263}
         y={38}
         width={195}
@@ -491,34 +491,34 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="liverate_BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
+          result="liverate_hardAlpha"
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={25} />
-        <feComposite in2="hardAlpha" operator="out" />
+        <feComposite in2="liverate_hardAlpha" operator="out" />
         <feColorMatrix
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.09 0"
         />
         <feBlend
           mode="normal"
-          in2="BackgroundImageFix"
-          result="effect1_dropShadow_95_3748"
+          in2="liverate_BackgroundImageFix"
+          result="liverate_effect1_dropShadow_95_3748"
         />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="effect1_dropShadow_95_3748"
-          result="shape"
+          in2="liverate_effect1_dropShadow_95_3748"
+          result="liverate_shape"
         />
       </filter>
       <filter
-        id="filter2_d_95_3748"
+        id="liverate_filter2_d_95_3748"
         x={931}
         y={39}
         width={241}
@@ -526,34 +526,34 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="liverate_BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
+          result="liverate_hardAlpha"
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={25} />
-        <feComposite in2="hardAlpha" operator="out" />
+        <feComposite in2="liverate_hardAlpha" operator="out" />
         <feColorMatrix
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.09 0"
         />
         <feBlend
           mode="normal"
-          in2="BackgroundImageFix"
-          result="effect1_dropShadow_95_3748"
+          in2="liverate_BackgroundImageFix"
+          result="liverate_effect1_dropShadow_95_3748"
         />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="effect1_dropShadow_95_3748"
-          result="shape"
+          in2="liverate_effect1_dropShadow_95_3748"
+          result="liverate_shape"
         />
       </filter>
       <filter
-        id="filter3_d_95_3748"
+        id="liverate_filter3_d_95_3748"
         x={920}
         y={129}
         width={224}
@@ -561,34 +561,34 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="liverate_BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
+          result="liverate_hardAlpha"
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={25} />
-        <feComposite in2="hardAlpha" operator="out" />
+        <feComposite in2="liverate_hardAlpha" operator="out" />
         <feColorMatrix
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0"
         />
         <feBlend
           mode="normal"
-          in2="BackgroundImageFix"
-          result="effect1_dropShadow_95_3748"
+          in2="liverate_BackgroundImageFix"
+          result="liverate_effect1_dropShadow_95_3748"
         />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="effect1_dropShadow_95_3748"
-          result="shape"
+          in2="liverate_effect1_dropShadow_95_3748"
+          result="liverate_shape"
         />
       </filter>
       <filter
-        id="filter4_d_95_3748"
+        id="liverate_filter4_d_95_3748"
         x={897}
         y={185}
         width={118}
@@ -596,34 +596,34 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="liverate_BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
+          result="liverate_hardAlpha"
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={25} />
-        <feComposite in2="hardAlpha" operator="out" />
+        <feComposite in2="liverate_hardAlpha" operator="out" />
         <feColorMatrix
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0"
         />
         <feBlend
           mode="normal"
-          in2="BackgroundImageFix"
-          result="effect1_dropShadow_95_3748"
+          in2="liverate_BackgroundImageFix"
+          result="liverate_effect1_dropShadow_95_3748"
         />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="effect1_dropShadow_95_3748"
-          result="shape"
+          in2="liverate_effect1_dropShadow_95_3748"
+          result="liverate_shape"
         />
       </filter>
       <filter
-        id="filter5_d_95_3748"
+        id="liverate_filter5_d_95_3748"
         x={899}
         y={187}
         width={114}
@@ -631,34 +631,34 @@ const Liverate = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="liverate_BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-          result="hardAlpha"
+          result="liverate_hardAlpha"
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={25} />
-        <feComposite in2="hardAlpha" operator="out" />
+        <feComposite in2="liverate_hardAlpha" operator="out" />
         <feColorMatrix
           type="matrix"
           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0"
         />
         <feBlend
           mode="normal"
-          in2="BackgroundImageFix"
-          result="effect1_dropShadow_95_3748"
+          in2="liverate_BackgroundImageFix"
+          result="liverate_effect1_dropShadow_95_3748"
         />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="effect1_dropShadow_95_3748"
-          result="shape"
+          in2="liverate_effect1_dropShadow_95_3748"
+          result="liverate_shape"
         />
       </filter>
       <linearGradient
-        id="paint0_linear_95_3748"
+        id="liverate_paint0_linear_95_3748"
         x1={823}
         y1={135.839}
         x2={823}

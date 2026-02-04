@@ -10,7 +10,7 @@ const Apple = (props: SVGProps<SVGSVGElement>) => (
     {...props}
   >
     <mask
-      id="mask0_214_1607"
+      id="apple_mask0_214_1607_unique"
       style={{
         maskType: "luminance",
       }}
@@ -22,7 +22,7 @@ const Apple = (props: SVGProps<SVGSVGElement>) => (
     >
       <rect width={16.5} height={21} fill="white" />
     </mask>
-    <g mask="url(#mask0_214_1607)">
+    <g mask="url(#apple_mask0_214_1607_unique)">
       <path
         fillRule="evenodd"
         clipRule="evenodd"

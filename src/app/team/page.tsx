@@ -9,10 +9,8 @@ export default function TeamPage() {
     <div className="flex min-h-screen flex-col bg-white font-sans text-zinc-900">
       <Navbar />
       <main className="grow ">
-        {" "}
-        {/* Added pt-20 to account for fixed navbar */}
         <Team />
-        <Services />
+        <Services isTeamPage />
         <CallToAction />
       </main>
       <Footer />

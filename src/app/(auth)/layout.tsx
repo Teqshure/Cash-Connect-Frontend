@@ -16,15 +16,14 @@ export default function AuthLayout({
   const isSelectCountry = pathname?.includes("select-country");
 
   return (
-    <div className="flex min-h-screen w-full font-sans">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full font-sans">
       <MobileNavbar />
       {/* Left Side - Visual & Branding */}
       <div
-        className={`hidden lg:flex lg:w-1/2 flex-col relative overflow-hidden transition-all duration-500 ease-in-out ${
-          isSelectCountry
+        className={`hidden lg:flex lg:w-1/2 flex-col relative overflow-hidden transition-all duration-500 ease-in-out ${isSelectCountry
             ? "justify-end items-start p-12 bg-black"
             : "justify-center items-center bg-[#E8F5E9] p-12"
-        }`}
+          }`}
       >
         {isSelectCountry ? (
           <>
@@ -61,12 +60,8 @@ export default function AuthLayout({
       </div>
 
       {/* Right Side - Forms */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 pt-24 sm:p-12 lg:p-20 bg-white">
-        {isSelectCountry && (
-          <div className="absolute top-8 right-8 text-sm text-zinc-500">
-            register &gt;
-          </div>
-        )}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 pt-10 sm:pt-24 sm:p-12 lg:p-20 bg-white relative">
+
         <div className="w-full max-w-md">{children}</div>
       </div>
     </div>

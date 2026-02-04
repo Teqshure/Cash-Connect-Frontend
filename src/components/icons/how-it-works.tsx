@@ -18,7 +18,7 @@ const Howitworks = (props: SVGProps<SVGSVGElement>) => (
       fill="#EFEFEF"
     />
     <circle cx={886.5} cy={82} r={9} fill="#00E096" />
-    <g filter="url(#filter0_f_0_1)">
+    <g filter="url(#how_it_works_filter0_f_0_1)">
       <circle cx={756.5} cy={330} r={80} fill="#D9D9D9" />
     </g>
     <path
@@ -41,7 +41,7 @@ const Howitworks = (props: SVGProps<SVGSVGElement>) => (
     />
     <defs>
       <filter
-        id="filter0_f_0_1"
+        id="how_it_works_filter0_f_0_1"
         x={426.5}
         y={0}
         width={660}
@@ -49,16 +49,16 @@ const Howitworks = (props: SVGProps<SVGSVGElement>) => (
         filterUnits="userSpaceOnUse"
         colorInterpolationFilters="sRGB"
       >
-        <feFlood floodOpacity={0} result="BackgroundImageFix" />
+        <feFlood floodOpacity={0} result="how_it_works_BackgroundImageFix" />
         <feBlend
           mode="normal"
           in="SourceGraphic"
-          in2="BackgroundImageFix"
-          result="shape"
+          in2="how_it_works_BackgroundImageFix"
+          result="how_it_works_shape"
         />
         <feGaussianBlur
           stdDeviation={125}
-          result="effect1_foregroundBlur_0_1"
+          result="how_it_works_effect1_foregroundBlur_0_1"
         />
       </filter>
     </defs>

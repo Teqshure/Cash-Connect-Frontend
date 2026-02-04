@@ -20,45 +20,42 @@ export const Navbar = () => {
           <div className="flex items-center gap-10">
             <Link
               href="/about"
-              className="text-[15px] font-thin text-primary/80 hover:text-primary transition-colors"
+              className="text-[15px] font-bold text-primary/80 hover:text-primary transition-colors"
             >
               About Us
             </Link>
             <Link
               href="/contact"
-              className="text-[15px] font-semibold text-primary/80 hover:text-primary transition-colors"
+              className="text-[15px] font-bold text-primary/80 hover:text-primary transition-colors"
             >
-              contact
+              Contact
             </Link>
             <div className="group relative flex items-center gap-1 cursor-pointer">
               <Link href="/products">
-                <span className="text-[15px] font-semibold text-primary/80 group-hover:text-primary transition-colors">
+                <span className="text-[15px] font-bold text-primary/80 group-hover:text-primary transition-colors">
                   Products
                 </span>
               </Link>
-              <span className="text-[10px] text-primary/60 group-hover:text-primary transition-colors">
+              {/* <span className="text-[10px] text-primary/60 group-hover:text-primary transition-colors">
                 ▼
-              </span>
-            </div>
-            <div className="group relative flex items-center gap-1 cursor-pointer">
-              <span className="text-[15px] font-semibold text-primary/80 group-hover:text-primary transition-colors">
-                Resources
-              </span>
-              <span className="text-[10px] text-primary/60 group-hover:text-primary transition-colors">
-                ▼
-              </span>
+              </span> */}
             </div>
             <Link
               href="/team"
-              className="text-[15px] font-semibold text-primary/80 hover:text-primary transition-colors"
+              className="text-[15px] font-bold text-primary/80 hover:text-primary transition-colors"
             >
               Our Team
             </Link>
           </div>
+            {/* <div className="group relative flex items-center gap-1 cursor-pointer">
+              <span className="text-[15px] font-bold text-primary/80 group-hover:text-primary transition-colors">
+                Resources
+              </span>
+            </div> */}
 
           <div className="flex items-center gap-4">
             <Link href="/login">
-              <button className="rounded-full border border-primary/20 px-6 py-2.5 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-all">
+              <button className="rounded-full border border-primary/20 px-6 py-2.5 text-[15px] font-semibold text-primary hover:bg-primary/5 transition-all cursor-pointer">
                 Sign In
               </button>
             </Link>

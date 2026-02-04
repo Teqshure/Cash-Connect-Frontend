@@ -4,7 +4,7 @@ import { CallToAction } from "@/components/sections/CallToAction";
 import { Hero } from "@/components/sections/Hero";
 import { LiveRates } from "@/components/sections/LiveRates";
 import { Process } from "@/components/sections/Process";
-import { Services } from "@/components/sections/Services";
+import { LandingServices } from "@/components/sections/LandingServices";
 import { Stats } from "@/components/sections/Stats";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Team } from "@/components/sections/Team";
@@ -18,12 +18,12 @@ export default function Home() {
       <main className="grow">
         <Hero />
         <Stats />
+        <LandingServices />
         <LiveRates />
         <Process />
         <WhyChooseUs />
         <Testimonials />
-        <Team />
-        <Services />
+
         <CallToAction />
       </main>
 

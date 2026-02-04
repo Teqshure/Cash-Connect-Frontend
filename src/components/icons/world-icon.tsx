@@ -16,19 +16,19 @@ const World = (props: SVGProps<SVGSVGElement>) => (
       width={105}
       height={105}
       transform="rotate(-107.851 32.1875 132.132)"
-      fill="url(#pattern0_195_897)"
+      fill="url(#world_pattern_world)"
     />
     <defs>
       <pattern
-        id="pattern0_195_897"
+        id="world_pattern_world"
         patternContentUnits="objectBoundingBox"
         width={1}
         height={1}
       >
-        <use xlinkHref="#image0_195_897" transform="scale(0.00195312)" />
+        <use xlinkHref="#world_image_world" transform="scale(0.00195312)" />
       </pattern>
       <image
-        id="image0_195_897"
+        id="world_image_world"
         width={512}
         height={512}
         preserveAspectRatio="none"
