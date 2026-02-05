@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
           <p className="text-primary-dark font-medium">
             New User?{" "}
             <Link
-              href="/signup"
+              href="/select-country"
               className="text-primary-light hover:text-emerald-700 underline underline-offset-4"
             >
               Sign Up Here

@@ -188,7 +188,7 @@ export default function LoginPage() {
           <p className="text-primary-dark font-bold text-[12px]">
             New User?{" "}
             <Link
-              href="/signup"
+              href="/select-country"
               className="text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
             >
               Sign Up Here
