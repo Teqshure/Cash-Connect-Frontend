@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-4 w-full">
       <div className="space-y-4">
         <h1 className="text-2xl lg:text-4xl font-bold tracking-tight text-primary-dark">
           Forgot Password

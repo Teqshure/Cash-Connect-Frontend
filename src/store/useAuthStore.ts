@@ -41,8 +41,8 @@ interface AuthState {
     email: string,
     password: string,
   ) => Promise<void>;
-  logout: () => void;
-  
+  logout: () => Promise<void>;
+
   forgotPassword: (email: string) => Promise<string>;
   resetPassword: (
     token: string,
@@ -117,7 +117,6 @@ export const useAuthStore = create<AuthState>()(
       loginWithGoogle: async (googleId: string) => {
         set({ isLoading: true, error: null });
         try {
-
           const response = await fetch(`${API_URL}/v1/auth/google`, {
             method: "POST",
             headers: {
@@ -280,7 +279,25 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        const token = useAuthStore.getState().token;
+
+        // We try to call the logout API, but we clear local state regardless
+        try {
+          if (token) {
+            await fetch(`${API_URL}/v1/logout`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Logout API call failed:", error);
+        }
+
         set({
           user: null,
           token: null,

@@ -71,7 +71,7 @@ export default function AuthLayout({
           </Link>
         </div>
 
-        <div className="w-full max-w-xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] lg:shadow-none rounded-2xl p-6 md:p-8 pb-12 md:pb-24 relative mt-20 lg:mt-0">
+        <div className="w-full max-w-xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] lg:shadow-none rounded-2xl p-6 md:p-8 pb-6 md:pb-12 relative mt-4 lg:mt-0">
           {children}
         </div>
       </div>

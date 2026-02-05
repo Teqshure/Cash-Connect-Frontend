@@ -49,7 +49,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="space-y-8 w-full relative overflow-x-hidden overflow-y-visible">
+    <div className="space-y-4 w-full relative overflow-x-hidden overflow-y-visible">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 pointer-events-none opacity-10 z-0 transform translate-x-1/4 -translate-y-1/4">
         <Image
@@ -63,7 +63,7 @@ export default function SignupPage() {
 
       <div className="relative z-10 space-y-4 lg:space-y-6">
         <div className="space-y-1">
-          <h1 className="text-lg lg:text-4xl font-black mt-4 lg:text-center text-primary-dark lg:mb-8 ">
+          <h1 className="text-lg lg:text-4xl font-black mt-4 lg:text-center text-primary-dark lg:mb-4 ">
             Create Account
           </h1>
         </div>

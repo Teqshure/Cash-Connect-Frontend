@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +16,7 @@ const COUNTRIES = Object.entries(countries)
   .sort((a, b) => a.name.localeCompare(b.name));
 
 export default function SelectCountryPage() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,6 +87,10 @@ export default function SelectCountryPage() {
                     setSelectedCountry(country.name);
                     setSearchQuery("");
                     setIsOpen(false);
+                    // Redirect to signup after selection
+                    setTimeout(() => {
+                      router.push("/signup");
+                    }, 300);
                   }}
                   className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-emerald-50 transition-colors group text-left"
                 >

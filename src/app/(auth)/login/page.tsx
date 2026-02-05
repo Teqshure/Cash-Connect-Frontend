@@ -48,12 +48,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="space-y-8 w-full overflow-hidden">
+    <div className="space-y-4 w-full overflow-hidden">
       <div className="space-y-1">
         <p className="text-gray-500 lg:hidden block text-[8px]">
           Welcome back!!!
         </p>
-        <h1 className="text-lg lg:text-4xl font-semibold lg:text-center text-primary-dark lg:mb-8">
+        <h1 className="text-lg lg:text-4xl font-semibold lg:text-center text-primary-dark lg:mb-4">
           Log In
         </h1>
       </div>
