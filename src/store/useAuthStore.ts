@@ -35,12 +35,14 @@ interface AuthState {
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (googleId: string) => Promise<void>;
   register: (
     fullname: string,
     email: string,
     password: string,
   ) => Promise<void>;
   logout: () => void;
+  
   forgotPassword: (email: string) => Promise<string>;
   resetPassword: (
     token: string,
@@ -85,9 +87,7 @@ export const useAuthStore = create<AuthState>()(
           const data: AuthResponse = await response.json();
 
           if (!response.ok) {
-            // Handle validation errors or strict 401s
             if (response.status === 422 && data.errors) {
-              // Extract first error message
               const firstError =
                 Object.values(data.errors)[0]?.[0] || "Validation failed";
               throw new Error(firstError);
@@ -110,7 +110,50 @@ export const useAuthStore = create<AuthState>()(
             error: error.message || "An error occurred during login",
             isLoading: false,
           });
-          throw error; // Re-throw to allow component to handle specific UI side effects if needed
+          throw error;
+        }
+      },
+
+      loginWithGoogle: async (googleId: string) => {
+        set({ isLoading: true, error: null });
+        try {
+
+          const response = await fetch(`${API_URL}/v1/auth/google`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ google_id: googleId }),
+          });
+
+          const data: AuthResponse = await response.json();
+
+          if (!response.ok) {
+            if (response.status === 422 && data.errors) {
+              const firstError =
+                Object.values(data.errors)[0]?.[0] || "Validation failed";
+              throw new Error(firstError);
+            }
+            throw new Error(data.message || "Google login failed");
+          }
+
+          if (data.status && data.token) {
+            set({
+              user: data.user || (data.data as User) || null,
+              token: data.token,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          } else {
+            throw new Error(data.message || "Google login failed");
+          }
+        } catch (error: any) {
+          set({
+            error: error.message || "An error occurred during Google login",
+            isLoading: false,
+          });
+          throw error;
         }
       },
 
@@ -238,25 +281,24 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Optional: Call API to invalidate token if required
         set({
           user: null,
           token: null,
           isAuthenticated: false,
           error: null,
         });
-        localStorage.removeItem("auth-storage"); // Ensure clear state
+        localStorage.removeItem("auth-storage");
       },
 
       setError: (error) => set({ error }),
     }),
     {
-      name: "auth-storage", // name of the item in the storage (must be unique)
+      name: "auth-storage",
       partialize: (state) => ({
         token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-      }), // Only persist these fields
+      }),
     },
   ),
 );
