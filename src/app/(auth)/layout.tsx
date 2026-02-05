@@ -64,7 +64,7 @@ export default function AuthLayout({
       <div className="w-full lg:w-1/2 h-full flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12 bg-white relative overflow-y-auto overflow-x-hidden no-scrollbar">
         {/* Global Language Switcher */}
         <div className="fixed lg:absolute top-17.5 lg:top-8 right-4 z-20">
-          <Link href="/select-country">
+          <Link href="">
             <button className="flex items-center text-[10px] font-medium text-primary-dark hover:text-primary-hover transition-colors uppercase tracking-wider">
               English (UK) <span className="ml-1">▼</span>
             </button>

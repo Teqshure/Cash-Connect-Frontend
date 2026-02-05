@@ -36,7 +36,7 @@ export const Footer = () => {
                 {[
                   { name: "Careers", href: "#" },
                   { name: "Teachers", href: "#" },
-                  { name: "Support", href: "/faq" },
+                  { name: "Support", href: "#" },
                   { name: "Contact", href: "/contact" },
                 ].map((item) => (
                   <li key={item.name}>
@@ -59,8 +59,8 @@ export const Footer = () => {
               <ul className="space-y-3 sm:space-y-4">
                 {[
                   { name: "Courses", href: "#" },
-                  { name: "Pricing", href: "/rates" },
-                  { name: "Blog", href: "/blog" },
+                  { name: "Pricing", href: "#" },
+                  { name: "Blog", href: "#" },
                 ].map((item) => (
                   <li key={item.name}>
                     <Link

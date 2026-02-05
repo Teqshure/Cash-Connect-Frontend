@@ -176,7 +176,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="px-4 sm:px-0">
       <div className="flex justify-end mb-4">
-        <Link href="/select-country">
+        <Link href="">
           <button className="flex items-center text-sm font-bold text-primary hover:text-primary-hover transition-colors">
             English (UK) <span className="ml-1">▼</span>
           </button>
