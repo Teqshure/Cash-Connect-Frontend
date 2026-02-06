@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -11,7 +11,13 @@ import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { resetPassword, isLoading, error } = useAuthStore();
+  const { resetPassword, isLoading, error, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -48,6 +54,10 @@ function ResetPasswordForm() {
       console.error(err);
     }
   };
+
+  if (isAuthenticated) {
+    return null;
+  }
 
   if (!token || !email) {
     return (

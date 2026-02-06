@@ -11,10 +11,18 @@ import Facebook from "@/components/icons/facebook";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { GoogleLogin } from "@react-oauth/google";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginWithGoogle, isLoading, error } = useAuthStore();
+  const { login, loginWithGoogle, isLoading, error, isAuthenticated } =
+    useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,6 +50,10 @@ export default function LoginPage() {
       console.error(err);
     }
   };
+
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleGoogleError = () => {
     console.error("Google login failed");

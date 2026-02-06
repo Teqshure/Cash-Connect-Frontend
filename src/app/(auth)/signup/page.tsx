@@ -12,10 +12,19 @@ import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { GoogleLogin } from "@react-oauth/google";
 import Image from "next/image";
+import { useEffect } from "react";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { register, loginWithGoogle, isLoading, error } = useAuthStore();
+  const { register, loginWithGoogle, isLoading, error, isAuthenticated } =
+    useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullname: "",
@@ -47,6 +56,10 @@ export default function SignupPage() {
   const handleGoogleError = () => {
     console.error("Google signup failed");
   };
+
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="space-y-4 w-full relative overflow-x-hidden overflow-y-visible">
