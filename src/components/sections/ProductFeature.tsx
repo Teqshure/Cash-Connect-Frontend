@@ -46,16 +46,16 @@ export const ProductFeature = ({
                 {label}
               </span>
             )}
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#007042] tracking-tight leading-tight">
+            <h2 className="md:text-3xl text-xl font-extrabold text-[#007042] tracking-tight leading-tight">
               {title}
             </h2>
-            <p className="text-lg text-zinc-600 leading-relaxed font-medium">
+            <p className="text-[10px] md:text-xl text-primary-dark leading-relaxed font-normal">
               {description}
             </p>
             <Link href={buttonLink}>
-              <Button className="rounded-full bg-[#00D67D] hover:bg-emerald-500 text-white font-bold px-8 py-3 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105">
+              <button className="rounded-full bg-primary] hover:bg-emerald-500 bg-primary md:text-xl md:px-8 md:py-4 px-4 py-2 text-[10px] font-normal text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105">
                 {buttonText}
-              </Button>
+              </button>
             </Link>
           </div>
 
