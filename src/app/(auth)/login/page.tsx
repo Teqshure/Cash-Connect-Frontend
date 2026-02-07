@@ -10,10 +10,19 @@ import Apple from "@/components/icons/apple";
 import Facebook from "@/components/icons/facebook";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { GoogleLogin } from "@react-oauth/google";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuthStore();
+  const { login, loginWithGoogle, isLoading, error, isAuthenticated } =
+    useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,18 +36,36 @@ export default function LoginPage() {
       await login(formData.email, formData.password);
       router.push("/dashboard");
     } catch (err) {
-      // Error is handled by store and available in 'error' state
       console.error(err);
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      // credentialResponse.credential is the id_token (JWT)
+      console.log(credentialResponse.credential);
+      await loginWithGoogle(credentialResponse.credential);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (isAuthenticated) {
+    return null;
+  }
+
+  const handleGoogleError = () => {
+    console.error("Google login failed");
+  };
+
   return (
-    <div className="space-y-8 w-full overflow-hidden">
+    <div className="space-y-4 w-full overflow-hidden">
       <div className="space-y-1">
         <p className="text-gray-500 lg:hidden block text-[8px]">
           Welcome back!!!
         </p>
-        <h1 className="text-lg lg:text-4xl font-semibold lg:text-center text-primary-dark lg:mb-8">
+        <h1 className="text-lg lg:text-4xl font-semibold lg:text-center text-primary-dark lg:mb-4">
           Log In
         </h1>
       </div>
@@ -55,13 +82,24 @@ export default function LoginPage() {
         {/* Desktop: Social Login at Top */}
         <div className="hidden lg:block space-y-6">
           <div className="flex gap-6">
-            <button
-              type="button"
-              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 cursor-pointer"
-            >
-              <Google className="h-5 w-5" />
-              <span className="text-sm">Log In with Google</span>
-            </button>
+            {/* Custom wrapper to maintain your button style */}
+            <div className="flex-1">
+              <div className="relative">
+                {/* Hidden GoogleLogin component */}
+                <div className="absolute inset-0 opacity-0 cursor-pointer z-10">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    width="100%"
+                  />
+                </div>
+                {/* Your custom styled button */}
+                <div className="flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 pointer-events-none">
+                  <Google className="h-5 w-5" />
+                  <span className="text-sm">Log In with Google</span>
+                </div>
+              </div>
+            </div>
             <button
               type="button"
               className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 cursor-pointer"
@@ -159,12 +197,21 @@ export default function LoginPage() {
             >
               <Facebook className="h-6 w-6" />
             </button>
-            <button
-              type="button"
-              className="hover:scale-110 transition-transform cursor-pointer"
-            >
-              <Google className="h-5 w-5" />
-            </button>
+            {/* Custom wrapper for mobile Google icon */}
+            <div className="relative hover:scale-110 transition-transform">
+              {/* Hidden GoogleLogin component */}
+              <div className="absolute inset-0 opacity-0 cursor-pointer z-10 flex items-center justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  type="icon"
+                />
+              </div>
+              {/* Your custom Google icon */}
+              <div className="pointer-events-none">
+                <Google className="h-5 w-5" />
+              </div>
+            </div>
             <button
               type="button"
               className="hover:scale-110 transition-transform cursor-pointer"
@@ -188,7 +235,7 @@ export default function LoginPage() {
           <p className="text-primary-dark font-bold text-[12px]">
             New User?{" "}
             <Link
-              href="/signup"
+              href="/select-country"
               className="text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
             >
               Sign Up Here

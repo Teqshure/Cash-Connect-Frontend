@@ -36,7 +36,7 @@ export const Footer = () => {
                 {[
                   { name: "Careers", href: "#" },
                   { name: "Teachers", href: "#" },
-                  { name: "Support", href: "/faq" },
+                  { name: "Support", href: "#" },
                   { name: "Contact", href: "/contact" },
                 ].map((item) => (
                   <li key={item.name}>
@@ -54,13 +54,14 @@ export const Footer = () => {
             {/* Product Column - Mobile: 1/4 width (25%), Desktop: 2/12 width (16%) */}
             <div className="col-span-3 lg:col-span-2">
               <h4 className="text-xs sm:text-[10px]  font-semibold text-primary-light mb-4 sm:mb-6">
-                Product
+                Quick Links
               </h4>
               <ul className="space-y-3 sm:space-y-4">
                 {[
-                  { name: "Courses", href: "#" },
-                  { name: "Pricing", href: "/rates" },
-                  { name: "Blog", href: "/blog" },
+                  { name: "About", href: "/about" },
+                  { name: "Contact", href: "/contact" },
+                  { name: "Product", href: "/products" },
+                  { name: "Our Team", href: "/team" },
                 ].map((item) => (
                   <li key={item.name}>
                     <Link

@@ -18,12 +18,12 @@ export default function AboutPage() {
 
       <main className="grow ">
         {/* HERO */}
-        <Section className="relative pt-10 lg:pt-30 pb-10 overflow-hidden">
-          <div className="mx-auto max-w-7xl px-4 relative z-10 ">
-            {/* Background Decorations - Anchored to Container */}
-            {/* <div className="absolute top-[-20%] left-[-15%] w-[70%] h-[70%] bg-emerald-100/60 rounded-full blur-[100px] -z-10 pointer-events-none" /> */}
-            <div className="rounded-full bg-primary p-10 w-40 h-40 blur-3xl absolute -left-10 top-1/2 -translate-y-1/2 opacity-60 -z-10 pointer-events-none" />
+        <Section className="relative pt-10 lg:pt-30 pb-10">
+          {/* Background Decorations - Moved outside z-10 container to stay truly in background */}
+          <div className="absolute top-[-10%] left-[-15%] lg:left-[-20%] w-100 h-100 bg-primary opacity-15 rounded-full blur-[100px] pointer-events-none z-0" />
+          <div className="absolute top-0 right-[-10%] lg:right-[-5%] w-150 h-150 bg-emerald-100/30 rounded-full blur-[140px] pointer-events-none z-0" />
 
+          <div className="mx-auto max-w-7xl px-4 relative z-10 ">
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {/* LEFT – higher content */}
               <div className="pt-2">

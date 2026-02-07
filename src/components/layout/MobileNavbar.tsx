@@ -75,7 +75,7 @@ export const MobileNavbar = () => {
                 Log In
               </div>
             </Link>
-            <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
+            <Link href="/select-country" onClick={() => setIsMenuOpen(false)}>
               <div className="bg-[#00D67D] rounded-lg py-3 px-6 text-center text-white font-medium hover:bg-[#00c472] transition-colors shadow-lg cursor-pointer">
                 Sign UP
               </div>

@@ -59,14 +59,14 @@ export const Contact = () => {
                 <div className="flex items-start gap-5">
                   <Phone className="w-6 h-6 text-white mt-1 shrink-0" />
                   <div className="text-white font-small text-base">
-                    <p>+23489876345</p>
-                    <p>+23489876345</p>
+                    <p>+23412345678</p>
+                    <p>+23412345678</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-5">
                   <Mail className="w-6 h-6 text-white shrink-0" />
                   <div className="text-white font-medium text-base">
-                    <p>flawlesssocials@gmail.com</p>
+                    <p>johndoe123@gmail.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-5">

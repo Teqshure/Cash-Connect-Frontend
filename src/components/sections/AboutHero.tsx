@@ -10,12 +10,9 @@ import ArrowSmile from "../icons/arrowsmile";
 
 export const AboutHero = () => {
   return (
-    <Section
-      background="white"
-      className="pt-32 pb-20 relative overflow-hidden"
-    >
+    <Section background="white" className="pt-32 pb-20 relative">
       {/* Background Decorations */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-100/30 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-150 h-150 bg-emerald-100/30 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="container mx-auto px-4 max-w-6xl relative z-10">
         {/* Hero Top Section */}
@@ -50,7 +47,7 @@ export const AboutHero = () => {
           {/* Decorative Arrow and Floating Element */}
           {/* Positioned relative to the main container area to float on the right side */}
           <div className="absolute top-[80%] right-[5%] hidden lg:block pointer-events-none z-0">
-            <div className="relative w-[300px] h-[150px]">
+            <div className="relative w-75 h-37.5">
               <ArrowSmile className="w-full h-full text-[#00D67D]" />
 
               {/* Sell Gift Card Floating Badge at the end of arrow */}
@@ -69,7 +66,7 @@ export const AboutHero = () => {
         {/* Grid Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch transform translate-y-8">
           {/* Our Story Image Card */}
-          <div className="relative rounded-[2.5rem] overflow-hidden min-h-[400px] lg:min-h-[500px] group">
+          <div className="relative rounded-[2.5rem] overflow-hidden min-h-100 lg:min-h-125 group">
             <div className="absolute inset-0 bg-zinc-900" />
             <Image
               src="/images/our_story.png"
@@ -77,8 +74,8 @@ export const AboutHero = () => {
               fill
               className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
             />
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
           </div>
 
           {/* Right Column: Vision & Mission Cards */}
@@ -120,7 +117,7 @@ export const AboutHero = () => {
 
           {/* Decorative Arrow and Floating Element - Lower Section */}
           <div className="absolute top-[40%] right-[15%] hidden lg:block pointer-events-none z-0">
-            <div className="relative w-[320px] h-[120px]">
+            <div className="relative w-80 h-30">
               <ArrowSmile className="w-full h-full text-[#00D67D]" />
 
               {/* Sell Gift Card Floating Badge */}

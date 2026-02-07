@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const { forgotPassword, isLoading, error } = useAuthStore();
+  const router = useRouter();
+  const { forgotPassword, isLoading, error, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, router]);
+
   const [email, setEmail] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -23,8 +32,12 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  if (isAuthenticated) {
+    return null;
+  }
+
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-4 w-full">
       <div className="space-y-4">
         <h1 className="text-2xl lg:text-4xl font-bold tracking-tight text-primary-dark">
           Forgot Password
@@ -80,7 +93,7 @@ export default function ForgotPasswordPage() {
           <p className="text-primary-dark font-medium">
             New User?{" "}
             <Link
-              href="/signup"
+              href="/select-country"
               className="text-primary-light hover:text-emerald-700 underline underline-offset-4"
             >
               Sign Up Here
