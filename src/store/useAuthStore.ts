@@ -48,6 +48,11 @@ interface AuthState {
     password: string,
     password_confirmation: string,
   ) => Promise<string>;
+
+  // ✅ New actions (for Topbar + persistence)
+  fetchMe: () => Promise<void>;
+  setUser: (user: User | null) => void;
+
   setError: (error: string | null) => void;
 }
 
@@ -58,20 +63,67 @@ interface AuthState {
 const API_URL = "https://cashconnect.beamaxtech.com.ng/api";
 
 // ------------------------------------------------------------------
+// Helpers
+// ------------------------------------------------------------------
+
+function extractFirstError(errors?: Record<string, string[]>) {
+  return (errors && Object.values(errors)[0]?.[0]) || "Validation failed";
+}
+
+function messageToString(message: unknown, fallback: string) {
+  if (Array.isArray(message)) return message[0] || fallback;
+  if (typeof message === "string") return message || fallback;
+  return fallback;
+}
+
+// NOTE: Update this to your real "me" endpoint if different
+const ME_ENDPOINT = "/v1/me";
+
+// ------------------------------------------------------------------
 // Store Implementation
 // ------------------------------------------------------------------
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
 
+      setUser: (user) => set({ user }),
+      setError: (error) => set({ error }),
+
+      fetchMe: async () => {
+        const token = get().token;
+        if (!token) return;
+
+        try {
+          const response = await fetch(`${API_URL}${ME_ENDPOINT}`, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data: AuthResponse = await response.json();
+
+          if (response.ok && data.status) {
+            set({
+              user: data.user || (data.data as User) || null,
+              isAuthenticated: true,
+            });
+          }
+        } catch {
+          // silent fail; keep existing state
+        }
+      },
+
       login: async (email, password) => {
         set({ isLoading: true, error: null });
+
         try {
           const response = await fetch(`${API_URL}/v1/login`, {
             method: "POST",
@@ -85,37 +137,42 @@ export const useAuthStore = create<AuthState>()(
           const data: AuthResponse = await response.json();
 
           if (!response.ok) {
-            // Handle validation errors or strict 401s
-            if (response.status === 422 && data.errors) {
-              // Extract first error message
-              const firstError =
-                Object.values(data.errors)[0]?.[0] || "Validation failed";
-              throw new Error(firstError);
+            if (response.status === 422) {
+              throw new Error(extractFirstError(data.errors));
             }
             throw new Error(data.message || "Login failed");
           }
 
-          if (data.status && data.token) {
-            set({
-              user: data.user || (data.data as User) || null,
-              token: data.token,
-              isAuthenticated: true,
-              isLoading: false,
-            });
-          } else {
+          if (!data.status || !data.token) {
             throw new Error(data.message || "Login failed");
+          }
+
+          const user = data.user || (data.data as User) || null;
+
+          set({
+            user,
+            token: data.token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+
+          // If API didn't return user on login, fetch it
+          if (!user) {
+            await get().fetchMe();
           }
         } catch (error: any) {
           set({
-            error: error.message || "An error occurred during login",
+            error: error?.message || "An error occurred during login",
             isLoading: false,
           });
-          throw error; // Re-throw to allow component to handle specific UI side effects if needed
+          throw error;
         }
       },
 
       register: async (fullname, email, password) => {
         set({ isLoading: true, error: null });
+
         try {
           const response = await fetch(`${API_URL}/v1/register`, {
             method: "POST",
@@ -129,27 +186,33 @@ export const useAuthStore = create<AuthState>()(
           const data: AuthResponse = await response.json();
 
           if (!response.ok) {
-            if (response.status === 422 && data.errors) {
-              const firstError =
-                Object.values(data.errors)[0]?.[0] || "Validation failed";
-              throw new Error(firstError);
+            if (response.status === 422) {
+              throw new Error(extractFirstError(data.errors));
             }
             throw new Error(data.message || "Registration failed");
           }
 
-          if (data.status && data.token) {
-            set({
-              user: data.user || (data.data as User) || null,
-              token: data.token,
-              isAuthenticated: true,
-              isLoading: false,
-            });
-          } else {
+          if (!data.status || !data.token) {
             throw new Error(data.message || "Registration failed");
+          }
+
+          const user = data.user || (data.data as User) || null;
+
+          set({
+            user,
+            token: data.token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+
+          // If API didn't return user on register, fetch it
+          if (!user) {
+            await get().fetchMe();
           }
         } catch (error: any) {
           set({
-            error: error.message || "An error occurred during registration",
+            error: error?.message || "An error occurred during registration",
             isLoading: false,
           });
           throw error;
@@ -158,6 +221,7 @@ export const useAuthStore = create<AuthState>()(
 
       forgotPassword: async (email) => {
         set({ isLoading: true, error: null });
+
         try {
           const response = await fetch(`${API_URL}/v1/forgot-password`, {
             method: "POST",
@@ -171,15 +235,11 @@ export const useAuthStore = create<AuthState>()(
           const data: AuthResponse = await response.json();
 
           if (!response.ok) {
-            if (response.status === 422 && data.errors) {
-              const firstError =
-                Object.values(data.errors)[0]?.[0] || "Validation failed";
-              throw new Error(firstError);
+            if (response.status === 422) {
+              throw new Error(extractFirstError(data.errors));
             }
             throw new Error(
-              Array.isArray(data.message)
-                ? data.message[0]
-                : data.message || "Failed to send reset link",
+              messageToString(data.message, "Failed to send reset link"),
             );
           }
 
@@ -187,7 +247,7 @@ export const useAuthStore = create<AuthState>()(
           return data.message || "Password reset link sent to your email.";
         } catch (error: any) {
           set({
-            error: error.message || "An error occurred",
+            error: error?.message || "An error occurred",
             isLoading: false,
           });
           throw error;
@@ -196,6 +256,7 @@ export const useAuthStore = create<AuthState>()(
 
       resetPassword: async (token, email, password, password_confirmation) => {
         set({ isLoading: true, error: null });
+
         try {
           const response = await fetch(`${API_URL}/v1/reset-password`, {
             method: "POST",
@@ -214,15 +275,11 @@ export const useAuthStore = create<AuthState>()(
           const data: AuthResponse = await response.json();
 
           if (!response.ok) {
-            if (response.status === 422 && data.errors) {
-              const firstError =
-                Object.values(data.errors)[0]?.[0] || "Validation failed";
-              throw new Error(firstError);
+            if (response.status === 422) {
+              throw new Error(extractFirstError(data.errors));
             }
             throw new Error(
-              Array.isArray(data.message)
-                ? data.message[0]
-                : data.message || "Failed to reset password",
+              messageToString(data.message, "Failed to reset password"),
             );
           }
 
@@ -230,7 +287,7 @@ export const useAuthStore = create<AuthState>()(
           return data.message || "Password has been reset successfully.";
         } catch (error: any) {
           set({
-            error: error.message || "An error occurred",
+            error: error?.message || "An error occurred",
             isLoading: false,
           });
           throw error;
@@ -238,25 +295,22 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Optional: Call API to invalidate token if required
         set({
           user: null,
           token: null,
           isAuthenticated: false,
           error: null,
         });
-        localStorage.removeItem("auth-storage"); // Ensure clear state
+        localStorage.removeItem("auth-storage");
       },
-
-      setError: (error) => set({ error }),
     }),
     {
-      name: "auth-storage", // name of the item in the storage (must be unique)
+      name: "auth-storage",
       partialize: (state) => ({
         token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-      }), // Only persist these fields
+      }),
     },
   ),
 );
