@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Eye, EyeOff, ArrowUpRight, Plus, Download } from "lucide-react";
 import { formatMoney } from "./money";
 
@@ -9,8 +9,6 @@ type Props = {
   transactionLimit: number;
   currency?: string;
   changePercent?: number;
-  onFundWallet?: () => void;
-  onWithdraw?: () => void;
 };
 
 export default function WalletBalanceCard({
@@ -18,87 +16,130 @@ export default function WalletBalanceCard({
   transactionLimit,
   currency = "₦",
   changePercent = 5.2,
-  onFundWallet,
-  onWithdraw,
 }: Props) {
-  const [isHidden, setIsHidden] = useState(false);
-  const sign = changePercent >= 0 ? "+" : "";
+  const [hide, setHide] = useState(false);
+
+  const balanceText = useMemo(() => {
+    if (hide) return `${currency}****`;
+    return formatMoney(totalBalance, currency);
+  }, [hide, totalBalance, currency]);
 
   return (
     <div
-      className="w-[372px] h-[228px] rounded-[24px] p-6 text-white"
+      className="
+        w-full
+        h-[228px]
+        rounded-[24px]
+        px-6 py-5
+        text-white
+        relative
+        overflow-hidden
+      "
       style={{
         background: "linear-gradient(135deg, #00BC7D 0%, #009966 100%)",
         boxShadow:
-          "0px 8px 10px -6px rgba(0,188,125,0.20), 0px 20px 25px -5px rgba(0,188,125,0.20)",
+          "0px 10px 22px rgba(0, 153, 102, 0.25), 0px 6px 12px rgba(0, 0, 0, 0.08)",
       }}
     >
       {/* Top row */}
       <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-white/85 text-xs font-medium">Total Balance</p>
+        <div>
+          <p className="text-[13px] leading-[18px] font-medium text-white/90">
+            Total Balance
+          </p>
 
-          <div className="flex items-center gap-3">
-            <p className="text-[32px] leading-[36px] font-semibold">
-              {isHidden ? "****" : formatMoney(totalBalance, currency)}
+          <div className="mt-4 flex items-center gap-3">
+            {/* Reduced amount to match Figma */}
+            <p className="text-[28px] leading-[30px] font-semibold tracking-tight">
+              {balanceText}
             </p>
 
+            {/* Smaller eye bubble */}
             <button
               type="button"
-              onClick={() => setIsHidden((v) => !v)}
-              className="h-8 w-8 rounded-full grid place-items-center hover:bg-white/15 transition"
-              aria-label={isHidden ? "Show balance" : "Hide balance"}
+              onClick={() => setHide((v) => !v)}
+              className="
+                h-8 w-8
+                rounded-full
+                bg-emerald-300/20
+                grid place-items-center
+                hover:bg-emerald-300/30
+                transition
+                cursor-pointer
+              "
+              aria-label={hide ? "Show balance" : "Hide balance"}
             >
-              {isHidden ? (
-                <EyeOff className="h-4 w-4 text-white/90" />
+              {hide ? (
+                <EyeOff className="h-4 w-4 text-white" />
               ) : (
-                <Eye className="h-4 w-4 text-white/90" />
+                <Eye className="h-4 w-4 text-white" />
               )}
             </button>
           </div>
         </div>
 
-        {/* +% pill */}
-        <div className="flex items-center gap-2 rounded-full bg-white/15 px-3 py-2">
-          <ArrowUpRight className="h-4 w-4 text-white/90" />
-          <span className="text-xs font-semibold text-white">
-            {sign}
-            {changePercent.toFixed(1)}%
+        {/* Percent badge */}
+        <div className="rounded-full bg-emerald-300/20 px-3 py-1.5 flex items-center gap-1.5">
+          <ArrowUpRight className="h-4 w-4 text-white" />
+          <span className="text-[13px] font-semibold text-white">
+            +{changePercent}%
           </span>
         </div>
       </div>
 
-      {/* Transaction limit */}
-      <div className="mt-5 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-white/85">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/15">
-            <span className="text-[10px]">i</span>
+      {/* Transaction Limit row (pulled up) */}
+      <div className="mt-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="h-7 w-7 rounded-full bg-emerald-300/20 grid place-items-center text-[12px] font-semibold">
+            i
           </span>
-          <span className="text-[11px] font-medium">Transaction Limit</span>
+          <p className="text-[14px] font-medium text-white/90">
+            Transaction Limit
+          </p>
         </div>
 
-        <p className="text-[12px] font-semibold text-white">
+        <p className="text-[14px] font-semibold text-white">
           {formatMoney(transactionLimit, currency)}
         </p>
       </div>
 
-      {/* Buttons */}
+      {/* Buttons (tighter + shorter) */}
       <div className="mt-6 flex gap-3">
         <button
           type="button"
-          onClick={onFundWallet}
-          className="flex-1 h-12 rounded-[14px] bg-white text-emerald-700 font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-95 transition"
+          className="
+            flex-1
+            h-[44px]
+            rounded-[16px]
+            bg-white
+            text-emerald-700
+            font-semibold text-[14px]
+            flex items-center justify-center gap-2
+            transition
+            cursor-pointer
+          "
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5" />
           Fund Wallet
         </button>
 
         <button
           type="button"
-          onClick={onWithdraw}
-          className="flex-1 h-12 rounded-[14px] bg-white/15 text-white font-semibold text-sm flex items-center justify-center gap-2 border border-white/20 hover:bg-white/20 transition"
+          className="
+            flex-1
+            h-[44px]
+            rounded-[16px]
+            bg-emerald-300/15
+            text-white
+            font-semibold text-[14px]
+            flex items-center justify-center gap-2
+            border border-white/15
+            hover:bg-emerald-300/22
+            transition
+            cursor-pointer
+          "
         >
-          <Download className="h-4 w-4" />
+          <Download className="h-5 w-5" />
           Withdraw
         </button>
       </div>

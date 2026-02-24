@@ -13,8 +13,7 @@ const demoData: Transaction[] = [
     date: "25-10-2025",
     time: "10:42 AM",
     type: "Crypto Transaction",
-    amountPrimary: "USDT",
-    amountSecondary: "500.00",
+    amountPrimary: "USDT 500.00",
     status: "successful",
     icon: "crypto",
   },
@@ -74,13 +73,13 @@ export default function RecentTransactionsSection({ items }: Props) {
       <div className="rounded-[18px] bg-white border border-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
         {/* Header row */}
         <div className="flex items-center justify-between px-6 pt-5">
-          <h3 className="text-[14px] font-medium text-slate-700">
+          <h3 className="text-[13px] font-medium text-slate-700">
             Recent Transactions
           </h3>
 
           <Link
             href="/dashboard/transactions"
-            className="text-[12px] font-medium text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-2"
+            className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-2"
           >
             View All <span aria-hidden>→</span>
           </Link>

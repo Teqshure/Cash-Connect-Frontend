@@ -1,48 +1,54 @@
 "use client";
 
-import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ElementType } from "react";
 
 type Props = {
   label: string;
-  href: string;
-  icon: ReactNode;
-  iconBgClassName?: string;
+  Icon: ElementType;
+  iconBgClass?: string;
+  iconColorClass?: string;
+  onClick?: () => void;
 };
 
 export default function QuickActionTile({
   label,
-  href,
-  icon,
-  iconBgClassName = "bg-slate-100",
+  Icon,
+  iconBgClass = "bg-[#F1F4F9]",
+  iconColorClass = "text-[#3A4A5E]",
+  onClick,
 }: Props) {
   return (
-    <Link
-      href={href}
+    <button
+      type="button"
+      onClick={onClick}
       className="
-        w-full h-[120px]
-        rounded-[18px] bg-white border border-slate-100
-        shadow-[0_8px_20px_rgba(0,0,0,0.06)]
-        flex flex-col items-center justify-center gap-3
-        hover:shadow-[0_12px_28px_rgba(0,0,0,0.10)]
-        transition
-        min-w-0
+        w-full
+        h-[132px]
+        rounded-2xl
+        bg-white
+        border border-[#E6EDF4]
+        shadow-[0_8px_20px_rgba(0,0,0,0.04)]
+        hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)]
+        transition-all
+        duration-200
+        flex flex-col items-center justify-center
+        p-4
       "
     >
-      {/* Icon box stays stable */}
+      {/* Icon bubble */}
       <div
         className={[
-          "h-10 w-10 rounded-[12px] grid place-items-center shrink-0",
-          iconBgClassName,
+          "h-14 w-14 rounded-xl flex items-center justify-center",
+          iconBgClass,
         ].join(" ")}
       >
-        {icon}
+        <Icon className={["h-6 w-6", iconColorClass].join(" ")} />
       </div>
 
-      {/* Label shrinks gracefully */}
-      <p className="text-[11px] font-medium text-slate-700 text-center leading-tight px-2 w-full">
+      {/* Label */}
+      <p className="mt-3 text-sm font-medium text-[#1A2B3E] text-center">
         {label}
       </p>
-    </Link>
+    </button>
   );
 }
