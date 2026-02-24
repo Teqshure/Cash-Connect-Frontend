@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import avartarimg from "../../../public/images/dashboard/avatar.png";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Menu, Settings, Gift, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
 function getFirstName(fullname?: string | null) {
@@ -10,61 +10,120 @@ function getFirstName(fullname?: string | null) {
   return fullname.trim().split(" ")[0] || "User";
 }
 
-export default function Topbar() {
+export default function Topbar({
+  onOpenSidebar,
+}: {
+  onOpenSidebar?: () => void;
+}) {
   const user = useAuthStore((s) => s.user);
   const name = getFirstName(user?.fullname);
 
   return (
-    <header
-      className="
-    w-full max-w-[902px] h-[104px]
+    <>
+      {/* MOBILE HEADER - Made sticky */}
+      <header className="lg:hidden h-[56px] bg-white flex items-center justify-between px-4 border-b border-slate-100 sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onOpenSidebar}
+            className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5 text-slate-700" />
+          </button>
+          <p className="text-[16px] font-semibold text-slate-800">Dashboard</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5 text-slate-700" />
+          </button>
+          <button
+            className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
+            aria-label="Rewards"
+          >
+            <Gift className="h-5 w-5 text-slate-700" />
+          </button>
+          <button
+            className="relative h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
+            aria-label="Notifications"
+          >
+            <Bell className="h-5 w-5 text-slate-700" />
+            <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-rose-500" />
+          </button>
+
+          <div className="flex items-center gap-1">
+            <div className="relative h-9 w-9 rounded-full overflow-hidden border border-slate-200 bg-slate-200">
+              <Image
+                src={avartarimg}
+                alt="Profile"
+                fill
+                className="object-cover"
+                sizes="36px"
+                priority
+              />
+            </div>
+            <ChevronDown className="h-4 w-4 text-slate-600" />
+          </div>
+        </div>
+      </header>
+
+      {/* DESKTOP TOPBAR - Made sticky */}
+      <header
+        className="
+    hidden lg:flex
+    h-[104px]
+    w-full
     bg-white
     px-[28px]
-    flex items-center justify-between
+    items-center justify-between
     gap-[13px]
+    border-b border-slate-100
+    sticky top-0 z-50
   "
-    >
-      {/* Greeting */}
-      <div className="w-[390px] h-[91px] flex flex-col justify-center gap-[1px]">
-        <p className="text-[20px] leading-[28px] font-medium text-slate-900">
-          Good Morning, {name}!
-          <span aria-hidden className="ml-2 text-[18px] align-middle">
-            👋
-          </span>
-        </p>
-      </div>
-
-      {/* Controls */}
-      <div className="w-[424px] h-[36px] flex items-center justify-end gap-[13px]">
-        <div className="flex-1 h-[36px] rounded-full border border-slate-200 bg-white flex items-center px-3 gap-2">
-          <Search className="h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            className="w-full bg-transparent outline-none text-[12px] text-slate-700 placeholder:text-slate-400"
-          />
+      >
+        {/* Give greeting a fixed comfortable space like before */}
+        <div className="min-w-0 w-[390px] h-[91px] flex items-center">
+          <p className="text-[20px] leading-[28px] font-medium text-slate-900 whitespace-nowrap">
+            Good Morning, {name}! <span className="ml-1">👋</span>
+          </p>
         </div>
 
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="relative h-[36px] w-[36px] rounded-full border border-slate-200 bg-white grid place-items-center hover:bg-slate-50 transition"
-        >
-          <Bell className="h-4 w-4 text-slate-500" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
-        </button>
+        {/* Right controls */}
+        <div className="w-[424px] h-[36px] flex items-center justify-end gap-[13px]">
+          <div className="flex-1 h-[36px] rounded-full border border-slate-200 bg-white flex items-center px-3 gap-2">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              className="w-full bg-transparent outline-none text-[12px] text-slate-700 placeholder:text-slate-400"
+            />
+          </div>
 
-        <div className="relative h-[36px] w-[36px] rounded-full overflow-hidden border border-slate-200 bg-slate-200">
-          <Image
-            src={avartarimg}
-            alt="Profile"
-            fill
-            className="object-cover"
-            sizes="36px"
-            priority
-          />
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="relative h-[36px] w-[36px] rounded-full border border-slate-200 bg-white grid place-items-center hover:bg-slate-50 transition"
+          >
+            <Bell className="h-4 w-4 text-slate-500" />
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
+          </button>
+
+          <div className="relative h-[36px] w-[36px] rounded-full overflow-hidden border border-slate-200 bg-slate-200">
+            <Image
+              src={avartarimg}
+              alt="Profile"
+              fill
+              className="object-cover"
+              sizes="36px"
+              priority
+            />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }

@@ -3,6 +3,8 @@
 import WalletBalanceCard from "./WalletBalanceCard";
 import ExchangePromoCard from "./ExchangePromoCard";
 import QuickActionsSection from "./QuickActionsSection";
+import RecentTransactionsSection from "./RecentTransactionsSection";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type Props = {
   totalBalance: number;
@@ -11,33 +13,50 @@ type Props = {
   changePercent?: number;
 };
 
+function getFirstName(fullname?: string | null) {
+  if (!fullname) return "User";
+  return fullname.trim().split(" ")[0] || "User";
+}
+
 export default function DashboardOverviewSection({
   totalBalance,
   transactionLimit,
   currency = "₦",
   changePercent = 5.2,
 }: Props) {
-  return (
-    <section className="w-full space-y-6">
-      {/* Hero row:
-         - keeps your Figma max width (837px)
-         - switches to stacked layout on smaller screens so it won't push the right rail behind
-      */}
-      <div className="w-full max-w-[837px] flex flex-col lg:flex-row gap-[25px]">
-        <WalletBalanceCard
-          totalBalance={totalBalance}
-          transactionLimit={transactionLimit}
-          currency={currency}
-          changePercent={changePercent}
-        />
+  const user = useAuthStore((s) => s.user);
+  const name = getFirstName(user?.fullname);
 
-        <ExchangePromoCard />
+  return (
+    <section className="space-y-6 min-w-0 overflow-x-hidden pl-0 lg:pl-6 pr-4">
+      {/* Mobile greeting only (desktop greeting stays in Topbar) */}
+      <div className="lg:hidden">
+        <h2 className="text-[28px] leading-[36px] font-semibold text-slate-900">
+          Good Morning {name}!
+        </h2>
       </div>
 
-      {/* Quick actions:
-         - inside, tiles should wrap (flex-wrap) so they don't overflow into the right rail
-      */}
+      {/* Hero row (responsive + keeps Figma proportions but can shrink to fit) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,372px)_minmax(0,440px)] gap-4 lg:gap-[25px] items-stretch min-w-0">
+        <div className="min-w-0">
+          <WalletBalanceCard
+            totalBalance={totalBalance}
+            transactionLimit={transactionLimit}
+            currency={currency}
+            changePercent={changePercent}
+          />
+        </div>
+
+        <div className="min-w-0">
+          <ExchangePromoCard />
+        </div>
+      </div>
+
+      {/* Quick actions */}
       <QuickActionsSection />
+
+      {/* Recent Transactions */}
+      <RecentTransactionsSection />
     </section>
   );
 }

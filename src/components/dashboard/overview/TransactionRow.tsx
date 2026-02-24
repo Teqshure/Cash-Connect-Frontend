@@ -10,35 +10,41 @@ type Props = {
 
 export default function TransactionRow({ tx }: Props) {
   return (
-    <div className="grid grid-cols-[160px_1fr_180px_140px] gap-4 items-center rounded-[14px] px-3 py-3 hover:bg-slate-50/60 transition">
+    <div className="grid grid-cols-[120px_1fr_140px_90px] gap-3 items-start py-3 hover:bg-slate-50/60 transition">
       {/* Date */}
-      <div>
-        <p className="text-[12px] text-slate-700 font-medium">{tx.date}</p>
-        {tx.time ? (
-          <p className="text-[11px] text-slate-400 mt-0.5">{tx.time}</p>
-        ) : null}
+      <div className="pl-3">
+        <p className="text-[11px] text-slate-700 font-medium whitespace-nowrap">
+          {tx.date}
+        </p>
+        {tx.time && (
+          <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
+            {tx.time}
+          </p>
+        )}
       </div>
 
       {/* Type */}
       <div className="flex items-center gap-3">
         <TransactionTypeIcon kind={tx.icon} />
-        <p className="text-[13px] text-slate-700 font-medium">{tx.type}</p>
+        <p className="text-[12px] text-slate-700 font-medium truncate">
+          {tx.type}
+        </p>
       </div>
 
       {/* Amount */}
       <div>
-        <p className="text-[12px] text-slate-700 font-medium">
+        <p className="text-[11px] text-slate-700 font-medium whitespace-nowrap">
           {tx.amountPrimary}
         </p>
-        {tx.amountSecondary ? (
-          <p className="text-[12px] text-slate-700 mt-0.5">
+        {tx.amountSecondary && (
+          <p className="text-[11px] text-slate-700 mt-0.5 whitespace-nowrap">
             {tx.amountSecondary}
           </p>
-        ) : null}
+        )}
       </div>
 
       {/* Status */}
-      <div className="flex justify-start">
+      <div>
         <TransactionStatusBadge status={tx.status} />
       </div>
     </div>

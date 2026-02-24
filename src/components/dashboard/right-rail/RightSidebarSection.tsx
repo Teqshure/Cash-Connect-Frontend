@@ -7,7 +7,7 @@ import AccountStatsWidget from "./AccountStatsWidget";
 
 export default function RightSidebarSection() {
   return (
-    <aside className="w-full max-w-[227px] flex flex-col gap-[12px]">
+    <aside className="w-[227px] flex flex-col gap-4">
       <SpecialOfferCard />
       <CryptoMarketWidget />
       <EarnRewardsCard />

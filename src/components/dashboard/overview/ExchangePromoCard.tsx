@@ -5,53 +5,82 @@ import { ArrowRight } from "lucide-react";
 export default function ExchangePromoCard() {
   return (
     <div
-      className="w-[440px] h-[225px] rounded-[24px] p-6 text-white relative overflow-hidden"
+      className="
+        relative
+        h-[225px]
+        w-full
+        min-w-0
+        rounded-[24px]
+        overflow-hidden
+        px-6 py-6
+        text-white
+      "
       style={{
-        background: "linear-gradient(135deg, #0B6CFF 0%, #14B8A6 100%)",
+        background: "linear-gradient(135deg, #0AA6D6 0%, #18C48F 100%)",
         boxShadow:
-          "0px 10px 18px rgba(15,23,42,0.10), 0px 25px 50px rgba(15,23,42,0.10)",
+          "0px 8px 10px -6px rgba(2,132,199,0.18), 0px 20px 25px -5px rgba(2,132,199,0.18)",
       }}
     >
-      {/* Text */}
-      <div className="space-y-3">
-        <p className="text-[16px] font-semibold leading-tight">
+      {/* Left content (matches Figma scale) */}
+      <div className="relative z-10 max-w-[230px]">
+        <p className="text-[14px] leading-[18px] font-medium text-white/90">
           Your All-in-One
-          <br />
-          Exchange Hub
         </p>
 
-        <p className="text-[13px] text-white/85 leading-relaxed">
+        {/* Figma shows this smaller, not headline-big */}
+        <h3 className="mt-1 text-[16px] leading-[20px] font-semibold text-white/95">
+          Exchange Hub
+        </h3>
+
+        <p className="mt-4 text-[14px] leading-[20px] text-white/90">
           Trade Crypto, Giftcards
           <br />
           &amp; Send Payments
           <br />
           Worldwide.
         </p>
+
+        {/* Button: rounded rectangle (not pill) */}
+        <button
+          type="button"
+          className="
+            mt-5
+            inline-flex items-center gap-2
+            h-[44px]
+            px-6
+            rounded-[14px]
+            bg-[#0AA66E]
+            text-[14px] font-semibold
+            hover:brightness-110
+            transition
+            cursor-pointer
+          "
+        >
+          Start Trading <ArrowRight className="h-4 w-4" />
+        </button>
       </div>
 
-      {/* CTA */}
-      <button
-        type="button"
-        className="mt-6 inline-flex items-center gap-2 h-11 px-5 rounded-[14px] bg-emerald-500 text-white text-sm font-semibold hover:opacity-95 transition"
-      >
-        Start Trading <ArrowRight className="h-4 w-4" />
-      </button>
+      {/* Coins: smaller + pushed right like Figma */}
+      <div className="absolute right-6 top-7 h-[160px] w-[160px]">
+        <div className="absolute right-[78px] top-[0px] h-[38px] w-[38px] rounded-full bg-[#F59E0B] shadow-md grid place-items-center">
+          <span className="text-[15px] font-bold">₿</span>
+        </div>
 
-      {/* Floating icons placeholders (replace with your assets later) */}
-      <div className="absolute right-14 top-9 h-10 w-10 rounded-full bg-amber-400/90 grid place-items-center font-bold">
-        ₿
-      </div>
-      <div className="absolute right-6 top-16 h-10 w-10 rounded-full bg-indigo-400/90 grid place-items-center font-bold">
-        ≡
-      </div>
-      <div className="absolute right-16 bottom-14 h-10 w-10 rounded-full bg-emerald-300/90 grid place-items-center font-bold">
-        $
-      </div>
-      <div className="absolute right-8 bottom-10 h-9 w-9 rounded-full bg-cyan-300/90 grid place-items-center font-bold">
-        ↗
-      </div>
-      <div className="absolute right-4 bottom-20 h-9 w-9 rounded-full bg-yellow-300/90 grid place-items-center font-bold">
-        ₿
+        <div className="absolute right-[20px] top-[34px] h-[44px] w-[44px] rounded-full bg-[#7C3AED] shadow-md grid place-items-center">
+          <span className="text-[15px] font-bold">≡</span>
+        </div>
+
+        <div className="absolute right-[86px] top-[82px] h-[46px] w-[46px] rounded-full bg-[#10B981] shadow-md grid place-items-center">
+          <span className="text-[15px] font-bold">$</span>
+        </div>
+
+        <div className="absolute right-[2px] top-[92px] h-[44px] w-[44px] rounded-full bg-[#0EA5E9] shadow-md grid place-items-center">
+          <span className="text-[15px] font-bold">↗</span>
+        </div>
+
+        <div className="absolute right-[34px] top-[132px] h-[42px] w-[42px] rounded-full bg-[#FACC15] shadow-md grid place-items-center">
+          <span className="text-[15px] font-bold">◎</span>
+        </div>
       </div>
     </div>
   );

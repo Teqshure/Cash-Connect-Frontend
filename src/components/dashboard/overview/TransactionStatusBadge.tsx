@@ -23,8 +23,8 @@ export default function TransactionStatusBadge({ status }: Props) {
     <span
       className={[
         "inline-flex items-center justify-center",
-        "h-6 px-3 rounded-full border",
-        "text-[11px] font-medium",
+        "h-5 px-2.5 rounded-full border",
+        "text-[10px] font-medium",
         styles[status],
       ].join(" ")}
     >

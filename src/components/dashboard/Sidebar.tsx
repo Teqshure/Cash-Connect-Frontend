@@ -39,13 +39,13 @@ const bottomNav: NavItem[] = [
 export default function Sidebar() {
   const pathname = usePathname();
 
+  // Active when exact match OR nested route
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
-  // ✅ Smaller row height so it doesn't squeeze the brand section
-  // 44px is still a nice touch target on desktop
+  // Shared item sizing (Figma active button sizing)
   const baseRow =
-    "w-[247.33px] h-[44px] px-[14px] rounded-[18px] flex items-center gap-[18px] transition";
+    "w-[247.33px] h-[48px] px-[16px] rounded-[18px] flex items-center gap-[24px] transition";
 
   const inactiveRow = "text-slate-500 hover:bg-slate-50 hover:text-slate-800";
 
@@ -57,18 +57,18 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 top-0 z-40 w-[288px] h-screen min-h-[618px] bg-white overflow-hidden"
+      className="fixed left-0 top-0 z-40 w-[288px] h-screen bg-white"
       style={{ borderRight: "0.67px solid rgba(0,0,0,0.0588)" }}
     >
-      <div className="h-full flex flex-col justify-between">
-        {/* Brand stays fixed at the top */}
+      {/* Keeps Brand fixed; nav area handles overflow */}
+      <div className="h-full flex flex-col">
+        {/* Brand header stays put */}
         <SidebarBrand />
 
-        {/* Menus fit without any internal scrolling */}
-        <div className="flex flex-col justify-between flex-1">
-          {/* Top nav */}
+        {/* Nav area scrolls (scrollbar hidden) */}
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+          {/* Top links */}
           <nav className="px-5 pt-3">
-            {/* tighter vertical spacing */}
             <ul className="space-y-2">
               {topNav.map((item) => {
                 const active = isActive(item.href);
@@ -85,16 +85,14 @@ export default function Sidebar() {
                     >
                       <item.Icon
                         className={[
-                          "h-[18px] w-[18px] shrink-0",
+                          "h-5 w-5 shrink-0",
                           active ? "text-white" : "text-slate-400",
                         ].join(" ")}
                       />
-                      <span className="text-[13px] font-medium">
-                        {item.label}
-                      </span>
+                      <span className="text-sm font-medium">{item.label}</span>
 
                       {active && (
-                        <span className="ml-auto h-2 w-2 rounded-full bg-white/90" />
+                        <span className="ml-auto h-2.5 w-2.5 rounded-full bg-white/90" />
                       )}
                     </Link>
                   </li>
@@ -103,9 +101,11 @@ export default function Sidebar() {
             </ul>
           </nav>
 
-          {/* Bottom nav pinned */}
+          {/* Divider */}
+          <div className="my-4 h-px w-full bg-slate-100" />
+
+          {/* Bottom links */}
           <nav className="px-5 pb-5">
-            <div className="mb-3 h-px w-full bg-slate-100" />
             <ul className="space-y-2">
               {bottomNav.map((item) => {
                 const active = isActive(item.href);
@@ -122,16 +122,14 @@ export default function Sidebar() {
                     >
                       <item.Icon
                         className={[
-                          "h-[18px] w-[18px] shrink-0",
+                          "h-5 w-5 shrink-0",
                           active ? "text-white" : "text-slate-400",
                         ].join(" ")}
                       />
-                      <span className="text-[13px] font-medium">
-                        {item.label}
-                      </span>
+                      <span className="text-sm font-medium">{item.label}</span>
 
                       {active && (
-                        <span className="ml-auto h-2 w-2 rounded-full bg-white/90" />
+                        <span className="ml-auto h-2.5 w-2.5 rounded-full bg-white/90" />
                       )}
                     </Link>
                   </li>
