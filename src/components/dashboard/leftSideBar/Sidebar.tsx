@@ -13,7 +13,7 @@ import {
   Settings,
   HelpCircle,
 } from "lucide-react";
-import SidebarBrand from "@/components/dashboard/SidebarBrand";
+import SidebarBrand from "@/components/dashboard/leftSideBar/SidebarBrand";
 
 type NavItem = {
   label: string;
@@ -24,7 +24,7 @@ type NavItem = {
 const topNav: NavItem[] = [
   { label: "Home", href: "/dashboard", Icon: Home },
   { label: "Wallet", href: "/wallet", Icon: Wallet },
-  { label: "History", href: "/history", Icon: History },
+  { label: "History", href: "/History", Icon: History },
   { label: "Products", href: "/products", Icon: Package },
   { label: "Orders", href: "/orders", Icon: ShoppingBag },
   { label: "Earnings", href: "/earnings", Icon: TrendingUp },

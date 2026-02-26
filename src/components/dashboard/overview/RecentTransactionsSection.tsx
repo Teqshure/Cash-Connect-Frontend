@@ -78,7 +78,7 @@ export default function RecentTransactionsSection({ items }: Props) {
           </h3>
 
           <Link
-            href="/dashboard/transactions"
+            href="/history"
             className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-2"
           >
             View All <span aria-hidden>→</span>

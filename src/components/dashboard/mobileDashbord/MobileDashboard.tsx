@@ -18,66 +18,69 @@ export default function MobileDashboard() {
   const name = getFirstName(user?.fullname);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto w-full pb-10">
-        {/* Greeting with name - matching desktop style */}
-        <div className="px-4 pt-4">
-          <div className="min-w-0 flex items-center">
-            <p className="text-[20px] leading-[28px] font-medium text-slate-900 whitespace-nowrap">
-              Good Morning, {name}! <span className="ml-1">👋</span>
-            </p>
-          </div>
-        </div>
+    <div className="px-4 pb-6">
+      {/* Greeting */}
+      <div className="pt-2">
+        <p className="text-[14px] text-slate-500">
+          Good Morning,{" "}
+          <span className="font-semibold text-slate-800">{name}</span>! 👋
+        </p>
+      </div>
 
-        {/* Wallet Balance Card */}
-        <div className="px-4 mt-3">
-          <WalletBalanceCard
-            totalBalance={300000}
-            transactionLimit={100000}
-            changePercent={15.0}
+      {/* Wallet Balance Card */}
+      <div className="mt-3">
+        <WalletBalanceCard
+          totalBalance={300000}
+          transactionLimit={100000}
+          changePercent={15.0}
+        />
+      </div>
+
+      {/* Shortcuts Section */}
+      <div className="mt-5">
+        <h2 className="text-[16px] font-semibold text-slate-800 mb-3">
+          Shortcuts
+        </h2>
+        <div className="grid grid-cols-4 gap-2">
+          <QuickActionTile
+            label="Send Payment"
+            Icon={ArrowUpRight}
+            iconBgClass="bg-[#DCEBFF]"
+            iconColorClass="text-[#1D4ED8]"
+          />
+          <QuickActionTile
+            label="Sell Giftcard"
+            Icon={Gift}
+            iconBgClass="bg-[#FFE8CC]"
+            iconColorClass="text-[#EA580C]"
+          />
+          <QuickActionTile
+            label="Sell Crypto"
+            Icon={Bitcoin}
+            iconBgClass="bg-[#FFF3CC]"
+            iconColorClass="text-[#B45309]"
+          />
+          <QuickActionTile
+            label="More"
+            Icon={MoreHorizontal}
+            iconBgClass="bg-[#EEF2F7]"
+            iconColorClass="text-[#334155]"
           />
         </div>
+      </div>
 
-        {/* Shortcuts Section */}
-        <div className="px-4 mt-6">
-          <h2 className="text-[16px] font-semibold text-slate-800 mb-3">
-            Shortcuts
-          </h2>
-          <div className="grid grid-cols-4 gap-3">
-            <QuickActionTile
-              label="Send Payment"
-              Icon={ArrowUpRight}
-              iconBgClass="bg-[#DCEBFF]"
-              iconColorClass="text-[#1D4ED8]"
-            />
-            <QuickActionTile
-              label="Sell Giftcard"
-              Icon={Gift}
-              iconBgClass="bg-[#FFE8CC]"
-              iconColorClass="text-[#EA580C]"
-            />
-            <QuickActionTile
-              label="Sell Crypto"
-              Icon={Bitcoin}
-              iconBgClass="bg-[#FFF3CC]"
-              iconColorClass="text-[#B45309]"
-            />
-            <QuickActionTile
-              label="More"
-              Icon={MoreHorizontal}
-              iconBgClass="bg-[#EEF2F7]"
-              iconColorClass="text-[#334155]"
-            />
-          </div>
-        </div>
-
-        {/* Trade Crypto Banner */}
+      {/* Trade Crypto Banner */}
+      <div className="mt-5">
         <MobileTradeBanner />
+      </div>
 
-        {/* Recent Transactions */}
+      {/* Recent Transactions */}
+      <div className="mt-5">
         <MobileRecentTransactions />
+      </div>
 
-        {/* Earning Opportunities */}
+      {/* Earning Opportunities */}
+      <div className="mt-5">
         <MobileEarningOpportunities />
       </div>
     </div>
