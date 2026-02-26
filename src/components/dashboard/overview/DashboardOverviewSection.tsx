@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import WalletBalanceCard from "./WalletBalanceCard";
 import ExchangePromoCard from "./ExchangePromoCard";
 import QuickActionsSection from "./QuickActionsSection";
@@ -24,19 +25,13 @@ export default function DashboardOverviewSection({
   currency = "₦",
   changePercent = 5.2,
 }: Props) {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const name = getFirstName(user?.fullname);
 
   return (
     <section className="space-y-6 min-w-0 overflow-x-hidden pl-0 lg:pl-6 pr-4">
-      {/* Mobile greeting only (desktop greeting stays in Topbar) */}
-      <div className="lg:hidden">
-        <h2 className="text-[28px] leading-[36px] font-semibold text-slate-900">
-          Good Morning {name}!
-        </h2>
-      </div>
-
-      {/* Hero row (responsive + keeps Figma proportions but can shrink to fit) */}
+      {/* Hero row */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,372px)_minmax(0,440px)] gap-4 lg:gap-[25px] items-stretch min-w-0">
         <div className="min-w-0">
           <WalletBalanceCard
@@ -44,6 +39,9 @@ export default function DashboardOverviewSection({
             transactionLimit={transactionLimit}
             currency={currency}
             changePercent={changePercent}
+            onFundWallet={() => router.push("/wallet?tab=fund")}
+            onWithdraw={() => router.push("/wallet?tab=withdraw")}
+            activeAction="fund"
           />
         </div>
 
@@ -52,10 +50,7 @@ export default function DashboardOverviewSection({
         </div>
       </div>
 
-      {/* Quick actions */}
       <QuickActionsSection />
-
-      {/* Recent Transactions */}
       <RecentTransactionsSection />
     </section>
   );

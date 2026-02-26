@@ -9,6 +9,11 @@ type Props = {
   transactionLimit: number;
   currency?: string;
   changePercent?: number;
+
+  // ✅ new (wallet page switching)
+  onFundWallet?: () => void;
+  onWithdraw?: () => void;
+  activeAction?: "fund" | "withdraw";
 };
 
 export default function WalletBalanceCard({
@@ -16,6 +21,9 @@ export default function WalletBalanceCard({
   transactionLimit,
   currency = "₦",
   changePercent = 5.2,
+  onFundWallet,
+  onWithdraw,
+  activeAction = "fund",
 }: Props) {
   const [hide, setHide] = useState(false);
 
@@ -23,6 +31,9 @@ export default function WalletBalanceCard({
     if (hide) return `${currency}****`;
     return formatMoney(totalBalance, currency);
   }, [hide, totalBalance, currency]);
+
+  const fundActive = activeAction === "fund";
+  const withdrawActive = activeAction === "withdraw";
 
   return (
     <div
@@ -49,12 +60,10 @@ export default function WalletBalanceCard({
           </p>
 
           <div className="mt-4 flex items-center gap-3">
-            {/* Reduced amount to match Figma */}
             <p className="text-[28px] leading-[30px] font-semibold tracking-tight">
               {balanceText}
             </p>
 
-            {/* Smaller eye bubble */}
             <button
               type="button"
               onClick={() => setHide((v) => !v)}
@@ -87,7 +96,7 @@ export default function WalletBalanceCard({
         </div>
       </div>
 
-      {/* Transaction Limit row (pulled up) */}
+      {/* Transaction Limit row */}
       <div className="mt-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="h-7 w-7 rounded-full bg-emerald-300/20 grid place-items-center text-[12px] font-semibold">
@@ -103,21 +112,18 @@ export default function WalletBalanceCard({
         </p>
       </div>
 
-      {/* Buttons (tighter + shorter) */}
+      {/* Buttons */}
       <div className="mt-6 flex gap-3">
         <button
           type="button"
-          className="
-            flex-1
-            h-[44px]
-            rounded-[16px]
-            bg-white
-            text-emerald-700
-            font-semibold text-[14px]
-            flex items-center justify-center gap-2
-            transition
-            cursor-pointer
-          "
+          onClick={onFundWallet}
+          className={[
+            "flex-1 h-[44px] rounded-[16px] font-semibold text-[14px]",
+            "flex items-center justify-center gap-2 transition cursor-pointer",
+            fundActive
+              ? "bg-white text-emerald-700"
+              : "bg-white/90 text-emerald-700 hover:bg-white",
+          ].join(" ")}
         >
           <Plus className="h-5 w-5" />
           Fund Wallet
@@ -125,19 +131,14 @@ export default function WalletBalanceCard({
 
         <button
           type="button"
-          className="
-            flex-1
-            h-[44px]
-            rounded-[16px]
-            bg-emerald-300/15
-            text-white
-            font-semibold text-[14px]
-            flex items-center justify-center gap-2
-            border border-white/15
-            hover:bg-emerald-300/22
-            transition
-            cursor-pointer
-          "
+          onClick={onWithdraw}
+          className={[
+            "flex-1 h-[44px] rounded-[16px] font-semibold text-[14px]",
+            "flex items-center justify-center gap-2 border border-white/15 transition cursor-pointer",
+            withdrawActive
+              ? "bg-white/20 text-white"
+              : "bg-emerald-300/15 text-white hover:bg-emerald-300/22",
+          ].join(" ")}
         >
           <Download className="h-5 w-5" />
           Withdraw
