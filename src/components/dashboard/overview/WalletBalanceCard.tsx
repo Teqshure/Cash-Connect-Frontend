@@ -9,11 +9,9 @@ type Props = {
   transactionLimit: number;
   currency?: string;
   changePercent?: number;
-
-  // ✅ new (wallet page switching)
   onFundWallet?: () => void;
   onWithdraw?: () => void;
-  activeAction?: "fund" | "withdraw";
+  activeAction?: "fund" | "withdraw" | "none";
 };
 
 export default function WalletBalanceCard({
@@ -23,7 +21,7 @@ export default function WalletBalanceCard({
   changePercent = 5.2,
   onFundWallet,
   onWithdraw,
-  activeAction = "fund",
+  activeAction = "none",
 }: Props) {
   const [hide, setHide] = useState(false);
 
@@ -114,6 +112,7 @@ export default function WalletBalanceCard({
 
       {/* Buttons */}
       <div className="mt-6 flex gap-3">
+        {/* Fund Wallet — hidden on mobile when fund is active */}
         <button
           type="button"
           onClick={onFundWallet}
@@ -123,12 +122,15 @@ export default function WalletBalanceCard({
             fundActive
               ? "bg-white text-emerald-700"
               : "bg-white/90 text-emerald-700 hover:bg-white",
+            // Mobile only: hide this button when fund form is active
+            fundActive ? "lg:flex hidden" : "flex",
           ].join(" ")}
         >
           <Plus className="h-5 w-5" />
           Fund Wallet
         </button>
 
+        {/* Withdraw — hidden on mobile when withdraw is active */}
         <button
           type="button"
           onClick={onWithdraw}
@@ -138,6 +140,8 @@ export default function WalletBalanceCard({
             withdrawActive
               ? "bg-white/20 text-white"
               : "bg-emerald-300/15 text-white hover:bg-emerald-300/22",
+            // Mobile only: hide this button when withdraw form is active
+            withdrawActive ? "lg:flex hidden" : "flex",
           ].join(" ")}
         >
           <Download className="h-5 w-5" />
