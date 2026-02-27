@@ -21,9 +21,17 @@ export default function MobileDashboard() {
     <div className="px-4 pb-6">
       {/* Greeting */}
       <div className="pt-2">
-        <p className="text-[14px] text-slate-500">
-          Good Morning,{" "}
-          <span className="font-semibold text-slate-800">{name}</span>! 👋
+        <p
+          style={{
+            fontFamily: "Quicksand, sans-serif",
+            fontWeight: 400,
+            fontSize: "18px",
+            lineHeight: "140%",
+            letterSpacing: "0%",
+            color: "#030319",
+          }}
+        >
+          Good Morning, {name}! 👋
         </p>
       </div>
 
