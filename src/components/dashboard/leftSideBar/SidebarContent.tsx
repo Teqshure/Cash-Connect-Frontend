@@ -22,7 +22,7 @@ type Props = {
 const nav = [
   { label: "Home", href: "/dashboard", icon: Home },
   { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "History", href: "/history", icon: History },
+  { label: "History", href: "/History", icon: History },
   { label: "My Orders", href: "/orders", icon: ShoppingCart },
   { label: "Product", href: "/products", icon: Package },
   { label: "Earnings", href: "/earnings", icon: Coins },
