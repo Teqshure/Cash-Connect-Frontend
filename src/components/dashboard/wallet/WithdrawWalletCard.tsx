@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatMoney } from "@/components/dashboard/overview/money";
-import TransferFlowModal from "@/components/dashboard/wallet/TransferFlowModal";
+import WithdrawFlowModal from "./Withdrawflowmodal";
 
 type Props = {
   currency?: string;
@@ -40,7 +40,6 @@ export default function WithdrawWalletCard({ currency = "₦" }: Props) {
       <div className="mt-4 grid grid-cols-3 gap-3">
         {presets.map((v, idx) => {
           const active = amount === v;
-
           return (
             <button
               key={`${v}-${idx}`}
@@ -71,14 +70,9 @@ export default function WithdrawWalletCard({ currency = "₦" }: Props) {
           }}
           placeholder="Enter other amount"
           className="
-            w-full
-            h-[48px]
-            rounded-[12px]
-            border border-slate-200
-            bg-white
-            px-4
-            text-[14px]
-            outline-none
+            w-full h-[48px] rounded-[12px]
+            border border-slate-200 bg-white
+            px-4 text-[14px] outline-none
             focus:border-emerald-500
           "
         />
@@ -108,15 +102,11 @@ export default function WithdrawWalletCard({ currency = "₦" }: Props) {
         Continue
       </button>
 
-      {/* 3-step modal flow */}
-      <TransferFlowModal
+      <WithdrawFlowModal
         open={openFlow}
         onClose={() => setOpenFlow(false)}
         amount={numericAmount}
         currency="NGN"
-        bankName="Access Bank"
-        accountNumber="2141536385"
-        accountName="Emmanuel Nwaezeoma"
       />
     </div>
   );

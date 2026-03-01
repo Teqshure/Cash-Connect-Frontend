@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={poppins.variable}>
       <body
         suppressHydrationWarning
-        className="antialiased font-sans  lg:pt-0 no-scrollbar"
+        className="antialiased font-sans pt-14 lg:pt-0 no-scrollbar"
       >
         <Providers>{children}</Providers>
       </body>
