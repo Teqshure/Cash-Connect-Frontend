@@ -6,7 +6,7 @@ type Transaction = {
   id: string;
   code: string;
   type: string;
-  iconUrl: string;
+  logo: string;
 };
 
 const transactions: Transaction[] = [
@@ -14,19 +14,19 @@ const transactions: Transaction[] = [
     id: "1",
     code: "a3G6hk^7yB",
     type: "Crypto Buy",
-    iconUrl: "https://cdn.coinranking.com/B1oPuTyfX/bnb.svg",
+    logo: "/images/recentTransaction/bnb.png",
   },
   {
     id: "2",
     code: "a3G6hk^7yB",
     type: "Crypto Buy",
-    iconUrl: "https://cdn.coinranking.com/rk4RKHOuW/eth.svg",
+    logo: "/images/recentTransaction/eth.png",
   },
   {
     id: "3",
     code: "a3G6hk^7yB",
     type: "Gift Card Buy",
-    iconUrl: "https://logo.clearbit.com/amazon.com",
+    logo: "/images/recentTransaction/amazon.png",
   },
 ];
 
@@ -58,7 +58,7 @@ export default function MobileRecentTransactions() {
             <div className="h-11 w-11 rounded-full overflow-hidden flex-shrink-0 bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={tx.iconUrl}
+                src={tx.logo}
                 alt={tx.type}
                 className="h-full w-full object-cover"
               />

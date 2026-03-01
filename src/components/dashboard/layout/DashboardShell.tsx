@@ -18,7 +18,7 @@ export default function DashboardShell({
   const hideRightRail = pathname.startsWith("/wallet");
 
   return (
-    <div className="min-h-screen bg-slate-50 -mt-14">
+    <div className="min-h-screen bg-slate-50 -mt-14 lg:mt-0">
       {/* Desktop sidebar - hidden on mobile */}
       <div className="hidden lg:block">
         <Sidebar />
