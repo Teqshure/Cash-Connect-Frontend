@@ -25,8 +25,6 @@ export default function Home() {
     }
   }, [isAuthenticated, isHydrated, router]);
 
-  // Prevent flash of landing page by waiting for hydration
-  // If not hydrated yet, or if hydrated and authenticated (waiting for redirect), show nothing.
   if (!isHydrated || isAuthenticated) {
     return null;
   }
@@ -35,7 +33,8 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-white font-sans text-zinc-900">
       <Navbar />
 
-      <main className="grow">
+      {/* pt-14 clears the fixed mobile navbar (~56px). lg:pt-0 resets on desktop */}
+      <main className="grow  lg:pt-0">
         <Hero />
         <Stats />
         <LandingServices />
@@ -43,7 +42,6 @@ export default function Home() {
         <Process />
         <WhyChooseUs />
         <Testimonials />
-
         <CallToAction />
       </main>
 

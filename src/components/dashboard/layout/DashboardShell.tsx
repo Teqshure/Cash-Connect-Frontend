@@ -6,7 +6,6 @@ import Sidebar from "@/components/dashboard/leftSideBar/Sidebar";
 import SidebarContent from "@/components/dashboard/leftSideBar/SidebarContent";
 import Topbar from "@/components/dashboard/Topbar";
 import RightSidebarSection from "@/components/dashboard/right-rail/RightSidebarSection";
-import MobileDashboard from "@/components/dashboard/mobileDashbord/MobileDashboard";
 
 export default function DashboardShell({
   children,
@@ -15,12 +14,11 @@ export default function DashboardShell({
 }) {
   const [open, setOpen] = useState(false);
 
-  // Hide right rail on wallet page
   const pathname = usePathname();
   const hideRightRail = pathname.startsWith("/wallet");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 -mt-14">
       {/* Desktop sidebar - hidden on mobile */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -53,8 +51,7 @@ export default function DashboardShell({
           >
             <div className="min-w-0 flex flex-col">
               <Topbar onOpenSidebar={() => setOpen(true)} />
-              <main className="min-w-0 flex-1 px-4 py-4">{children}</main>{" "}
-              {/* Added px-4 py-4 */}
+              <main className="min-w-0 flex-1 px-4 py-4">{children}</main>
             </div>
 
             {!hideRightRail && (
@@ -71,9 +68,7 @@ export default function DashboardShell({
       {/* Mobile View */}
       <div className="lg:hidden">
         <Topbar onOpenSidebar={() => setOpen(true)} />
-        <div className="pb-8">
-          {children} {/* ← now wallet, history, etc. will render correctly */}
-        </div>
+        <div className="pb-8">{children}</div>
       </div>
     </div>
   );
