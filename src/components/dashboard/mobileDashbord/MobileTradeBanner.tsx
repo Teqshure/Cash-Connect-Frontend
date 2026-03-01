@@ -10,24 +10,21 @@ const slides = [
     title: "Trade Crypto\nInstantly",
     subtitle: "Fast, Secure & Global Payments",
     discount: "20% Discount on all transfers",
-    image:
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80",
+    image: "/images/dashboard/packet.png",
   },
   {
     id: 2,
     title: "Sell Gift Cards\nInstantly",
     subtitle: "Best Rates & Instant Payment",
     discount: "Top rates on all gift cards",
-    image:
-      "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80",
+    image: "/images/btc_large.png",
   },
   {
     id: 3,
     title: "Send Money\nWorldwide",
     subtitle: "Zero Fees on First Transfer",
     discount: "Free transfers this week only",
-    image:
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80",
+    image: "/images/dashboard/our_story.jpg",
   },
 ];
 

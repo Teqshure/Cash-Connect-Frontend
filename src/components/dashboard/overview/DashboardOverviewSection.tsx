@@ -26,7 +26,7 @@ export default function DashboardOverviewSection({
   changePercent = 5.2,
 }: Props) {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
 
   return (
