@@ -32,7 +32,7 @@ export const GIFT_CARDS: GiftCard[] = [
   {
     id: "amazon",
     name: "Amazon",
-    logo: "/images/giftcards/amazon.png",
+    logo: "/images/giftcards/amazons.png",
     bgColor: "bg-yellow-400",
   },
   {
@@ -98,7 +98,7 @@ export const GIFT_CARDS: GiftCard[] = [
   {
     id: "riverisland",
     name: "River Island",
-    logo: "/images/giftcards/riverisland.png",
+    logo: "/images/giftcards/rivers.png",
     bgColor: "bg-slate-800",
   },
   {
@@ -110,19 +110,19 @@ export const GIFT_CARDS: GiftCard[] = [
   {
     id: "redlobster",
     name: "Red Lobster",
-    logo: "/images/giftcards/redlobster.png",
+    logo: "/images/giftcards/lobstar.png",
     bgColor: "bg-slate-900",
   },
   {
     id: "primark",
     name: "Primark",
-    logo: "/images/giftcards/primark.png",
+    logo: "/images/giftcards/primak.png",
     bgColor: "bg-teal-500",
   },
   {
     id: "burgerking",
     name: "Burger King",
-    logo: "/images/giftcards/burgerking.png",
+    logo: "/images/giftcards/burger.png",
     bgColor: "bg-orange-500",
   },
   {
@@ -134,25 +134,25 @@ export const GIFT_CARDS: GiftCard[] = [
   {
     id: "pizzahut",
     name: "Pizza Hut",
-    logo: "/images/giftcards/pizzahut.png",
+    logo: "/images/giftcards/pizza.png",
     bgColor: "bg-red-700",
   },
   {
     id: "buffalowings",
     name: "Buffalo Wild Wings",
-    logo: "/images/giftcards/buffalowings.png",
+    logo: "/images/giftcards/wild.png",
     bgColor: "bg-orange-400",
   },
   {
     id: "nordstrom",
     name: "Nordstrom",
-    logo: "/images/giftcards/nordstrom.png",
+    logo: "/images/giftcards/nordstorm.png",
     bgColor: "bg-slate-700",
   },
   {
     id: "americaneagle",
     name: "American Eagle",
-    logo: "/images/giftcards/americaneagle.png",
+    logo: "/images/giftcards/eagle.png",
     bgColor: "bg-slate-800",
   },
   {
@@ -182,7 +182,7 @@ export const GIFT_CARDS: GiftCard[] = [
   {
     id: "newlook",
     name: "New Look",
-    logo: "/images/giftcards/newlook.png",
+    logo: "/images/giftcards/look.png",
     bgColor: "bg-slate-100",
   },
 ];
