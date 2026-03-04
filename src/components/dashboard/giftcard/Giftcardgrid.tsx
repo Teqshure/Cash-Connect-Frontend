@@ -30,7 +30,7 @@ export default function GiftCardGrid({ title, onSelect, onBack }: Props) {
       <h2 className="text-[20px] font-semibold text-slate-900 mb-4">{title}</h2>
 
       {/* Search */}
-      <div className="relative mb-5">
+      <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input
           type="text"
@@ -41,32 +41,34 @@ export default function GiftCardGrid({ title, onSelect, onBack }: Props) {
         />
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+      {/* Grid — 3 columns */}
+      <div className="grid grid-cols-3 gap-4">
         {filtered.map((card) => (
           <button
             key={card.id}
             type="button"
             onClick={() => onSelect(card)}
-            className="flex flex-col items-center gap-2 p-2 rounded-[12px] border border-slate-100 bg-white hover:border-emerald-400 hover:shadow-md transition cursor-pointer"
+            className="flex flex-col rounded-[14px] overflow-hidden border border-slate-100 hover:border-emerald-400 hover:shadow-md transition-all duration-200 cursor-pointer text-left"
           >
-            {/* Logo */}
-            <div
-              className={`w-full h-16 rounded-[8px] ${card.bgColor} flex items-center justify-center overflow-hidden`}
-            >
+            {/* Image fills the card completely */}
+            <div className={`w-full h-[100px] ${card.bgColor} overflow-hidden`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={card.logo}
                 alt={card.name}
-                className="h-12 w-full object-contain p-1"
+                className="w-full h-full object-cover"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = "none";
                 }}
               />
             </div>
-            <p className="text-[11px] font-medium text-slate-700 text-center leading-tight">
-              {card.name}
-            </p>
+
+            {/* Name below */}
+            <div className="bg-white px-3 py-2">
+              <p className="text-[12px] font-medium text-slate-700 truncate">
+                {card.name}
+              </p>
+            </div>
           </button>
         ))}
       </div>
