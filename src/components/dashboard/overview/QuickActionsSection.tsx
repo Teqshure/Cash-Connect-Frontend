@@ -47,7 +47,7 @@ export default function QuickActionsSection() {
       Icon: MoreHorizontal,
       iconBgClass: "bg-[#F1F4F9]",
       iconColorClass: "text-[#3A4A5E]",
-      href: "/more",
+      href: "/product",
     },
   ];
 

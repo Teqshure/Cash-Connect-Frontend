@@ -24,7 +24,7 @@ const nav = [
   { label: "Wallet", href: "/wallet", icon: Wallet },
   { label: "History", href: "/History", icon: History },
   { label: "My Orders", href: "/orders", icon: ShoppingCart },
-  { label: "Product", href: "/products", icon: Package },
+  { label: "Product", href: "/product", icon: Package },
   { label: "Earnings", href: "/earnings", icon: Coins },
   { label: "Profile", href: "/profile", icon: User },
   { label: "Setting", href: "/settings", icon: Settings },
