@@ -104,7 +104,7 @@ export default function HistoryPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
 
   const { transactions, isLoading, error, fetchTransactions } =
@@ -116,7 +116,7 @@ export default function HistoryPageContent() {
 
   const allItems = transactions.map(mapTransaction);
 
-  const filteredItems = allItems.filter((item) => {
+  const filteredItems = allItems.filter((item: Transaction) => {
     const matchesStatus = filter === "all" || item.status === filter;
     const matchesSearch =
       item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -361,7 +361,8 @@ export default function HistoryPageContent() {
           )}
 
           {!isLoading &&
-            filteredItems.map((tx) => (
+            // FIX: Add type annotation for tx parameter
+            filteredItems.map((tx: Transaction) => (
               <div
                 key={tx.id}
                 className="grid grid-cols-[1fr_1fr_80px] px-4 py-3 border-b border-slate-50 items-center"

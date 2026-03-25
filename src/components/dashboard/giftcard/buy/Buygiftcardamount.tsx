@@ -31,14 +31,15 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
   }, [fetchProducts, fetchRates]);
 
   useEffect(() => {
+    // FIX: Add type annotation for p
     const filtered = products.filter(
-      (p) => p.gift_card_id === card.id && p.is_active === 1,
+      (p: GiftCardProduct) => p.gift_card_id === card.id && p.is_active === 1,
     );
 
     setCardProducts(filtered);
 
     const initial: Record<number, number> = {};
-    filtered.forEach((p) => {
+    filtered.forEach((p: GiftCardProduct) => {
       initial[p.id] = 0;
     });
 
@@ -64,8 +65,9 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
   const hasSelection = totalUSD > 0;
 
   const handleBuy = () => {
+    // FIX: Add type annotation for product
     const selected = cardProducts.find(
-      (product) => (quantities[product.id] ?? 0) > 0,
+      (product: GiftCardProduct) => (quantities[product.id] ?? 0) > 0,
     );
 
     if (!selected) return;
@@ -102,7 +104,7 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* PRODUCTS */}
         <div className="grid grid-cols-2 gap-4 flex-1">
-          {cardProducts.map((product) => {
+          {cardProducts.map((product: GiftCardProduct) => {
             const qty = quantities[product.id] ?? 0;
             const amount = Number(product.amount);
 

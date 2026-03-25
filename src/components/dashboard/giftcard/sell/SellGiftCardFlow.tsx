@@ -114,8 +114,10 @@ export default function SellGiftCardFlow({ onBack }: Props) {
   // Filter products for selected card
   const getCardProducts = () => {
     if (!selectedCard) return [];
+    // FIX: Add type annotation for p
     return products.filter(
-      (p) => p.gift_card_id === selectedCard.id && p.is_active === 1,
+      (p: GiftCardProduct) =>
+        p.gift_card_id === selectedCard.id && p.is_active === 1,
     );
   };
 
