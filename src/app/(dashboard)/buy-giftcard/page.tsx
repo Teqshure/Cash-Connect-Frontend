@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import BuyGiftCardFlow from "@/components/dashboard/giftcard/Buygiftcardflow";
+import BuyGiftCardFlow from "@/components/dashboard/giftcard/buy/Buygiftcardflow";
 
 export default function Page() {
   const router = useRouter();

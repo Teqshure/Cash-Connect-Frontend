@@ -5,6 +5,15 @@ import { persist } from "zustand/middleware";
 // Types
 // ------------------------------------------------------------------
 
+export interface Wallet {
+  id: number;
+  user_id: number;
+  balance: string;
+  locked_balance: string;
+  currency: string;
+  transaction_limit?: string;
+}
+
 export interface User {
   id: number;
   fullname: string;
@@ -14,7 +23,8 @@ export interface User {
   phone?: string | null;
   role?: string;
   status?: string;
-  // Add other user fields as returned by your API
+  kyc_status?: string;
+  wallet?: Wallet;
 }
 
 interface AuthResponse {
@@ -22,8 +32,8 @@ interface AuthResponse {
   message: string;
   token?: string;
   user?: User | null;
-  data?: User | null; // Some endpoints might return 'data' instead of 'user'
-  errors?: Record<string, string[]>; // For 422 validation errors
+  data?: User | null;
+  errors?: Record<string, string[]>;
 }
 
 interface AuthState {
@@ -43,7 +53,7 @@ interface AuthState {
     password: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
-
+  refreshUser: () => Promise<void>; // ← refreshes user + wallet balance
   forgotPassword: (email: string) => Promise<string>;
   resetPassword: (
     token: string,
@@ -67,7 +77,7 @@ const API_URL = "https://cashconnect.beamaxtech.com.ng/api";
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -75,6 +85,32 @@ export const useAuthStore = create<AuthState>()(
       isHydrated: false,
       error: null,
 
+      // ── Refresh user (called periodically to get latest balance) ──
+      refreshUser: async () => {
+        const token = get().token;
+        if (!token) return;
+
+        try {
+          const response = await fetch(`${API_URL}/v1/user`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.status && data.user) {
+            set({ user: data.user });
+          }
+        } catch {
+          // Silently fail — don't disrupt the user experience
+        }
+      },
+
+      // ── Login ──
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
@@ -117,6 +153,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ── Google Login ──
       loginWithGoogle: async (googleId: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -159,6 +196,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ── Register ──
       register: async (fullname, email, password) => {
         set({ isLoading: true, error: null });
         try {
@@ -201,6 +239,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ── Forgot Password ──
       forgotPassword: async (email) => {
         set({ isLoading: true, error: null });
         try {
@@ -239,6 +278,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ── Reset Password ──
       resetPassword: async (token, email, password, password_confirmation) => {
         set({ isLoading: true, error: null });
         try {
@@ -282,10 +322,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // ── Logout ──
       logout: async () => {
         const token = useAuthStore.getState().token;
 
-        // We try to call the logout API, but we clear local state regardless
         try {
           if (token) {
             await fetch(`${API_URL}/v1/logout`, {
@@ -301,12 +341,7 @@ export const useAuthStore = create<AuthState>()(
           console.error("Logout API call failed:", error);
         }
 
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          error: null,
-        });
+        set({ user: null, token: null, isAuthenticated: false, error: null });
         localStorage.removeItem("auth-storage");
       },
 

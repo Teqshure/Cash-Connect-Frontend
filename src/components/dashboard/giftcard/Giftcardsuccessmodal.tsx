@@ -2,56 +2,52 @@
 
 type Props = {
   open: boolean;
-  mode: "buy" | "sell";
-  onOk: () => void;
+  message?: string;
+  onClose: () => void;
 };
 
-function GiftCardSuccessModal({ open, mode, onOk }: Props) {
+export default function GiftCardFailedModal({
+  open,
+  message = "Transaction failed. Please try again.",
+  onClose,
+}: Props) {
   if (!open) return null;
 
-  const message =
-    mode === "buy"
-      ? "🛍 Purchase Successful\nYour gift card will be delivered shortly."
-      : "🎁 Gift Card Sold, your payment is being processed to your wallet.";
-
   return (
-    <div
-      className="fixed inset-0 z-[90] grid place-items-center px-4"
-      style={{ background: "rgba(0,0,0,0.3)" }}
-    >
-      <div className="w-full max-w-[360px] bg-white rounded-[24px] px-8 py-10 text-center shadow-xl">
-        <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+    <div className="fixed inset-0 z-[90] flex items-center justify-center px-4 bg-black/30 backdrop-blur-sm">
+      <div className="w-full max-w-[380px] bg-white rounded-[26px] px-8 py-10 text-center shadow-xl">
+        {/* ERROR ICON */}
+        <div className="mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="#ef4444" strokeWidth="2" />
             <path
-              d="M20 12c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8Z"
-              stroke="#22c55e"
-              strokeWidth="1.8"
-            />
-            <path
-              d="M8.5 12.3l2.2 2.2 4.9-5"
-              stroke="#22c55e"
+              d="M12 8v5"
+              stroke="#ef4444"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round"
             />
+            <circle cx="12" cy="16" r="1" fill="#ef4444" />
           </svg>
         </div>
-        <h3 className="mt-5 text-[22px] font-semibold text-emerald-600">
-          Thanks
+
+        {/* TITLE */}
+        <h3 className="mt-5 text-[22px] font-semibold text-red-600">
+          Transaction Failed
         </h3>
-        <p className="mt-2 text-[13px] text-slate-500 leading-6 whitespace-pre-line">
+
+        {/* MESSAGE */}
+        <p className="mt-2 text-[13px] text-slate-500 leading-6 max-w-[260px] mx-auto">
           {message}
         </p>
+
+        {/* BUTTON */}
         <button
-          type="button"
-          onClick={onOk}
-          className="mt-6 h-[40px] px-8 rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] cursor-pointer hover:brightness-110 transition"
+          onClick={onClose}
+          className="mt-7 h-[44px] px-10 rounded-[12px] bg-red-500 text-white font-semibold text-[14px] cursor-pointer hover:brightness-110 transition"
         >
-          Ok
+          Try Again
         </button>
       </div>
     </div>
   );
 }
-
-export default GiftCardSuccessModal;

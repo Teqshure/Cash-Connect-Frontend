@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   Filter,
@@ -8,26 +8,83 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
 } from "lucide-react";
-import { historyData } from "./historyData";
 import { Transaction } from "../overview/TransactionsTable";
 import TransactionsTable from "../overview/TransactionsTable";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTransactionStore, ApiTransaction } from "@/store/Transactionstore";
 
-type Props = {
-  initialItems?: Transaction[];
-};
+// ----------------------------------------------------------------
+// Mappers (same as RecentTransactionsSection)
+// ----------------------------------------------------------------
+
+function getIcon(tx: ApiTransaction): Transaction["icon"] {
+  if (tx.deposit) return "fund";
+  if (tx.withdrawal) return "send";
+  if (tx.gift_card) return "gift";
+  if (tx.crypto) return "crypto";
+  return "fund";
+}
+
+function getType(tx: ApiTransaction): string {
+  if (tx.deposit) return "Fund Deposit";
+  if (tx.withdrawal) return "Withdrawal";
+  if (tx.gift_card) return "Giftcard Sale";
+  if (tx.crypto) return "Crypto Transaction";
+  return tx.type;
+}
+
+function getStatus(status: ApiTransaction["status"]): Transaction["status"] {
+  if (status === "approved") return "successful";
+  if (status === "rejected" || status === "failed") return "failed";
+  return "pending";
+}
+
+function formatDate(dateStr: string): { date: string; time: string } {
+  const d = new Date(dateStr);
+  const date = d
+    .toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    .replace(/\//g, "-");
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return { date, time };
+}
+
+function mapTransaction(tx: ApiTransaction): Transaction {
+  const { date, time } = formatDate(tx.created_at);
+  const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return {
+    id: String(tx.id),
+    date,
+    time,
+    type: getType(tx),
+    amountPrimary: `${tx.currency === "NGN" ? "₦" : tx.currency} ${amount}`,
+    status: getStatus(tx.status),
+    icon: getIcon(tx),
+  };
+}
+
+// ----------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------
 
 function getFirstName(fullname?: string | null) {
   if (!fullname) return "User";
   return fullname.trim().split(" ")[0] || "User";
 }
 
-// Map icon type to up/down direction for mobile view
 function isCredit(icon: Transaction["icon"]) {
   return icon === "fund" || icon === "gift";
 }
 
-// Shorten type for mobile "Description" column
 function shortType(type: string) {
   if (type.toLowerCase().includes("crypto")) return "Crypto";
   if (type.toLowerCase().includes("gift")) return "Giftcard";
@@ -38,8 +95,11 @@ function shortType(type: string) {
   return type;
 }
 
-export default function HistoryPageContent({ initialItems }: Props) {
-  const [items] = useState<Transaction[]>(initialItems || historyData);
+// ----------------------------------------------------------------
+// Component
+// ----------------------------------------------------------------
+
+export default function HistoryPageContent() {
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
@@ -47,7 +107,16 @@ export default function HistoryPageContent({ initialItems }: Props) {
   const user = useAuthStore((s) => s.user);
   const name = getFirstName(user?.fullname);
 
-  const filteredItems = items.filter((item) => {
+  const { transactions, isLoading, error, fetchTransactions } =
+    useTransactionStore();
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const allItems = transactions.map(mapTransaction);
+
+  const filteredItems = allItems.filter((item) => {
     const matchesStatus = filter === "all" || item.status === filter;
     const matchesSearch =
       item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -124,13 +193,62 @@ export default function HistoryPageContent({ initialItems }: Props) {
         </div>
 
         <div className="rounded-[18px] bg-white border border-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.06)] p-6">
-          <TransactionsTable items={filteredItems} />
+          {/* Loading */}
+          {isLoading && (
+            <div className="flex justify-center items-center py-16">
+              <svg
+                className="animate-spin h-6 w-6 text-emerald-500"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
+              </svg>
+            </div>
+          )}
+
+          {/* Error */}
+          {!isLoading && error && (
+            <div className="py-10 text-center">
+              <p className="text-[13px] text-red-500">{error}</p>
+              <button
+                onClick={fetchTransactions}
+                className="mt-3 text-[12px] text-emerald-600 font-medium hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {/* Empty */}
+          {!isLoading && !error && filteredItems.length === 0 && (
+            <div className="py-10 text-center">
+              <p className="text-[13px] text-slate-400">
+                No transactions found
+              </p>
+            </div>
+          )}
+
+          {/* Table */}
+          {!isLoading && !error && filteredItems.length > 0 && (
+            <TransactionsTable items={filteredItems} />
+          )}
         </div>
       </div>
 
       {/* ── MOBILE ── */}
       <div className="lg:hidden px-4 pb-8">
-        {/* Greeting */}
         <p
           className="mt-6 mb-4"
           style={{
@@ -146,7 +264,6 @@ export default function HistoryPageContent({ initialItems }: Props) {
 
         {/* Filter + Search row */}
         <div className="flex items-center gap-2 mb-4">
-          {/* Filter button */}
           <div className="relative">
             <button
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -189,7 +306,6 @@ export default function HistoryPageContent({ initialItems }: Props) {
             )}
           </div>
 
-          {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <input
@@ -204,7 +320,6 @@ export default function HistoryPageContent({ initialItems }: Props) {
 
         {/* Transactions card */}
         <div className="bg-white rounded-[18px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-          {/* Column headers */}
           <div className="grid grid-cols-[1fr_1fr_80px] px-4 py-3 border-b border-slate-100">
             <p className="text-[12px] font-semibold text-emerald-600">
               Description
@@ -215,18 +330,42 @@ export default function HistoryPageContent({ initialItems }: Props) {
             <p className="text-[12px] font-semibold text-emerald-600">Type</p>
           </div>
 
-          {/* Rows */}
-          {filteredItems.length === 0 ? (
+          {isLoading && (
+            <div className="flex justify-center items-center py-10">
+              <svg
+                className="animate-spin h-5 w-5 text-emerald-500"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
+              </svg>
+            </div>
+          )}
+
+          {!isLoading && filteredItems.length === 0 && (
             <div className="py-10 text-center text-[13px] text-slate-400">
               No transactions found
             </div>
-          ) : (
+          )}
+
+          {!isLoading &&
             filteredItems.map((tx) => (
               <div
                 key={tx.id}
                 className="grid grid-cols-[1fr_1fr_80px] px-4 py-3 border-b border-slate-50 items-center"
               >
-                {/* Description: icon + name */}
                 <div className="flex items-center gap-2">
                   {isCredit(tx.icon) ? (
                     <ArrowUpCircle className="h-7 w-7 text-emerald-500 flex-shrink-0" />
@@ -237,17 +376,14 @@ export default function HistoryPageContent({ initialItems }: Props) {
                     {shortType(tx.type)}
                   </span>
                 </div>
-
-                {/* Transaction ID */}
                 <p className="text-[12px] text-slate-500">
-                  #{tx.id.padStart(8, "1254879")}
+                  #{tx.id.padStart(8, "0")}
                 </p>
-
-                {/* Type */}
-                <p className="text-[12px] text-slate-600 font-medium">Swap</p>
+                <p className="text-[12px] text-slate-600 font-medium">
+                  {tx.status}
+                </p>
               </div>
-            ))
-          )}
+            ))}
         </div>
       </div>
     </>
