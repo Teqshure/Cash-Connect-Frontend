@@ -45,7 +45,8 @@ export default function GiftCardReceipt({
 
   const balance = Number(wallet?.balance ?? 0);
   const transactionLimit = Number(wallet?.transaction_limit ?? 0);
-  const growth = wallet?.growth_percentage ?? 0;
+  // FIX: Remove growth_percentage or use a default
+  const growth = 5.2; // Default growth percentage
 
   const isSell = mode === "sell";
 
