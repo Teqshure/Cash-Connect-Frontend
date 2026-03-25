@@ -26,6 +26,7 @@ export default function DashboardOverviewSection({
   changePercent = 5.2,
 }: Props) {
   const router = useRouter();
+  // FIX: Add type annotation for the parameter
   const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
 

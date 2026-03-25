@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WalletBalanceCard from "@/components/dashboard/overview/WalletBalanceCard";
 import QuickActionTile from "@/components/dashboard/overview/QuickActionTile";
@@ -7,7 +8,7 @@ import { ArrowUpRight, Gift, Bitcoin, MoreHorizontal } from "lucide-react";
 import MobileTradeBanner from "./MobileTradeBanner";
 import MobileRecentTransactions from "./MobileRecentTransactions";
 import MobileEarningOpportunities from "./MobileEarningOpportunities";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore, User } from "@/store/useAuthStore";
 
 function getFirstName(fullname?: string | null) {
   if (!fullname) return "User";
@@ -16,8 +17,18 @@ function getFirstName(fullname?: string | null) {
 
 export default function MobileDashboard() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s: { user: User | null }) => s.user);
+  const refreshUser = useAuthStore(
+    (s: { refreshUser: () => Promise<void> }) => s.refreshUser,
+  );
   const name = getFirstName(user?.fullname);
+
+  const balance = parseFloat(user?.wallet?.balance ?? "0");
+  const transactionLimit = parseFloat(user?.wallet?.transaction_limit ?? "0");
+
+  useEffect(() => {
+    refreshUser();
+  }, []);
 
   return (
     <div className="px-4 pb-6">
@@ -40,9 +51,11 @@ export default function MobileDashboard() {
       {/* Wallet Balance Card */}
       <div className="mt-3">
         <WalletBalanceCard
-          totalBalance={300000}
-          transactionLimit={100000}
+          totalBalance={balance}
+          transactionLimit={transactionLimit}
           changePercent={15.0}
+          onFundWallet={() => router.push("/wallet?tab=fund")}
+          onWithdraw={() => router.push("/wallet?tab=withdraw")}
         />
       </div>
 
