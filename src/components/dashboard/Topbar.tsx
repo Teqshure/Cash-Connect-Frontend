@@ -59,12 +59,6 @@ export default function Topbar({
         <div className="flex items-center gap-3">
           <button
             className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
-            aria-label="Settings"
-          >
-            <Settings className="h-5 w-5 text-slate-700" />
-          </button>
-          <button
-            className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
             aria-label="Rewards"
           >
             <Gift className="h-5 w-5 text-slate-700" />
