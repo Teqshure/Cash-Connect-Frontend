@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Minus, Plus, Upload } from "lucide-react";
-import { GiftCard, GiftCardProduct } from "@/store/giftCardStore";
 
-type Props = {
+import { GiftCard, GiftCardProduct } from "@/store/giftCardStore";
+import { useRateStore } from "@/store/rateStore";
+
+interface Props {
   card: GiftCard;
   products: GiftCardProduct[];
-  onSubmit: (data: any, selectedProduct: GiftCardProduct) => void;
+  onSubmit: (data: any, product: GiftCardProduct) => void;
   onBack: () => void;
-};
+}
 
 export default function SellGiftCardForm({
   card,
@@ -19,129 +22,239 @@ export default function SellGiftCardForm({
 }: Props) {
   const [cardNumber, setCardNumber] = useState("");
   const [amount, setAmount] = useState("");
-  const [quantity, setQuantity] = useState(2);
+  const [quantity, setQuantity] = useState(1);
   const [selectedProduct, setSelectedProduct] =
     useState<GiftCardProduct | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [error, setError] = useState("");
+
+  const { fetchRates, getSellRate } = useRateStore();
+
+  /* ---------------- FETCH RATES ---------------- */
+
+  useEffect(() => {
+    fetchRates();
+  }, [fetchRates]);
+
+  const rate = getSellRate(card.id) || 0;
+
+  /* ---------------- AMOUNT CHANGE ---------------- */
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
-    const match = products.find(
-      (p) => parseFloat(p.amount) === parseFloat(value),
-    );
-    setSelectedProduct(match || null);
+    setError("");
+
+    const product = products.find((p) => String(p.amount) === String(value));
+
+    setSelectedProduct(product || null);
   };
 
-  const total = selectedProduct
-    ? parseFloat(selectedProduct.amount) * quantity * 1450
-    : 0;
+  /* ---------------- IMAGE UPLOAD ---------------- */
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    const invalidFiles = files.filter((file) => file.size > 10 * 1024 * 1024);
+
+    if (invalidFiles.length > 0) {
+      setError("Some files exceed the 10MB limit");
+      return;
+    }
+
+    setError("");
+
+    setImageFiles(files);
+
+    const previews = files.map((file) => URL.createObjectURL(file));
+
+    imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+
+    setImagePreviews(previews);
+  };
+
+  /* ---------------- VALIDATION ---------------- */
+
+  const validateForm = () => {
+    if (!cardNumber.trim()) {
+      setError("Please enter the gift card number");
+      return false;
+    }
+
+    if (!selectedProduct) {
+      setError("Please select an amount");
+      return false;
+    }
+
+    if (imageFiles.length === 0) {
+      setError("Please upload at least one gift card image");
+      return false;
+    }
+
+    return true;
+  };
+
+  /* ---------------- SUBMIT ---------------- */
+
+  const handleSubmit = () => {
+    if (!validateForm()) return;
+    if (!selectedProduct) return;
+
+    onSubmit(
+      {
+        cardNumber,
+        amount,
+        quantity,
+        imageFiles,
+      },
+      selectedProduct,
+    );
+  };
+
+  /* ---------------- TOTAL ---------------- */
+
+  const total =
+    selectedProduct && rate
+      ? Number(selectedProduct.amount) * quantity * Number(rate)
+      : 0;
+
+  /* ---------------- CLEANUP ---------------- */
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+    };
+  }, [imagePreviews]);
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Back */}
-      <button
-        onClick={onBack}
-        className="text-[14px] text-slate-600 mb-6 cursor-pointer"
-      >
+      <button onClick={onBack} className="mb-6 text-sm">
         ← Back
       </button>
 
-      {/* MAIN CARD */}
-      <div className="bg-white rounded-[24px] shadow-sm px-6 py-6 space-y-6">
-        {/* Card Number */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm space-y-6">
+        {/* CARD NUMBER */}
+
         <div>
-          <p className="text-[14px] text-slate-700 mb-2">
-            Enter giftcard number
-          </p>
+          <p className="text-sm mb-2">Enter giftcard number</p>
+
           <input
             value={cardNumber}
             onChange={(e) => setCardNumber(e.target.value)}
             placeholder="Enter card number"
-            className="w-full h-[50px] rounded-[12px] bg-slate-100 px-4 text-[14px] outline-none"
+            className="w-full h-[48px] rounded-xl bg-slate-100 px-4"
           />
         </div>
 
-        {/* Amount */}
+        {/* AMOUNT */}
+
         <div>
-          <p className="text-[14px] text-slate-700 mb-2">Enter amount in ($)</p>
+          <p className="text-sm mb-2">Enter amount ($)</p>
+
           <select
             value={amount}
             onChange={(e) => handleAmountChange(e.target.value)}
-            className="w-full h-[50px] rounded-[12px] bg-slate-100 px-4 text-[14px] outline-none"
+            className="w-full h-[48px] rounded-xl bg-slate-100 px-4"
           >
-            <option value="">$200</option>
-            {products.map((p) => (
-              <option key={p.id} value={p.amount}>
-                ${p.amount}
+            <option value="">Select amount</option>
+
+            {products.map((product) => (
+              <option key={product.id} value={product.amount}>
+                ${product.amount}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Upload */}
-        <div>
-          <p className="text-[14px] text-slate-700 mb-2">
-            Upload Giftcard image
-          </p>
+        {/* IMAGE UPLOAD */}
 
-          <label className="flex items-center gap-3 bg-slate-100 rounded-[12px] px-4 py-4 cursor-pointer">
-            <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center">
+        <div>
+          <p className="text-sm mb-2">Upload Giftcard image</p>
+
+          <label className="flex items-center gap-3 bg-slate-100 rounded-xl p-4 cursor-pointer">
+            <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
               <Upload className="text-white w-5 h-5" />
             </div>
 
             <div>
-              <p className="text-[13px] text-slate-700">Click here -</p>
-              <p className="text-[11px] text-slate-400">
-                Supported Format: SVG, JPG, PNG (10mb each)
-              </p>
+              <p className="text-xs">Click here</p>
+              <p className="text-[10px] text-gray-400">JPG, PNG (max 10MB)</p>
             </div>
 
-            <input type="file" className="hidden" />
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
           </label>
+
+          {imagePreviews.length > 0 && (
+            <div className="flex gap-2 mt-3 flex-wrap">
+              {imagePreviews.map((src, i) => (
+                <div key={i} className="relative w-16 h-16">
+                  <Image
+                    src={src}
+                    alt="Giftcard preview"
+                    fill
+                    sizes="64px"
+                    className="object-cover rounded-lg"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Quantity + Rate */}
+        {/* QUANTITY */}
+
         <div>
-          <p className="text-[14px] text-slate-700 mb-2">Quantity</p>
+          <p className="text-sm mb-2">Quantity</p>
 
           <div className="flex items-center gap-3">
-            {/* Counter */}
-            <div className="flex items-center border rounded-[12px] px-4 py-2 gap-4">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="cursor-pointer"
-              >
-                <Minus />
+            <div className="flex items-center gap-4 border rounded-xl px-4 py-2">
+              <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
+                <Minus size={16} />
               </button>
 
-              <span className="w-6 text-center">{quantity}</span>
+              <span>{quantity}</span>
 
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="cursor-pointer"
-              >
-                <Plus />
+              <button onClick={() => setQuantity((q) => q + 1)}>
+                <Plus size={16} />
               </button>
             </div>
 
-            {/* Rate pill */}
-            <div className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-[12px] text-[13px]">
-              1,450.00 per USDT
+            <div className="bg-green-100 text-green-700 text-xs px-3 py-2 rounded-lg">
+              ₦{rate.toLocaleString()} / $
             </div>
           </div>
         </div>
 
-        {/* Total */}
-        {total > 0 && (
+        {/* TOTAL */}
+
+        {selectedProduct && (
           <div className="text-center">
-            <p className="text-[13px] text-slate-500">Total Amount:</p>
-            <p className="text-[20px] font-bold text-slate-900">
-              ₦{total.toLocaleString()}
-            </p>
+            <p className="text-xs text-gray-500">Total Amount</p>
+
+            <p className="text-xl font-bold">₦{total.toLocaleString()}</p>
           </div>
         )}
 
-        {/* Button */}
-        <button className="w-[70%] mx-auto block h-[48px] rounded-[12px] bg-emerald-600 text-white font-semibold cursor-pointer">
+        {/* ERROR */}
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* BUTTON */}
+
+        <button
+          onClick={handleSubmit}
+          className="w-[70%] mx-auto block h-[48px] rounded-xl bg-green-600 text-white font-semibold"
+        >
           Sell Now
         </button>
       </div>

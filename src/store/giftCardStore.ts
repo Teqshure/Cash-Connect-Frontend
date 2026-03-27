@@ -51,15 +51,6 @@ export interface CreateOrderPayload {
   quantity: number;
 }
 
-export interface SellGiftCardPayload {
-  gift_card_id: number;
-  card_type: "physical" | "code";
-  card_value: number;
-  card_code: string | null;
-  card_pin: string;
-  card_images: string[];
-}
-
 export interface SellGiftCardResponse {
   status: boolean;
   message: string;
@@ -86,12 +77,12 @@ interface GiftCardState {
   fetchProducts: () => Promise<void>;
   fetchUserOrders: () => Promise<void>;
 
+  sellGiftCard: (payload: FormData) => Promise<SellGiftCardResponse>;
+
   createOrder: (payload: CreateOrderPayload) => Promise<GiftCardOrder>;
-  sellGiftCard: (payload: SellGiftCardPayload) => Promise<SellGiftCardResponse>;
 
   clearError: () => void;
   clearSellResponse: () => void;
-  reset: () => void;
 }
 
 /* -------------------------------------------------- */
@@ -103,7 +94,6 @@ function authHeaders() {
 
   const headers: Record<string, string> = {
     Accept: "application/json",
-    "Content-Type": "application/json",
   };
 
   if (token) {
@@ -134,6 +124,7 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
 
   isLoading: false,
   isSubmitting: false,
+
   error: null,
 
   sellResponse: null,
@@ -186,7 +177,7 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
     }
   },
 
-  /* ---------------- FETCH ORDERS ---------------- */
+  /* ---------------- FETCH USER ORDERS ---------------- */
 
   fetchUserOrders: async () => {
     set({ isLoading: true, error: null });
@@ -210,29 +201,31 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
     }
   },
 
-  /* ---------------- CREATE BUY ORDER ---------------- */
+  /* ---------------- CREATE ORDER ---------------- */
 
   createOrder: async (payload: CreateOrderPayload) => {
     set({ isSubmitting: true, error: null });
 
     try {
-      console.log("BUY ORDER:", payload);
+      const token = useAuthStore.getState().token;
 
       const response = await fetch(`${BASE_URL}/giftcard-orders`, {
         method: "POST",
-        headers: authHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
         body: JSON.stringify(payload),
       });
 
       const result = await handleResponse(response);
 
-      const order = result.data;
+      set({
+        isSubmitting: false,
+      });
 
-      await get().fetchUserOrders();
-
-      set({ isSubmitting: false });
-
-      return order;
+      return result.data;
     } catch (error: any) {
       set({
         error: error.message || "Failed to create order",
@@ -245,16 +238,19 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
 
   /* ---------------- SELL GIFTCARD ---------------- */
 
-  sellGiftCard: async (payload: SellGiftCardPayload) => {
+  sellGiftCard: async (payload: FormData) => {
     set({ isSubmitting: true, error: null });
 
     try {
-      console.log("SELL PAYLOAD:", payload);
+      const token = useAuthStore.getState().token;
 
       const response = await fetch(`${BASE_URL}/giftcards/sell`, {
         method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify(payload),
+        headers: {
+          Accept: "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: payload,
       });
 
       const result = await handleResponse(response);
@@ -266,6 +262,8 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
 
       return result;
     } catch (error: any) {
+      console.error("Sell order failed:", error);
+
       set({
         error: error.message || "Failed to sell gift card",
         isSubmitting: false,
@@ -278,15 +276,4 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
   clearError: () => set({ error: null }),
 
   clearSellResponse: () => set({ sellResponse: null }),
-
-  reset: () =>
-    set({
-      giftCards: [],
-      products: [],
-      orders: [],
-      isLoading: false,
-      isSubmitting: false,
-      error: null,
-      sellResponse: null,
-    }),
 }));

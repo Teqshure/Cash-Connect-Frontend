@@ -35,37 +35,21 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
     clearError,
   } = useGiftCardStore();
 
-  /* ---------------------------------- */
-  /* FETCH GIFTCARDS */
-  /* ---------------------------------- */
-
   useEffect(() => {
     fetchGiftCards();
   }, [fetchGiftCards]);
 
-  /* ---------------------------------- */
   /* SELECT CARD */
-  /* ---------------------------------- */
 
   const handleCardSelect = (card: GiftCard) => {
-    console.log("Selected Card:", card);
-
     setSelectedCard(card);
     setStep("amount");
   };
 
-  /* ---------------------------------- */
   /* SELECT AMOUNT */
-  /* ---------------------------------- */
 
   const handleAmountContinue = (product: GiftCardProduct, quantity: number) => {
-    if (!product || !product.id) {
-      console.error("Invalid product selected");
-      return;
-    }
-
-    console.log("Selected Product:", product);
-    console.log("Quantity:", quantity);
+    if (!product?.id) return;
 
     setSelectedProduct(product);
     setQty(quantity);
@@ -73,15 +57,10 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
     setStep("receipt");
   };
 
-  /* ---------------------------------- */
   /* CONFIRM ORDER */
-  /* ---------------------------------- */
 
   const handleConfirmOrder = async () => {
-    if (!selectedProduct || !selectedProduct.id) {
-      console.error("No valid product selected");
-      return;
-    }
+    if (!selectedProduct?.id) return;
 
     if (isSubmitting) return;
 
@@ -101,13 +80,9 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
     }
   };
 
-  /* ---------------------------------- */
-  /* SUCCESS HANDLER */
-  /* ---------------------------------- */
+  /* SUCCESS */
 
   const handleSuccess = () => {
-    console.log("Order completed successfully");
-
     setSelectedCard(null);
     setSelectedProduct(null);
     setQty(1);
@@ -119,8 +94,6 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
 
   return (
     <div className="w-full">
-      {/* ERROR ALERT */}
-
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[13px] flex justify-between items-center">
           <span>{error}</span>
@@ -134,8 +107,6 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
         </div>
       )}
 
-      {/* STEP 1 — CARD GRID */}
-
       {step === "grid" && (
         <GiftCardGrid
           title="Buy Gift Cards"
@@ -146,8 +117,6 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
         />
       )}
 
-      {/* STEP 2 — SELECT AMOUNT */}
-
       {step === "amount" && selectedCard && (
         <BuyGiftCardAmount
           card={selectedCard}
@@ -155,8 +124,6 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
           onContinue={handleAmountContinue}
         />
       )}
-
-      {/* STEP 3 — RECEIPT */}
 
       {step === "receipt" && selectedCard && selectedProduct && (
         <GiftCardReceipt
@@ -169,8 +136,6 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
           onConfirm={handleConfirmOrder}
         />
       )}
-
-      {/* STEP 4 — SUCCESS */}
 
       <GiftCardSuccessModal
         open={step === "success"}
