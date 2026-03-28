@@ -77,10 +77,13 @@ function ReceivePaymentFlow({ onBack }: Props) {
      Form Continue
   --------------------------- */
 
-  const handleFormContinue = (data: ReceivePaymentFormData) => {
-    setFormData(data);
-
+  const handleFormContinue = (data: Omit<ReceivePaymentFormData, "tagId">) => {
     const txnId = generateTransactionId();
+
+    setFormData({
+      ...data,
+      tagId: txnId,
+    });
 
     setTransactionId(txnId);
 
