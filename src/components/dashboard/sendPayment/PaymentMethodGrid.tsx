@@ -3,87 +3,80 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
-import { useGlobalPaymentStore } from "@/store/globalPayment";
-
-export type UIPaymentMethod = {
-  id: number;
-  name: string;
-  logo: string;
-  eta: string;
-  feeNote: string;
-};
+import { useGlobalPaymentStore, UIPaymentMethod } from "@/store/globalPayment";
 
 type Props = {
   onSelect: (method: UIPaymentMethod) => void;
 };
 
 export default function PaymentMethodGrid({ onSelect }: Props) {
-  const methods = useGlobalPaymentStore((s) => s.methods);
-  const loading = useGlobalPaymentStore((s) => s.loading);
-  const error = useGlobalPaymentStore((s) => s.error);
-  const fetchMethods = useGlobalPaymentStore((s) => s.fetchMethods);
-  const convertToUIMethods = useGlobalPaymentStore((s) => s.convertToUIMethods);
+  const methods = useGlobalPaymentStore((s: any) => s.methods);
+  const loading = useGlobalPaymentStore((s: any) => s.loading);
+  const error = useGlobalPaymentStore((s: any) => s.error);
+  const fetchMethods = useGlobalPaymentStore((s: any) => s.fetchMethods);
+  const convertToUIMethods = useGlobalPaymentStore(
+    (s: any) => s.convertToUIMethods,
+  );
 
   useEffect(() => {
     fetchMethods();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchMethods]);
 
   // -----------------------------------
   // Fallback Methods (only if API empty)
   // -----------------------------------
   const fallbackMethods: UIPaymentMethod[] = [
     {
-      id: 1,
+      id: "paypal",
       name: "PayPal",
       logo: "/images/payments/paypal.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 2,
+      id: "zelle",
       name: "Zelle",
       logo: "/images/payments/zelle.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 3,
+      id: "western-union",
       name: "Western Union",
       logo: "/images/payments/western-union.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 4,
+      id: "moneygram",
       name: "MoneyGram",
       logo: "/images/payments/money-gram.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 5,
+      id: "venmo",
       name: "Venmo",
       logo: "/images/payments/venmo.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 6,
+      id: "cashapp",
       name: "CashApp",
       logo: "/images/payments/cashapp.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 7,
+      id: "payoneer",
       name: "Payoneer",
       logo: "/images/payments/payoneer.png",
       eta: "Instant",
       feeNote: "2%",
     },
     {
-      id: 8,
+      id: "skrill",
       name: "Skrill",
       logo: "/images/payments/skrill.png",
       eta: "Instant",
@@ -130,7 +123,7 @@ export default function PaymentMethodGrid({ onSelect }: Props) {
   // -------------------------------
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      {uiMethods.map((method) => (
+      {uiMethods.map((method: UIPaymentMethod) => (
         <button
           key={method.id}
           type="button"
