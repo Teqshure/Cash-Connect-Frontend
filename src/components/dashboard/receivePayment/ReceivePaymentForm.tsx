@@ -3,13 +3,10 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRateStore } from "@/store/rateStore";
+import { ReceivePaymentMethod } from "./receivePaymentData";
 
 type Props = {
-  method: {
-    id: number;
-    name: string;
-    logo: string;
-  };
+  method: ReceivePaymentMethod;
   onBack: () => void;
   onContinue: (data: any) => void;
 };

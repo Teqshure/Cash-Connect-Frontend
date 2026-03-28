@@ -12,15 +12,22 @@
 
 import { useState } from "react";
 import ReceivePaymentMethodGrid from "./ReceivePaymentMethodGrid";
-import ReceivePaymentForm, {
-  ReceivePaymentFormData,
-} from "./ReceivePaymentForm";
+import ReceivePaymentForm from "./ReceivePaymentForm";
 import ReceivePaymentReceipt from "./ReceivePaymentReceipt";
 import ReceiveSuccessModal from "./ReceiveSuccessModal";
 import { ReceivePaymentMethod } from "./receivePaymentData";
 import { useGlobalPaymentStore } from "@/store/globalPayment";
 
 type Step = "choose" | "form" | "receipt" | "success";
+
+type ReceivePaymentFormData = {
+  amount: string;
+  currency: string;
+  email: string;
+  tagId: string;
+  conversion?: number;
+  fee?: number;
+};
 
 type Props = {
   onBack: () => void;
@@ -36,8 +43,8 @@ function ReceivePaymentFlow({ onBack }: Props) {
 
   const [transactionId, setTransactionId] = useState<string | null>(null);
 
-  const receivePayment = useGlobalPaymentStore((s) => s.receivePayment);
-  const loading = useGlobalPaymentStore((s) => s.loading);
+  const receivePayment = useGlobalPaymentStore((s: any) => s.receivePayment);
+  const loading = useGlobalPaymentStore((s: any) => s.loading);
 
   /* --------------------------
      Select Payment Method

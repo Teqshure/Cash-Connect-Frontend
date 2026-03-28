@@ -68,7 +68,7 @@ export default function SellGiftCardFlow({ onBack }: Props) {
   /* ---------------- FILTER PRODUCTS ---------------- */
 
   const filteredProducts = products.filter(
-    (p) => Number(p.gift_card_id) === Number(selectedCard?.id),
+    (p: GiftCardProduct) => Number(p.gift_card_id) === Number(selectedCard?.id),
   );
 
   /* ---------------- FORM SUBMIT ---------------- */
