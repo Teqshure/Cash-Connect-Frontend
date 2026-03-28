@@ -1,294 +1,245 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Copy, RefreshCw } from "lucide-react";
-import {
-  ReceivePaymentMethod,
-  Currency,
-  CURRENCIES,
-  AMOUNT_PRESETS,
-  RATE_PER_USDT,
-  generateTagId,
-} from "./receivePaymentData";
-
-export type ReceivePaymentFormData = {
-  currency: string;
-  country: string;
-  email: string;
-  gender: string;
-  tagId: string;
-  amount: number | "";
-};
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRateStore } from "@/store/rateStore";
 
 type Props = {
-  method: ReceivePaymentMethod;
+  method: {
+    id: number;
+    name: string;
+    logo: string;
+  };
   onBack: () => void;
-  onContinue: (data: ReceivePaymentFormData) => void;
+  onContinue: (data: any) => void;
 };
 
-function ReceivePaymentForm({ method, onBack, onContinue }: Props) {
-  const [currencyOpen, setCurrencyOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(
-    CURRENCIES[0],
-  );
+const PRESET_AMOUNTS = [500, 1000, 3000, 5000];
+
+export default function ReceivePaymentForm({
+  method,
+  onBack,
+  onContinue,
+}: Props) {
+  const { fetchRates, getSellRate } = useRateStore();
+
+  const [currency, setCurrency] = useState("USD");
   const [country, setCountry] = useState("Nigeria");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
-  const [tagId, setTagId] = useState(generateTagId);
-  const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
+
+  const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
 
-  const amount = selectedPreset ?? (customAmount ? Number(customAmount) : "");
-  const conversion =
-    typeof amount === "number"
-      ? (amount * RATE_PER_USDT).toLocaleString()
-      : null;
+  const [tag, setTag] = useState("");
 
-  const isValid =
-    !!country &&
-    !!email &&
-    !!gender &&
-    (selectedPreset !== null || customAmount !== "");
+  useEffect(() => {
+    fetchRates();
+  }, [fetchRates]);
+
+  const rate = getSellRate(method.id) || 1450;
+
+  const finalAmount = amount ?? Number(customAmount || 0);
+
+  /* ---------------------------
+Generate Tag
+--------------------------- */
+
+  const handleGenerateTag = () => {
+    if (!email || !gender || !currency || !country) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const date = new Date();
+
+    const generated =
+      "TXN-" +
+      date.getFullYear() +
+      "-" +
+      String(date.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      Math.floor(Math.random() * 100000);
+
+    setTag(generated);
+  };
+
+  /* ---------------------------
+Continue to Receipt
+--------------------------- */
 
   const handleContinue = () => {
-    if (!isValid) return;
+    const safeAmount = Number(finalAmount);
+
+    if (!safeAmount || safeAmount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
     onContinue({
-      currency: selectedCurrency.code,
-      country,
       email,
+      currency,
+      country,
       gender,
-      tagId,
-      amount,
+      amount: safeAmount,
+      tagId: tag,
     });
   };
 
-  const copyTagId = () => {
-    try {
-      navigator.clipboard.writeText(tagId).catch(() => {});
-    } catch {
-      const el = document.createElement("textarea");
-      el.value = tagId;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    }
-  };
-
   return (
-    <div className="w-full">
-      {/* Back */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-6 cursor-pointer transition"
-      >
-        ← Back
+    <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-sm p-6">
+      {/* Back */}{" "}
+      <button onClick={onBack} className="text-sm text-gray-500 mb-4">
+        ← Back{" "}
       </button>
-
-      {/* Method logo */}
+      {/* Logo */}
       <div className="flex justify-center mb-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={method.logo}
-          alt={method.name}
-          className="h-14 w-auto object-contain"
-        />
+        <div className="w-24 h-24 border rounded-full flex items-center justify-center">
+          <Image src={method.logo} alt={method.name} width={60} height={60} />
+        </div>
       </div>
-
       <div className="space-y-4">
         {/* Currency */}
         <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
+          <label className="text-xs text-gray-500">
             Select Payout Currency
           </label>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setCurrencyOpen((v) => !v)}
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-white px-4 flex items-center justify-between text-[14px] text-slate-700 cursor-pointer"
-            >
-              <span>
-                {selectedCurrency.flag} {selectedCurrency.code}
-              </span>
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            </button>
-            {currencyOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setCurrencyOpen(false)}
-                />
-                <div className="absolute top-[52px] left-0 right-0 bg-white border border-slate-200 rounded-[12px] shadow-lg z-20 overflow-hidden">
-                  {CURRENCIES.map((c) => (
-                    <button
-                      key={c.code}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCurrency(c);
-                        setCurrencyOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-[14px] text-slate-700 transition"
-                    >
-                      <span>{c.flag}</span>
-                      <span>{c.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="w-full border rounded-xl p-3 mt-1 text-sm"
+          >
+            <option>USD</option>
+            <option>GBP</option>
+            <option>EUR</option>
+          </select>
         </div>
 
         {/* Country */}
         <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Select country
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="Nigeria"
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 pr-10 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
-            />
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-          </div>
+          <label className="text-xs text-gray-500">Select country</label>
+
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full border rounded-xl p-3 mt-1 text-sm"
+          >
+            <option>Nigeria</option>
+            <option>Ghana</option>
+            <option>Kenya</option>
+          </select>
         </div>
 
         {/* Email */}
         <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Enter {method.name} email
-          </label>
-          <div className="relative">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={`Enter ${method.name.toLowerCase()} email`}
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 pr-10 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
-            />
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-          </div>
+          <label className="text-xs text-gray-500">Paypal Email</label>
+
+          <input
+            type="email"
+            placeholder="Enter paypal email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border rounded-xl p-3 mt-1 text-sm"
+          />
         </div>
 
         {/* Gender */}
         <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Select Gender
-          </label>
-          <div className="relative">
-            <select
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 appearance-none cursor-pointer"
-            >
-              <option value="">Enter gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-          </div>
+          <label className="text-xs text-gray-500">Select Gender</label>
+
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full border rounded-xl p-3 mt-1 text-sm"
+          >
+            <option value="">Enter gender</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
         </div>
 
         {/* Generated Tag */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Generated tag
-          </label>
-          <div className="relative">
+        {tag && (
+          <div>
+            <label className="text-xs text-gray-500">Generated Tag</label>
+
             <input
-              type="text"
-              value={tagId}
+              value={tag}
               readOnly
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 pr-20 text-[14px] text-slate-500 outline-none"
+              className="w-full border rounded-xl p-3 mt-1 text-sm bg-gray-50"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setTagId(generateTagId())}
-                aria-label="Regenerate tag"
-                className="cursor-pointer"
-              >
-                <RefreshCw className="h-4 w-4 text-slate-400 hover:text-emerald-600 transition" />
-              </button>
-              <button
-                type="button"
-                onClick={copyTagId}
-                aria-label="Copy tag"
-                className="cursor-pointer"
-              >
-                <Copy className="h-4 w-4 text-slate-400 hover:text-emerald-600 transition" />
-              </button>
-            </div>
           </div>
-        </div>
+        )}
 
-        {/* Amount */}
+        {/* Amount Buttons */}
         <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-2 block">
-            Select Amount
-          </label>
+          <label className="text-xs text-gray-500">Select Amount</label>
 
-          {/* Rate indicator */}
-          <div className="mb-3 rounded-[8px] bg-emerald-50 px-3 py-2 text-[12px] font-medium text-emerald-700">
-            {RATE_PER_USDT.toLocaleString()}.00 per USDT
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            {AMOUNT_PRESETS.map((v) => (
+          <div className="grid grid-cols-4 gap-2 mt-2">
+            {PRESET_AMOUNTS.map((value) => (
               <button
-                key={v}
-                type="button"
+                key={value}
                 onClick={() => {
-                  setSelectedPreset(v);
+                  setAmount(value);
                   setCustomAmount("");
                 }}
-                className={[
-                  "h-[40px] rounded-[10px] border text-[12px] font-medium transition cursor-pointer",
-                  selectedPreset === v
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                ].join(" ")}
+                className={`border rounded-lg py-2 text-sm ${
+                  amount === value
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-gray-200"
+                }`}
               >
-                ₦{v.toLocaleString()}
+                {value.toLocaleString()}
               </button>
             ))}
           </div>
-
-          <input
-            type="text"
-            inputMode="numeric"
-            value={customAmount}
-            onChange={(e) => {
-              setCustomAmount(e.target.value.replace(/\D/g, ""));
-              setSelectedPreset(null);
-            }}
-            placeholder="Enter other amount"
-            className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
-          />
         </div>
-      </div>
 
-      {/* Generate Tag / Continue */}
-      <button
-        type="button"
-        onClick={handleContinue}
-        disabled={!isValid}
-        className={[
-          "mt-6 h-[52px] w-full rounded-[12px] font-semibold text-[15px] transition",
-          isValid
-            ? "bg-emerald-600 text-white hover:brightness-110 cursor-pointer"
-            : "bg-slate-200 text-slate-500 cursor-not-allowed",
-        ].join(" ")}
-      >
-        Continue
-      </button>
+        {/* Custom Amount */}
+        <input
+          type="number"
+          placeholder="Enter amount"
+          value={customAmount}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            setCustomAmount(value);
+
+            if (value) {
+              setAmount(Number(value));
+            } else {
+              setAmount(null);
+            }
+          }}
+          className="w-full border rounded-xl p-3 text-sm"
+        />
+
+        {/* Rate */}
+        <div className="flex justify-end">
+          <div className="bg-emerald-50 text-emerald-600 text-xs px-3 py-1 rounded-lg">
+            {rate.toLocaleString()} per {currency}
+          </div>
+        </div>
+
+        {/* Buttons */}
+        {!tag ? (
+          <button
+            onClick={handleGenerateTag}
+            className="w-full h-12 bg-emerald-600 text-white rounded-xl font-semibold"
+          >
+            Generate Tag
+          </button>
+        ) : (
+          <button
+            onClick={handleContinue}
+            disabled={!finalAmount}
+            className="w-full h-12 bg-emerald-600 text-white rounded-xl font-semibold disabled:opacity-50"
+          >
+            Continue
+          </button>
+        )}
+      </div>
     </div>
   );
 }
-
-export default ReceivePaymentForm;

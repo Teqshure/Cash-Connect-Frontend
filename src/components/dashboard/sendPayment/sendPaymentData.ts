@@ -1,12 +1,24 @@
 // sendPaymentData.ts
-import { useGlobalPaymentStore, UIPaymentMethod } from "@/store/globalPayment";
 
-export type PaymentMethod = UIPaymentMethod;
+export type PaymentMethod = {
+  id: string;
+  name: string;
+  logo: string;
+  eta: string;
+  feeNote: string;
+  code?: string;
+  rates?: {
+    buy_rate: string;
+    sell_rate: string;
+    min_amount: string;
+    max_amount: string;
+  } | null;
+};
 
 export type Currency = { code: string; label: string; flag: string };
 export type AmountPreset = number;
 
-// Export the store's types and hooks for use in components
+// Export the store's hooks for use in components
 export {
   useGlobalPaymentStore,
   useUIPaymentMethods,
@@ -15,7 +27,7 @@ export {
   useAmountValidation,
 } from "@/store/globalPayment";
 
-// Static data for currencies and presets
+// Static data
 export const CURRENCIES: Currency[] = [
   { code: "USD", label: "USD", flag: "🇺🇸" },
   { code: "GBP", label: "GBP", flag: "🇬🇧" },
@@ -25,5 +37,7 @@ export const CURRENCIES: Currency[] = [
 
 export const AMOUNT_PRESETS: AmountPreset[] = [500, 1000, 3000, 5000];
 
-// This will be populated from the store
+// ✅ Added — was missing and causing the build error
+export const RATE_PER_USDT = 1450;
+
 export let PAYMENT_METHODS: PaymentMethod[] = [];

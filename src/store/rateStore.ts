@@ -73,11 +73,21 @@ export const useRateStore = create<RateState>((set, get) => ({
   },
 
   getBuyRate: (giftCardId: number) => {
-    const rate = get().rates.find((r) => r.rateable_id === giftCardId);
+    const rate = get().rates.find(
+      (r) =>
+        r.rateable_id === giftCardId &&
+        r.rateable_type?.toLowerCase().includes("gift"),
+    );
 
     const parsed = Number(rate?.buy_rate);
 
-    // fallback for development if API returns "string"
+    console.log("Buy Rate Lookup:", {
+      giftCardId,
+      rate,
+      parsed,
+    });
+
+    // fallback for development if API returns invalid value
     if (isNaN(parsed)) {
       return 1700;
     }
@@ -86,9 +96,19 @@ export const useRateStore = create<RateState>((set, get) => ({
   },
 
   getSellRate: (giftCardId: number) => {
-    const rate = get().rates.find((r) => r.rateable_id === giftCardId);
+    const rate = get().rates.find(
+      (r) =>
+        r.rateable_id === giftCardId &&
+        r.rateable_type?.toLowerCase().includes("gift"),
+    );
 
     const parsed = Number(rate?.sell_rate);
+
+    console.log("Sell Rate Lookup:", {
+      giftCardId,
+      rate,
+      parsed,
+    });
 
     if (isNaN(parsed)) {
       return 1500;

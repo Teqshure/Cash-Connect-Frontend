@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { ChevronDown, Copy } from "lucide-react";
+import Image from "next/image";
 import {
   PaymentMethod,
   Currency,
   CURRENCIES,
   AMOUNT_PRESETS,
-  RATE_PER_USDT,
 } from "./sendPaymentData";
+
+import { usePaymentMethodRate } from "@/store/globalPayment";
 
 type Props = {
   method: PaymentMethod;
@@ -30,16 +32,20 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(
     CURRENCIES[0],
   );
+
   const [country, setCountry] = useState("Nigeria");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
   const [tagId] = useState("TXN-2025-0911-00123");
+
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
 
+  const rate = usePaymentMethodRate(method);
+
   const amount = selectedPreset ?? (customAmount ? Number(customAmount) : "");
-  const usdt =
-    typeof amount === "number" ? (amount / RATE_PER_USDT).toFixed(2) : null;
+
+  const usdt = typeof amount === "number" ? (amount / rate).toFixed(2) : null;
 
   const isValid =
     !!country &&
@@ -49,6 +55,7 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
 
   const handleContinue = () => {
     if (!isValid) return;
+
     onContinue({
       currency: selectedCurrency.code,
       country,
@@ -63,7 +70,6 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
     try {
       navigator.clipboard.writeText(tagId).catch(() => {});
     } catch {
-      // fallback for when document is not focused
       const el = document.createElement("textarea");
       el.value = tagId;
       document.body.appendChild(el);
@@ -75,31 +81,29 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
 
   return (
     <div className="w-full">
-      {/* Back */}
+      {" "}
       <button
         type="button"
         onClick={onBack}
         className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-6 cursor-pointer transition"
       >
-        ← Back
+        ← Back{" "}
       </button>
-
-      {/* Method logo — plain img, no next/image */}
       <div className="flex justify-center mb-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={method.logo}
           alt={method.name}
+          width={120}
+          height={56}
           className="h-14 w-auto object-contain"
         />
       </div>
-
       <div className="space-y-4">
-        {/* Currency */}
         <div>
           <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
             Select Payout Currency
           </label>
+
           <div className="relative">
             <button
               type="button"
@@ -109,14 +113,17 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
               <span>
                 {selectedCurrency.flag} {selectedCurrency.code}
               </span>
+
               <ChevronDown className="h-4 w-4 text-slate-400" />
             </button>
+
             {currencyOpen && (
               <>
                 <div
                   className="fixed inset-0 z-10"
                   onClick={() => setCurrencyOpen(false)}
                 />
+
                 <div className="absolute top-[52px] left-0 right-0 bg-white border border-slate-200 rounded-[12px] shadow-lg z-20 overflow-hidden">
                   {CURRENCIES.map((c) => (
                     <button
@@ -138,11 +145,11 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
           </div>
         </div>
 
-        {/* Country */}
         <div>
           <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
             Select country
           </label>
+
           <input
             type="text"
             value={country}
@@ -152,11 +159,11 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
           />
         </div>
 
-        {/* Email */}
         <div>
           <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
             Enter {method.name} email
           </label>
+
           <input
             type="email"
             value={email}
@@ -166,11 +173,11 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
           />
         </div>
 
-        {/* Gender */}
         <div>
           <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
             Select Gender
           </label>
+
           <div className="relative">
             <select
               value={gender}
@@ -182,15 +189,16 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
               <option value="female">Female</option>
               <option value="other">Other</option>
             </select>
+
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* Tag ID */}
         <div>
           <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
             Tag ID
           </label>
+
           <div className="relative">
             <input
               type="text"
@@ -198,22 +206,22 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
               readOnly
               className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 pr-12 text-[14px] text-slate-500 outline-none"
             />
+
             <button
               type="button"
               onClick={copyTagId}
               className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-              aria-label="Copy"
             >
               <Copy className="h-4 w-4 text-slate-400 hover:text-emerald-600 transition" />
             </button>
           </div>
         </div>
 
-        {/* Amount presets */}
         <div>
           <label className="text-[13px] font-medium text-slate-700 mb-2 block">
             Select Amount
           </label>
+
           <div className="grid grid-cols-4 gap-2 mb-3">
             {AMOUNT_PRESETS.map((v) => (
               <button
@@ -234,6 +242,7 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
               </button>
             ))}
           </div>
+
           <input
             type="text"
             inputMode="numeric"
@@ -245,15 +254,14 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
             placeholder="Enter other amount"
             className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
           />
+
           {usdt && (
             <p className="mt-2 text-right text-[12px] text-emerald-600 font-medium">
-              {RATE_PER_USDT.toLocaleString()}.00 per USDT
+              {rate.toLocaleString()} NGN per USDT
             </p>
           )}
         </div>
       </div>
-
-      {/* Continue */}
       <button
         type="button"
         onClick={handleContinue}

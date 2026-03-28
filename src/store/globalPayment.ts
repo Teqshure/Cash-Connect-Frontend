@@ -1,9 +1,11 @@
-// @store/globalPayment.ts
+// store/globalPayment.ts
 
 import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
+import { useEffect } from "react";
 
-const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1";
+// ✅ Correct base URL — no double v1
+const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1/v1";
 
 // ------------------------------------------------------
 // TYPES
@@ -24,6 +26,21 @@ export interface PaymentMethod {
   rates: InternationalRate | null;
 }
 
+export interface UIPaymentMethod {
+  id: string;
+  name: string;
+  logo: string;
+  eta: string;
+  feeNote: string;
+  code?: string;
+  rates?: {
+    buy_rate: string;
+    sell_rate: string;
+    min_amount: string;
+    max_amount: string;
+  } | null;
+}
+
 export interface InternationalTransaction {
   id: number;
   user_id: number;
@@ -42,23 +59,6 @@ export interface InternationalTransaction {
   updated_at: string;
 }
 
-// UI-specific payment method type with additional fields for display
-export interface UIPaymentMethod {
-  id: string;
-  name: string;
-  logo: string;
-  eta: string;
-  feeNote: string;
-  code?: string;
-  rates?: {
-    buy_rate: string;
-    sell_rate: string;
-    min_amount: string;
-    max_amount: string;
-  } | null;
-}
-
-// Send payment form data
 export interface SendPaymentFormData {
   currency: string;
   country: string;
@@ -68,7 +68,6 @@ export interface SendPaymentFormData {
   amount: number | "";
 }
 
-// Send payment payload
 export interface SendPaymentPayload {
   method: string;
   email: string;
@@ -78,7 +77,6 @@ export interface SendPaymentPayload {
   gender: string;
 }
 
-// Receive payment payload
 export interface ReceivePaymentPayload {
   method: string;
   crypto_amount: number;
@@ -87,67 +85,71 @@ export interface ReceivePaymentPayload {
 }
 
 interface GlobalPaymentState {
-  // Data
   methods: PaymentMethod[];
   transactions: InternationalTransaction[];
   transaction: InternationalTransaction | null;
   paypalEmail: string | null;
 
-  // UI state
   loading: boolean;
   error: string | null;
   submitting: boolean;
 
-  // Actions
   fetchMethods: () => Promise<void>;
   fetchTransactions: () => Promise<void>;
   fetchTransaction: (id: string) => Promise<void>;
   fetchPaypalEmail: () => Promise<void>;
-
   sendPayment: (data: SendPaymentPayload) => Promise<any>;
   receivePayment: (data: ReceivePaymentPayload) => Promise<any>;
-
-  // Helper functions for UI conversion
   convertToUIMethods: (apiMethods: PaymentMethod[]) => UIPaymentMethod[];
+  clearError: () => void;
 }
 
 // ------------------------------------------------------
-// HELPER FUNCTIONS
+// HELPERS
 // ------------------------------------------------------
 
-// Logo mapping for different payment methods
-const getLogoForMethod = (methodName: string): string => {
-  const logoMap: Record<string, string> = {
-    PayPal: "/images/payments/paypal.png",
-    Zelle: "/images/payments/zelle.png",
-    "Western Union": "/images/payments/western-union.png",
-    MoneyGram: "/images/payments/money-gram.png",
-    Venmo: "/images/payments/venmo.png",
-    CashApp: "/images/payments/cashapp.png",
-    Payoneer: "/images/payments/payoneer.png",
-    Skrill: "/images/payments/skrill.png",
-    Neteller: "/images/payments/neteller.png",
-    Wise: "/images/payments/wise.png",
-    Chime: "/images/payments/chime.png",
-    Remitly: "/images/payments/remitly.png",
+function authHeaders() {
+  const token = useAuthStore.getState().token;
+
+  return {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
-  return logoMap[methodName] || "/images/payments/default.png";
+}
+
+// ✅ safer crypto calculation helper
+function calculateCrypto(amount: number, rate: number) {
+  if (!rate || rate <= 0) return 0;
+  return Number((amount / rate).toFixed(6));
+}
+
+const LOGO_MAP: Record<string, string> = {
+  PayPal: "/images/payments/paypal.png",
+  Zelle: "/images/payments/zelle.png",
+  "Western Union": "/images/payments/western-union.png",
+  MoneyGram: "/images/payments/money-gram.png",
+  Venmo: "/images/payments/venmo.png",
+  CashApp: "/images/payments/cashapp.png",
+  Payoneer: "/images/payments/payoneer.png",
+  Skrill: "/images/payments/skrill.png",
+  Neteller: "/images/payments/neteller.png",
+  Wise: "/images/payments/wise.png",
+  Chime: "/images/payments/chime.png",
+  Remitly: "/images/payments/remitly.png",
 };
 
-// Convert API methods to UI format
-const convertAPIToUIMethods = (
-  apiMethods: PaymentMethod[],
-): UIPaymentMethod[] => {
-  return apiMethods.map((method, index) => ({
+function convertAPIToUIMethods(apiMethods: PaymentMethod[]): UIPaymentMethod[] {
+  return apiMethods.map((method) => ({
     id: method.code || method.name.toLowerCase().replace(/\s+/g, "-"),
     name: method.name,
     code: method.code,
-    logo: getLogoForMethod(method.name),
+    logo: LOGO_MAP[method.name] || "/images/payments/default.png",
     eta: method.rates ? "Instant" : "2-3 days",
     feeNote: method.rates ? `${method.rates.sell_rate} NGN/USDT` : "2%",
     rates: method.rates,
   }));
-};
+}
 
 // ------------------------------------------------------
 // STORE
@@ -162,291 +164,176 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>((set, get) => ({
   error: null,
   submitting: false,
 
-  // ------------------------------------------------------
-  // GET AVAILABLE METHODS
-  // ------------------------------------------------------
-
+  // ✅ GET /international/available-methods
   fetchMethods: async () => {
-    const token = useAuthStore.getState().token;
-
-    if (!token) {
-      set({ error: "No authentication token found" });
-      return;
-    }
+    set({ loading: true, error: null });
 
     try {
-      set({ loading: true, error: null });
-
-      const res = await fetch(
-        `${BASE_URL}/v1/international/available-methods`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        },
-      );
+      const res = await fetch(`${BASE_URL}/international/available-methods`, {
+        headers: authHeaders(),
+      });
 
       const data = await res.json();
 
-      console.log("AVAILABLE METHODS RESPONSE:", data);
+      if (!res.ok) throw new Error(data.message || "Failed to load methods");
 
-      if (data.status) {
-        set({ methods: data.data });
-      } else {
-        throw new Error(data.message || "Failed to load methods");
-      }
+      set({ methods: data.data || [], loading: false });
     } catch (err: any) {
-      console.error("FETCH METHODS ERROR:", err);
-      set({ error: err.message });
-    } finally {
-      set({ loading: false });
+      set({ error: err.message, loading: false });
     }
   },
 
-  // ------------------------------------------------------
-  // GET USER TRANSACTIONS
-  // ------------------------------------------------------
-
+  // ✅ GET /international/my-transactions
   fetchTransactions: async () => {
-    const token = useAuthStore.getState().token;
-
-    if (!token) {
-      set({ error: "No authentication token found" });
-      return;
-    }
+    set({ loading: true, error: null });
 
     try {
-      set({ loading: true, error: null });
-
-      const res = await fetch(`${BASE_URL}/v1/international/my-transactions`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+      const res = await fetch(`${BASE_URL}/international/my-transactions`, {
+        headers: authHeaders(),
       });
 
       const data = await res.json();
 
-      console.log("TRANSACTIONS RESPONSE:", data);
-
-      if (data.status) {
-        set({ transactions: data.data });
-      } else {
+      if (!res.ok)
         throw new Error(data.message || "Failed to load transactions");
-      }
+
+      set({ transactions: data.data || [], loading: false });
     } catch (err: any) {
-      console.error("FETCH TRANSACTIONS ERROR:", err);
-      set({ error: err.message });
-    } finally {
-      set({ loading: false });
+      set({ error: err.message, loading: false });
     }
   },
 
-  // ------------------------------------------------------
-  // GET SINGLE TRANSACTION
-  // ------------------------------------------------------
-
+  // ✅ GET /international/my-transactions/{id}
   fetchTransaction: async (id: string) => {
-    const token = useAuthStore.getState().token;
-
-    if (!token) {
-      set({ error: "No authentication token found" });
-      return;
-    }
+    set({ loading: true, error: null });
 
     try {
-      set({ loading: true, error: null });
-
       const res = await fetch(
-        `${BASE_URL}/v1/international/my-transactions/${id}`,
+        `${BASE_URL}/international/my-transactions/${id}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
+          headers: authHeaders(),
         },
       );
 
       const data = await res.json();
 
-      console.log("SINGLE TRANSACTION:", data);
-
-      if (data.status) {
-        set({ transaction: data.data });
-      } else {
+      if (!res.ok)
         throw new Error(data.message || "Failed to load transaction");
-      }
+
+      set({ transaction: data.data, loading: false });
     } catch (err: any) {
-      console.error("FETCH TRANSACTION ERROR:", err);
-      set({ error: err.message });
-    } finally {
-      set({ loading: false });
+      set({ error: err.message, loading: false });
     }
   },
 
-  // ------------------------------------------------------
-  // GET PAYPAL EMAIL
-  // ------------------------------------------------------
-
+  // ✅ GET /international/paypal-email
   fetchPaypalEmail: async () => {
-    const token = useAuthStore.getState().token;
-
-    if (!token) {
-      set({ error: "No authentication token found" });
-      return;
-    }
-
     try {
-      const res = await fetch(`${BASE_URL}/v1/international/paypal-email`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+      const res = await fetch(`${BASE_URL}/international/paypal-email`, {
+        headers: authHeaders(),
       });
 
       const data = await res.json();
 
-      console.log("PAYPAL EMAIL:", data);
-
-      if (data.email) {
-        set({ paypalEmail: data.email });
-      }
+      if (data.email) set({ paypalEmail: data.email });
     } catch (err: any) {
-      console.error("PAYPAL EMAIL ERROR:", err);
-      set({ error: err.message });
+      console.error("PayPal email fetch failed:", err.message);
     }
   },
 
-  // ------------------------------------------------------
-  // SEND INTERNATIONAL PAYMENT
-  // ------------------------------------------------------
-
+  // ✅ POST /international/send
   sendPayment: async (payload: SendPaymentPayload) => {
-    const token = useAuthStore.getState().token;
-
-    if (!token) {
-      set({ error: "No authentication token found" });
-      throw new Error("No authentication token found");
-    }
+    set({ submitting: true, error: null });
 
     try {
-      set({ submitting: true, error: null });
-
-      console.log("SEND PAYMENT PAYLOAD:", payload);
-
-      const res = await fetch(`${BASE_URL}/v1/international/send`, {
+      const res = await fetch(`${BASE_URL}/international/send`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
-      console.log("SEND PAYMENT RESPONSE:", data);
+      if (!res.ok) throw new Error(data.message || "Payment failed");
 
-      if (data.status) {
-        // Refresh transactions after successful payment
-        await get().fetchTransactions();
-      }
+      await get().fetchTransactions();
+
+      set({ submitting: false });
 
       return data;
     } catch (err: any) {
-      console.error("SEND PAYMENT ERROR:", err);
-      set({ error: err.message });
+      set({ error: err.message, submitting: false });
       throw err;
-    } finally {
-      set({ submitting: false });
     }
   },
 
-  // ------------------------------------------------------
-  // RECEIVE INTERNATIONAL PAYMENT
-  // ------------------------------------------------------
-
+  // ✅ POST /international/receive
   receivePayment: async (payload: ReceivePaymentPayload) => {
-    const token = useAuthStore.getState().token;
-
-    if (!token) {
-      set({ error: "No authentication token found" });
-      throw new Error("No authentication token found");
-    }
+    set({ submitting: true, error: null });
 
     try {
-      set({ submitting: true, error: null });
+      console.log("========== RECEIVE PAYMENT DEBUG ==========");
+      console.log("Payload:", payload);
 
-      console.log("RECEIVE PAYMENT PAYLOAD:", payload);
-
-      const res = await fetch(`${BASE_URL}/v1/international/receive`, {
+      const res = await fetch(`${BASE_URL}/international/receive`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
-      console.log("RECEIVE PAYMENT RESPONSE:", data);
+      if (!res.ok) throw new Error(data.message || "Receive failed");
 
-      if (data.status) {
-        // Refresh transactions after successful receive
-        await get().fetchTransactions();
-      }
+      await get().fetchTransactions();
+
+      set({ submitting: false });
 
       return data;
     } catch (err: any) {
-      console.error("RECEIVE PAYMENT ERROR:", err);
-      set({ error: err.message });
+      set({ error: err.message, submitting: false });
       throw err;
-    } finally {
-      set({ submitting: false });
     }
   },
 
-  // ------------------------------------------------------
-  // CONVERT API METHODS TO UI FORMAT
-  // ------------------------------------------------------
+  convertToUIMethods: (apiMethods) => convertAPIToUIMethods(apiMethods),
 
-  convertToUIMethods: (apiMethods: PaymentMethod[]) => {
-    return convertAPIToUIMethods(apiMethods);
-  },
+  clearError: () => set({ error: null }),
 }));
 
 // ------------------------------------------------------
-// CUSTOM HOOKS FOR UI COMPONENTS
+// CUSTOM HOOKS
 // ------------------------------------------------------
 
-// Hook to get UI-formatted payment methods
 export const useUIPaymentMethods = () => {
   const { methods, convertToUIMethods, loading } = useGlobalPaymentStore();
-
-  if (loading) return { uiMethods: [], loading };
-
-  return {
-    uiMethods: convertToUIMethods(methods),
-    loading,
-  };
+  return { uiMethods: convertToUIMethods(methods), loading };
 };
 
-// Hook to send payment with form data
+// ✅ auto-load methods hook
+export const useLoadPaymentMethods = () => {
+  const fetchMethods = useGlobalPaymentStore((s) => s.fetchMethods);
+  const methods = useGlobalPaymentStore((s) => s.methods);
+
+  useEffect(() => {
+    if (!methods.length) fetchMethods();
+  }, [methods.length, fetchMethods]);
+};
+
 export const useSendPayment = () => {
   const { sendPayment, submitting, error } = useGlobalPaymentStore();
 
-  const submitPayment = async (formData: SendPaymentFormData, method: any) => {
-    // Calculate crypto amount based on rate
+  const submitPayment = async (
+    formData: SendPaymentFormData,
+    method: UIPaymentMethod,
+  ) => {
     const rate = method.rates?.sell_rate
       ? parseFloat(method.rates.sell_rate)
       : 1450;
 
     const amount = typeof formData.amount === "number" ? formData.amount : 0;
-    const cryptoAmount = amount / rate;
+
+    const cryptoAmount = calculateCrypto(amount, rate);
 
     const payload: SendPaymentPayload = {
       method: method.code || method.id,
@@ -460,43 +347,43 @@ export const useSendPayment = () => {
     return await sendPayment(payload);
   };
 
-  return {
-    submitPayment,
-    submitting,
-    error,
-  };
+  return { submitPayment, submitting, error };
 };
 
-// Hook to get rate for a specific method
-export const usePaymentMethodRate = (method: any) => {
+export const usePaymentMethodRate = (method: UIPaymentMethod | null) => {
   if (!method?.rates?.sell_rate) return 1450;
   return parseFloat(method.rates.sell_rate);
 };
 
-// Hook to validate amount against min/max
-export const useAmountValidation = (method: any) => {
+export const useAmountValidation = (method: UIPaymentMethod | null) => {
   const validate = (amount: number) => {
     if (!method?.rates) return { isValid: true, message: "" };
 
-    const minAmount = parseFloat(method.rates.min_amount);
-    const maxAmount = parseFloat(method.rates.max_amount);
+    const min = parseFloat(method.rates.min_amount);
+    const max = parseFloat(method.rates.max_amount);
 
-    if (amount < minAmount) {
+    if (amount < min)
       return {
         isValid: false,
-        message: `Minimum amount is ₦${minAmount.toLocaleString()}`,
+        message: `Minimum amount is ₦${min.toLocaleString()}`,
       };
-    }
 
-    if (amount > maxAmount) {
+    if (amount > max)
       return {
         isValid: false,
-        message: `Maximum amount is ₦${maxAmount.toLocaleString()}`,
+        message: `Maximum amount is ₦${max.toLocaleString()}`,
       };
-    }
 
     return { isValid: true, message: "" };
   };
 
   return { validate };
+};
+
+export const usePaymentTransactions = () => {
+  const transactions = useGlobalPaymentStore((s) => s.transactions);
+  const fetchTransactions = useGlobalPaymentStore((s) => s.fetchTransactions);
+  const loading = useGlobalPaymentStore((s) => s.loading);
+
+  return { transactions, fetchTransactions, loading };
 };
