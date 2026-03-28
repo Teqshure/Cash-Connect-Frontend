@@ -34,7 +34,8 @@ export default function ReceivePaymentForm({
     fetchRates();
   }, [fetchRates]);
 
-  const rate = getSellRate(method.id) || 1450;
+  /* ✅ FIXED ERROR HERE */
+  const rate = getSellRate(Number(method.id)) || 1450;
 
   const finalAmount = amount ?? Number(customAmount || 0);
 
@@ -85,16 +86,18 @@ Continue to Receipt
 
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-sm p-6">
-      {/* Back */}{" "}
+      {/* Back */}
       <button onClick={onBack} className="text-sm text-gray-500 mb-4">
-        ← Back{" "}
+        ← Back
       </button>
+
       {/* Logo */}
       <div className="flex justify-center mb-6">
         <div className="w-24 h-24 border rounded-full flex items-center justify-center">
           <Image src={method.logo} alt={method.name} width={60} height={60} />
         </div>
       </div>
+
       <div className="space-y-4">
         {/* Currency */}
         <div>
