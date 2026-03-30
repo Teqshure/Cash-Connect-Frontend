@@ -38,8 +38,8 @@ export default function ReceivePaymentFlow({ onBack }: Props) {
   const [formData, setFormData] = useState<FormDataType | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
 
-  const receivePayment = useGlobalPaymentStore((s) => s.receivePayment);
-  const loading = useGlobalPaymentStore((s) => s.submitting);
+  const receivePayment = useGlobalPaymentStore((s: any) => s.receivePayment);
+  const loading = useGlobalPaymentStore((s: any) => s.submitting);
 
   const rate = usePaymentMethodRate(selectedMethod);
 

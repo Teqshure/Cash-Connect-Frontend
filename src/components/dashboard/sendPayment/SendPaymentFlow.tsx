@@ -73,7 +73,7 @@ export default function SendPaymentFlow({ onBack }: Props) {
           method={selectedMethod}
           formData={formData}
           onBack={() => setStep("form")}
-          onBuyNow={handleBuyNow}
+          onSuccess={handleSuccess}
         />
       )}
 

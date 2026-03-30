@@ -5,10 +5,19 @@ import Image from "next/image";
 import { Copy, ChevronDown, Loader2 } from "lucide-react";
 import { UIPaymentMethod, usePaymentMethodRate } from "@/store/globalPayment";
 
+export type PaymentFormData = {
+  email: string;
+  currency: string;
+  country: string;
+  gender: string;
+  amount: number;
+  tagId: string;
+};
+
 type Props = {
   method: UIPaymentMethod;
   onBack: () => void;
-  onContinue: (data: any) => Promise<void>;
+  onContinue: (data: PaymentFormData) => void;
 };
 
 const PRESET_AMOUNTS = [500, 1000, 3000, 5000];
@@ -87,14 +96,16 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
     try {
       setLoading(true);
 
-      await onContinue({
+      const data: PaymentFormData = {
         email,
         currency,
         country,
         gender,
         amount: finalAmount,
         tagId: tag,
-      });
+      };
+
+      onContinue(data);
     } catch (err: any) {
       setError(err?.message || "Transaction failed");
     }
@@ -104,7 +115,6 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
 
   return (
     <div className="w-full flex justify-center bg-[#F5F5F5] min-h-screen py-12">
-      {" "}
       <div className="w-[796px] bg-white rounded-[32px] pt-[43px] pb-[50px] shadow-[0px_4px_25px_rgba(0,0,0,0.06)]">
         {/* Back */}
         <div className="pl-[40px] mb-8">
@@ -230,7 +240,7 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
 
                   <button
                     onClick={verifyTag}
-                    className="absolute right-3 top-[14px] text-xs bg-green-100 text-green-700 px-2 py-1 rounded"
+                    className="absolute right-3 top-[14px] text-xs bg-green-100 text-green-700 px-2 py-1 rounded cursor-pointer"
                   >
                     Verify
                   </button>
@@ -262,11 +272,11 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
                       setCustomAmount(value.toString());
                     }}
                     className={`h-[44px] rounded-xl border text-sm font-medium transition cursor-pointer
-                ${
-                  isSelected
-                    ? "border-[#22C55E] bg-[#F0FDF4] text-[#16A34A]"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
-                }`}
+                    ${
+                      isSelected
+                        ? "border-[#22C55E] bg-[#F0FDF4] text-[#16A34A]"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                    }`}
                   >
                     {value.toLocaleString()}
                   </button>
