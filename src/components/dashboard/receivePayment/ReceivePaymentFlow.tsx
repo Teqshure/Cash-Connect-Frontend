@@ -1,29 +1,26 @@
+// components/dashboard/receivePayment/ReceivePaymentFlow.tsx
 "use client";
-
-/**
- * ReceivePaymentFlow
- *
- * Steps:
- * 1. choose   — select payment method
- * 2. form     — fill in details + generate tag
- * 3. receipt  — review full breakdown
- * 4. success  — confirmation
- */
 
 import { useState } from "react";
 import ReceivePaymentMethodGrid from "./ReceivePaymentMethodGrid";
 import ReceivePaymentForm from "./ReceivePaymentForm";
 import ReceivePaymentReceipt from "./ReceivePaymentReceipt";
 import ReceiveSuccessModal from "./ReceiveSuccessModal";
-import { ReceivePaymentMethod } from "./receivePaymentData";
-import { useGlobalPaymentStore } from "@/store/globalPayment";
+
+import {
+  UIPaymentMethod,
+  useGlobalPaymentStore,
+  usePaymentMethodRate,
+} from "@/store/globalPayment";
 
 type Step = "choose" | "form" | "receipt" | "success";
 
-type ReceivePaymentFormData = {
-  amount: string;
+type FormDataType = {
+  amount: number;
   currency: string;
+  country: string;
   email: string;
+  gender: string;
   tagId: string;
   conversion?: number;
   fee?: number;
@@ -33,121 +30,74 @@ type Props = {
   onBack: () => void;
 };
 
-function ReceivePaymentFlow({ onBack }: Props) {
+export default function ReceivePaymentFlow({ onBack }: Props) {
   const [step, setStep] = useState<Step>("choose");
-
-  const [selectedMethod, setSelectedMethod] =
-    useState<ReceivePaymentMethod | null>(null);
-
-  const [formData, setFormData] = useState<ReceivePaymentFormData | null>(null);
-
+  const [selectedMethod, setSelectedMethod] = useState<UIPaymentMethod | null>(
+    null,
+  );
+  const [formData, setFormData] = useState<FormDataType | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
 
-  const receivePayment = useGlobalPaymentStore((s: any) => s.receivePayment);
-  const loading = useGlobalPaymentStore((s: any) => s.loading);
+  const receivePayment = useGlobalPaymentStore((s) => s.receivePayment);
+  const loading = useGlobalPaymentStore((s) => s.submitting);
 
-  /* --------------------------
-     Select Payment Method
-  --------------------------- */
+  const rate = usePaymentMethodRate(selectedMethod);
 
-  const handleMethodSelect = (method: ReceivePaymentMethod) => {
+  // --------------------------------------------------
+  // METHOD SELECT
+  // --------------------------------------------------
+
+  const handleMethodSelect = (method: UIPaymentMethod) => {
     setSelectedMethod(method);
     setStep("form");
   };
 
-  /* --------------------------
-     Generate Transaction ID
-  --------------------------- */
+  // --------------------------------------------------
+  // FORM CONTINUE
+  // --------------------------------------------------
 
-  const generateTransactionId = () => {
-    const date = new Date();
+  const handleFormContinue = (data: Omit<FormDataType, "tagId">) => {
+    const tag = `TXN-${Date.now()}`;
 
-    return (
-      "TXN-" +
-      date.getFullYear() +
-      "-" +
-      String(date.getMonth() + 1).padStart(2, "0") +
-      String(date.getDate()).padStart(2, "0") +
-      "-" +
-      Math.floor(Math.random() * 100000)
-    );
-  };
-
-  /* --------------------------
-     Form Continue
-  --------------------------- */
-
-  const handleFormContinue = (data: Omit<ReceivePaymentFormData, "tagId">) => {
-    const txnId = generateTransactionId();
+    setTransactionId(tag);
 
     setFormData({
       ...data,
-      tagId: txnId,
+      tagId: tag,
     });
-
-    setTransactionId(txnId);
 
     setStep("receipt");
   };
 
-  /* --------------------------
-     Send Request + Conversion
-  --------------------------- */
+  // --------------------------------------------------
+  // SEND REQUEST TO BACKEND
+  // --------------------------------------------------
 
   const handleSendRequest = async () => {
-    if (!selectedMethod) {
-      console.error("❌ No payment method selected");
-      return;
-    }
-
-    if (!formData) {
-      console.error("❌ Form data missing");
-      return;
-    }
+    if (!selectedMethod || !formData) return;
 
     const usdAmount = Number(formData.amount);
 
     if (!usdAmount || usdAmount <= 0) {
-      console.error("❌ Invalid amount:", formData.amount);
-      alert("Invalid amount");
+      alert("Please enter a valid amount");
       return;
     }
 
+    const cryptoAmount = Number((usdAmount / rate).toFixed(6));
+
     const payload = {
-      method: selectedMethod.name.toUpperCase(),
-      amount: usdAmount,
-      crypto_amount: usdAmount,
+      method: selectedMethod.code || selectedMethod.id,
+      crypto_amount: cryptoAmount,
       currency: formData.currency,
       sender_email: formData.email,
     };
 
-    console.log("===================================");
-    console.log("🚀 SEND REQUEST DEBUG");
-    console.log("Selected Method:", selectedMethod);
-    console.log("Form Data:", formData);
-    console.log("Payload:", payload);
-    console.log("===================================");
-
     try {
       const response = await receivePayment(payload);
 
-      console.log("✅ API SUCCESS RESPONSE:");
-      console.log(response);
-
-      /**
-       * Expected API response example:
-       * {
-       *   rate: 1700,
-       *   fee: 100
-       * }
-       */
-
-      const rate = Number(response?.rate ?? 1700);
-      const fee = Number(response?.fee ?? 0);
-
+      const fee = Number(response?.data?.fee ?? 0);
       const conversion = usdAmount * rate;
 
-      /* update form data with conversion */
       setFormData({
         ...formData,
         conversion,
@@ -155,15 +105,15 @@ function ReceivePaymentFlow({ onBack }: Props) {
       });
 
       setStep("success");
-    } catch (error) {
-      console.error("❌ RECEIVE PAYMENT FAILED");
-      console.error(error);
+    } catch (error: any) {
+      console.error("Receive payment failed:", error);
+      alert(error?.message || "Payment request failed.");
     }
   };
 
-  /* --------------------------
-     Success Handler
-  --------------------------- */
+  // --------------------------------------------------
+  // SUCCESS RESET
+  // --------------------------------------------------
 
   const handleSuccess = () => {
     setStep("choose");
@@ -173,32 +123,18 @@ function ReceivePaymentFlow({ onBack }: Props) {
     onBack();
   };
 
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
+
   return (
     <div className="w-full">
-      {/* Step 1 — Choose Method */}
+      {/* Step 1 - Method selection */}
       {step === "choose" && (
-        <div>
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-4"
-          >
-            ← Back
-          </button>
-
-          <h2 className="text-[20px] font-semibold text-slate-900 mb-1">
-            Receive Payment
-          </h2>
-
-          <p className="text-[13px] text-slate-500 mb-6">
-            Select the payment method you want to receive payment through.
-          </p>
-
-          <ReceivePaymentMethodGrid onSelect={handleMethodSelect} />
-        </div>
+        <ReceivePaymentMethodGrid onSelect={handleMethodSelect} />
       )}
 
-      {/* Step 2 — Form */}
+      {/* Step 2 - Form */}
       {step === "form" && selectedMethod && (
         <ReceivePaymentForm
           method={selectedMethod}
@@ -207,7 +143,7 @@ function ReceivePaymentFlow({ onBack }: Props) {
         />
       )}
 
-      {/* Step 3 — Receipt */}
+      {/* Step 3 - Receipt */}
       {step === "receipt" && selectedMethod && formData && (
         <ReceivePaymentReceipt
           method={selectedMethod}
@@ -219,7 +155,7 @@ function ReceivePaymentFlow({ onBack }: Props) {
         />
       )}
 
-      {/* Step 4 — Success */}
+      {/* Step 4 - Success */}
       <ReceiveSuccessModal
         open={step === "success"}
         title="Success"
@@ -229,5 +165,3 @@ function ReceivePaymentFlow({ onBack }: Props) {
     </div>
   );
 }
-
-export default ReceivePaymentFlow;

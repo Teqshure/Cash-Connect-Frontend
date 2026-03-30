@@ -31,7 +31,7 @@ export interface ApiTransaction {
 
   deposit: any | null;
   withdrawal: any | null;
-  giftcard: any | null;
+  giftcard: any | null; // ✅ fixed: was gift_card, API returns giftcard
   crypto: any | null;
   international: any | null;
 }
@@ -41,7 +41,7 @@ interface TransactionState {
   isLoading: boolean;
   error: string | null;
 
-  fetchTransactions: () => Promise<void>;
+  fetchTransactions: (force?: boolean) => Promise<void>;
 }
 
 /* -------------------------------------------------- */
@@ -64,7 +64,7 @@ function authHeaders() {
 /* -------------------------------------------------- */
 
 function normalizeTransaction(tx: any): ApiTransaction {
-  // Detect giftcard order
+  // Giftcard transaction
   if (tx.gift_card_product_id) {
     return {
       id: tx.id,
@@ -87,13 +87,13 @@ function normalizeTransaction(tx: any): ApiTransaction {
 
       deposit: null,
       withdrawal: null,
-      giftcard: tx,
+      giftcard: tx, // ✅ fixed: was gift_card
       crypto: null,
       international: null,
     };
   }
 
-  // Default fallback
+  // Default transaction
   return {
     id: tx.id,
     user_id: tx.user_id ?? 0,
@@ -115,7 +115,7 @@ function normalizeTransaction(tx: any): ApiTransaction {
 
     deposit: tx.deposit ?? null,
     withdrawal: tx.withdrawal ?? null,
-    giftcard: tx.giftcard ?? null,
+    giftcard: tx.giftcard ?? null, // ✅ fixed: was tx.gift_card
     crypto: tx.crypto ?? null,
     international: tx.international ?? null,
   };
@@ -130,9 +130,9 @@ export const useTransactionStore = create<TransactionState>()((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchTransactions: async () => {
-    // Prevent duplicate API calls
-    if (get().transactions.length > 0) return;
+  fetchTransactions: async (force = false) => {
+    // Prevent unnecessary duplicate fetch
+    if (!force && get().transactions.length > 0) return;
 
     set({ isLoading: true, error: null });
 
@@ -148,17 +148,26 @@ export const useTransactionStore = create<TransactionState>()((set, get) => ({
         throw new Error(data.message || "Failed to fetch transactions");
       }
 
-      // Handle both API formats
+      /* -------------------------------------------- */
+      /* Handle Laravel paginated API structure */
+      /* -------------------------------------------- */
+
       const rawTransactions =
-        data?.data?.data || // paginated Laravel API
-        data?.data || // normal API
+        data?.data?.data || // paginated
+        data?.data || // standard
         [];
 
-      // Normalize all transactions
+      /* -------------------------------------------- */
+      /* Normalize all transactions */
+      /* -------------------------------------------- */
+
       const transactions: ApiTransaction[] =
         rawTransactions.map(normalizeTransaction);
 
-      // Sort newest first
+      /* -------------------------------------------- */
+      /* Sort newest first */
+      /* -------------------------------------------- */
+
       transactions.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),

@@ -25,26 +25,37 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [cardProducts, setCardProducts] = useState<GiftCardProduct[]>([]);
 
+  /* ------------------------------------------------------ */
+  /* FETCH DATA */
+  /* ------------------------------------------------------ */
+
   useEffect(() => {
     fetchProducts();
     fetchRates();
   }, [fetchProducts, fetchRates]);
 
+  /* ------------------------------------------------------ */
+  /* FILTER PRODUCTS FOR SELECTED CARD */
+  /* ------------------------------------------------------ */
+
   useEffect(() => {
-    // FIX: Add type annotation for p
     const filtered = products.filter(
       (p: GiftCardProduct) => p.gift_card_id === card.id && p.is_active === 1,
     );
 
     setCardProducts(filtered);
 
-    const initial: Record<number, number> = {};
+    const initialQty: Record<number, number> = {};
     filtered.forEach((p: GiftCardProduct) => {
-      initial[p.id] = 0;
+      initialQty[p.id] = 0;
     });
 
-    setQuantities(initial);
+    setQuantities(initialQty);
   }, [products, card.id]);
+
+  /* ------------------------------------------------------ */
+  /* UPDATE QUANTITY */
+  /* ------------------------------------------------------ */
 
   const updateQty = (productId: number, delta: number) => {
     setQuantities((prev) => ({
@@ -53,27 +64,42 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
     }));
   };
 
+  /* ------------------------------------------------------ */
+  /* CALCULATIONS */
+  /* ------------------------------------------------------ */
+
   const totalUSD = useMemo(() => {
-    return cardProducts.reduce((acc, product) => {
+    return cardProducts.reduce((total, product) => {
       const qty = quantities[product.id] ?? 0;
-      return acc + Number(product.amount) * qty;
+      const amount = Number(product.amount) || 0;
+
+      return total + amount * qty;
     }, 0);
   }, [cardProducts, quantities]);
 
-  const rate = getBuyRate(card.id);
-  const totalNGN = totalUSD * rate;
+  const rate = useMemo(() => getBuyRate(card.id) || 0, [getBuyRate, card.id]);
+
+  const totalNGN = useMemo(() => totalUSD * rate, [totalUSD, rate]);
+
   const hasSelection = totalUSD > 0;
 
+  /* ------------------------------------------------------ */
+  /* HANDLE BUY */
+  /* ------------------------------------------------------ */
+
   const handleBuy = () => {
-    // FIX: Add type annotation for product
     const selected = cardProducts.find(
-      (product: GiftCardProduct) => (quantities[product.id] ?? 0) > 0,
+      (product) => (quantities[product.id] ?? 0) > 0,
     );
 
     if (!selected) return;
 
     onContinue(selected, quantities[selected.id] ?? 0);
   };
+
+  /* ------------------------------------------------------ */
+  /* LOADING STATE */
+  /* ------------------------------------------------------ */
 
   if (isLoading) {
     return (
@@ -85,7 +111,7 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
 
   return (
     <div className="w-full max-w-[900px] mx-auto">
-      {/* Back */}
+      {/* BACK */}
       <button
         onClick={onBack}
         className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-6"
@@ -93,20 +119,19 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
         ← Back
       </button>
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="mb-6 rounded-[10px] bg-emerald-50 px-4 py-2.5 text-center">
         <p className="text-[13px] text-emerald-700 font-semibold">
           {card.name} Gift Cards
         </p>
       </div>
 
-      {/* Layout */}
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* PRODUCTS */}
+        {/* PRODUCTS GRID */}
         <div className="grid grid-cols-2 gap-4 flex-1">
-          {cardProducts.map((product: GiftCardProduct) => {
+          {cardProducts.map((product) => {
             const qty = quantities[product.id] ?? 0;
-            const amount = Number(product.amount);
+            const amount = Number(product.amount) || 0;
 
             return (
               <div
@@ -163,7 +188,6 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
 
         {/* RATE PANEL */}
         <div className="flex flex-col gap-4 lg:min-w-[260px]">
-          {/* Rate + Cost */}
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="bg-emerald-50 text-emerald-700 text-[13px] px-4 py-2 rounded-lg font-medium text-center">
               Rate:
@@ -180,18 +204,16 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
             </div>
           </div>
 
-          {/* Total */}
           <div className="text-center lg:text-left">
             <p className="text-[13px] text-slate-500 font-medium">
               Total Amount:
             </p>
 
             <p className="text-[22px] font-bold text-slate-900">
-              NGN{totalNGN.toLocaleString()}
+              NGN {totalNGN.toLocaleString()}
             </p>
           </div>
 
-          {/* Buy Button */}
           <button
             onClick={handleBuy}
             disabled={!hasSelection}

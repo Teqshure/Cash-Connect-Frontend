@@ -77,9 +77,9 @@ interface GiftCardState {
   fetchProducts: () => Promise<void>;
   fetchUserOrders: () => Promise<void>;
 
-  sellGiftCard: (payload: FormData) => Promise<SellGiftCardResponse>;
-
   createOrder: (payload: CreateOrderPayload) => Promise<GiftCardOrder>;
+
+  sellGiftCard: (payload: FormData) => Promise<SellGiftCardResponse>;
 
   clearError: () => void;
   clearSellResponse: () => void;
@@ -89,22 +89,30 @@ interface GiftCardState {
 /* HELPERS */
 /* -------------------------------------------------- */
 
+function getToken() {
+  return useAuthStore.getState().token;
+}
+
 function authHeaders() {
-  const token = useAuthStore.getState().token;
+  const token = getToken();
 
   const headers: Record<string, string> = {
     Accept: "application/json",
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   return headers;
 }
 
 async function handleResponse(response: Response) {
-  const data = await response.json();
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid server response");
+  }
 
   if (!response.ok || data.status === false) {
     throw new Error(data.message || "Request failed");
@@ -207,25 +215,31 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
     set({ isSubmitting: true, error: null });
 
     try {
-      const token = useAuthStore.getState().token;
-
       const response = await fetch(`${BASE_URL}/giftcard-orders`, {
         method: "POST",
         headers: {
+          ...authHeaders(),
           "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify(payload),
       });
 
       const result = await handleResponse(response);
 
-      set({
-        isSubmitting: false,
-      });
+      const newOrder = result.data;
 
-      return result.data;
+      /* update local orders instantly */
+
+      set((state) => ({
+        orders: [newOrder, ...state.orders],
+        isSubmitting: false,
+      }));
+
+      /* refresh orders from server */
+
+      await get().fetchUserOrders();
+
+      return newOrder;
     } catch (error: any) {
       set({
         error: error.message || "Failed to create order",
@@ -242,14 +256,9 @@ export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
     set({ isSubmitting: true, error: null });
 
     try {
-      const token = useAuthStore.getState().token;
-
       const response = await fetch(`${BASE_URL}/giftcards/sell`, {
         method: "POST",
-        headers: {
-          Accept: "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
+        headers: authHeaders(),
         body: payload,
       });
 

@@ -14,54 +14,48 @@ import { useAuthStore, User } from "@/store/useAuthStore";
 import { useTransactionStore, ApiTransaction } from "@/store/Transactionstore";
 
 // ----------------------------------------------------------------
-// Mapping helpers — all based on tx.type from API
+// Mapping helpers
 // ----------------------------------------------------------------
 
 function getIcon(tx: ApiTransaction): Transaction["icon"] {
-  switch (tx.type) {
-    case "deposit":
-      return "fund";
-    case "withdrawal":
-      return "send";
-    case "gift":
-      return "gift";
-    case "crypto":
-      return "crypto";
-    case "international":
-      return "exchange";
-    default:
-      return "fund";
-  }
+  const type = tx.type?.toLowerCase();
+
+  if (type === "deposit") return "fund";
+  if (type === "withdrawal") return "send";
+  if (type === "gift" || type === "giftcard") return "gift";
+  if (type === "crypto") return "crypto";
+  if (type === "international") return "exchange";
+
+  return "fund";
 }
 
 function getLabel(tx: ApiTransaction): string {
-  switch (tx.type) {
-    case "deposit":
-      return "Fund Deposit";
-    case "withdrawal":
-      return "Send Payment";
-    case "gift":
-      return "Giftcard Sale";
-    case "crypto":
-      return "Crypto Transaction";
-    case "international":
-      return "Crypto Exchange";
-    default:
-      return tx.type;
-  }
+  const type = tx.type?.toLowerCase();
+
+  if (type === "deposit") return "Fund Deposit";
+  if (type === "withdrawal") return "Send Payment";
+  if (type === "gift" || type === "giftcard") return "Giftcard Sale";
+  if (type === "crypto") return "Crypto Transaction";
+  if (type === "international") return "Crypto Exchange";
+
+  return type;
 }
 
 function getStatus(status: ApiTransaction["status"]): Transaction["status"] {
   const normalized = status?.toString().toLowerCase();
+
   if (normalized === "approved" || normalized === "success")
     return "successful";
+
   if (["rejected", "failed", "declined", "error"].includes(normalized))
     return "failed";
+
   return "pending";
 }
 
 function formatDate(dateStr: string): { date: string; time: string } {
   const d = new Date(dateStr);
+
   const date = d
     .toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -69,19 +63,25 @@ function formatDate(dateStr: string): { date: string; time: string } {
       year: "numeric",
     })
     .replace(/\//g, "-");
+
   const time = d.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
   return { date, time };
 }
 
 function mapTransaction(tx: ApiTransaction): Transaction {
   const { date, time } = formatDate(tx.created_at);
+
   const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  const icon = getIcon(tx);
+
   return {
     id: String(tx.id),
     date,
@@ -89,7 +89,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     type: getLabel(tx),
     amountPrimary: `${tx.currency === "NGN" ? "₦" : tx.currency} ${amount}`,
     status: getStatus(tx.status),
-    icon: getIcon(tx),
+    icon,
   };
 }
 
@@ -139,9 +139,11 @@ export default function HistoryPageContent() {
 
   const filteredItems = allItems.filter((item: Transaction) => {
     const matchesStatus = filter === "all" || item.status === filter;
+
     const matchesSearch =
       item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.amountPrimary.toLowerCase().includes(searchQuery.toLowerCase());
+
     return matchesStatus && matchesSearch;
   });
 
@@ -155,12 +157,14 @@ export default function HistoryPageContent() {
             <div className="relative h-full">
               <button
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className="h-full px-4 rounded-full border border-slate-200 flex items-center gap-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition"
+                className="cursor-pointer h-full px-4 rounded-full border border-slate-200 flex items-center gap-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition"
               >
                 <Filter className="h-4 w-4" />
                 <span>Filter</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${showFilterDropdown ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 transition-transform ${
+                    showFilterDropdown ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -170,6 +174,7 @@ export default function HistoryPageContent() {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowFilterDropdown(false)}
                   />
+
                   <div className="absolute top-[52px] left-0 bg-white rounded-xl border border-slate-200 shadow-lg p-2 z-50 min-w-[180px]">
                     {["all", "successful", "pending", "failed"].map((f) => (
                       <button
@@ -178,7 +183,7 @@ export default function HistoryPageContent() {
                           setFilter(f);
                           setShowFilterDropdown(false);
                         }}
-                        className={`w-full text-left px-4 py-2.5 rounded-lg text-[13px] font-medium transition capitalize ${
+                        className={`cursor-pointer w-full text-left px-4 py-2.5 rounded-lg text-[13px] font-medium transition capitalize ${
                           filter === f
                             ? f === "pending"
                               ? "bg-amber-600 text-white"
@@ -202,6 +207,7 @@ export default function HistoryPageContent() {
             <div className="flex-1 h-full">
               <div className="relative h-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+
                 <input
                   type="text"
                   placeholder="Search transactions..."
@@ -215,48 +221,6 @@ export default function HistoryPageContent() {
         </div>
 
         <div className="rounded-[18px] bg-white border border-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.06)] p-6">
-          {isLoading && (
-            <div className="flex justify-center py-16">
-              <svg
-                className="animate-spin h-6 w-6 text-emerald-500"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                />
-              </svg>
-            </div>
-          )}
-
-          {!isLoading && error && (
-            <div className="py-10 text-center">
-              <p className="text-red-500 text-sm">{error}</p>
-              <button
-                onClick={fetchTransactions}
-                className="mt-3 text-[12px] text-emerald-600 font-medium hover:underline"
-              >
-                Try again
-              </button>
-            </div>
-          )}
-
-          {!isLoading && !error && filteredItems.length === 0 && (
-            <div className="py-10 text-center text-slate-400 text-sm">
-              No transactions found
-            </div>
-          )}
-
           {!isLoading && !error && filteredItems.length > 0 && (
             <TransactionsTable items={filteredItems} />
           )}
@@ -273,7 +237,7 @@ export default function HistoryPageContent() {
           {filteredItems.map((tx: Transaction) => (
             <div
               key={tx.id}
-              className="grid grid-cols-[1fr_1fr_80px] px-4 py-3 border-b border-slate-50 items-center"
+              className="cursor-pointer grid grid-cols-[1fr_1fr_80px] px-4 py-3 border-b border-slate-50 items-center"
             >
               <div className="flex items-center gap-2">
                 {isCredit(tx.icon) ? (
@@ -281,6 +245,7 @@ export default function HistoryPageContent() {
                 ) : (
                   <ArrowDownCircle className="h-7 w-7 text-rose-400 flex-shrink-0" />
                 )}
+
                 <span className="text-[13px] font-medium text-slate-700">
                   {shortType(tx.type)}
                 </span>

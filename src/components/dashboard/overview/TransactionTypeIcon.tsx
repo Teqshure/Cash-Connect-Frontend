@@ -5,17 +5,16 @@ import {
   Bitcoin,
   Gift,
   ArrowDownLeft,
-  ArrowUpRight,
   CreditCard,
   RefreshCcw,
   Send,
 } from "lucide-react";
 
 type Props = {
-  kind: TransactionIcon;
+  kind?: TransactionIcon;
 };
 
-const cfg: Record<
+const ICON_CONFIG: Record<
   TransactionIcon,
   { Icon: React.ElementType; wrap: string; icon: string }
 > = {
@@ -52,17 +51,16 @@ const cfg: Record<
 };
 
 export default function TransactionTypeIcon({ kind }: Props) {
-  const config = cfg[kind] ?? cfg.fund;
-  const { Icon, wrap, icon } = config;
+  // fallback safety
+  const safeKind: TransactionIcon = kind && ICON_CONFIG[kind] ? kind : "fund";
+
+  const { Icon, wrap, icon } = ICON_CONFIG[safeKind];
 
   return (
     <div
-      className={[
-        "h-9 w-9 rounded-[12px] grid place-items-center flex-shrink-0",
-        wrap,
-      ].join(" ")}
+      className={`h-9 w-9 rounded-[12px] grid place-items-center flex-shrink-0 ${wrap}`}
     >
-      <Icon className={["h-4 w-4", icon].join(" ")} />
+      <Icon className={`h-4 w-4 ${icon}`} />
     </div>
   );
 }

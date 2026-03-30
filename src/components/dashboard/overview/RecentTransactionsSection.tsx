@@ -6,51 +6,48 @@ import TransactionsTable, { Transaction } from "./TransactionsTable";
 import { useTransactionStore, ApiTransaction } from "@/store/Transactionstore";
 
 // ----------------------------------------------------------------
-// Mapping helpers — all based on tx.type from API
+// Mapping helpers (same logic as History page)
 // ----------------------------------------------------------------
 
 function getIcon(tx: ApiTransaction): Transaction["icon"] {
-  switch (tx.type) {
-    case "deposit":
-      return "fund";
-    case "withdrawal":
-      return "send";
-    case "gift":
-      return "gift";
-    case "crypto":
-      return "crypto";
-    case "international":
-      return "exchange";
-    default:
-      return "fund";
-  }
+  const type = tx.type?.toLowerCase();
+
+  if (type === "deposit") return "fund";
+  if (type === "withdrawal") return "send";
+  if (type === "gift" || type === "giftcard") return "gift";
+  if (type === "crypto") return "crypto";
+  if (type === "international") return "exchange";
+
+  return "fund";
 }
 
 function getLabel(tx: ApiTransaction): string {
-  switch (tx.type) {
-    case "deposit":
-      return "Fund Deposit";
-    case "withdrawal":
-      return "Send Payment";
-    case "gift":
-      return "Giftcard Sale";
-    case "crypto":
-      return "Crypto Transaction";
-    case "international":
-      return "Crypto Exchange";
-    default:
-      return tx.type;
-  }
+  const type = tx.type?.toLowerCase();
+
+  if (type === "deposit") return "Fund Deposit";
+  if (type === "withdrawal") return "Send Payment";
+  if (type === "gift" || type === "giftcard") return "Giftcard Sale";
+  if (type === "crypto") return "Crypto Transaction";
+  if (type === "international") return "Crypto Exchange";
+
+  return type ?? "Transaction";
 }
 
 function getStatus(status: ApiTransaction["status"]): Transaction["status"] {
-  if (status === "approved") return "successful";
-  if (status === "rejected" || status === "failed") return "failed";
+  const normalized = status?.toString().toLowerCase();
+
+  if (normalized === "approved" || normalized === "success")
+    return "successful";
+
+  if (["rejected", "failed", "declined", "error"].includes(normalized))
+    return "failed";
+
   return "pending";
 }
 
 function formatDate(dateStr: string): { date: string; time: string } {
   const d = new Date(dateStr);
+
   const date = d
     .toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -58,19 +55,23 @@ function formatDate(dateStr: string): { date: string; time: string } {
       year: "numeric",
     })
     .replace(/\//g, "-");
+
   const time = d.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
   return { date, time };
 }
 
 function mapTransaction(tx: ApiTransaction): Transaction {
   const { date, time } = formatDate(tx.created_at);
+
   const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
   return {
     id: String(tx.id),
     date,
@@ -92,9 +93,9 @@ export default function RecentTransactionsSection() {
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [fetchTransactions]);
 
-  const rows = transactions.slice(0, 6).map(mapTransaction);
+  const rows = transactions.map(mapTransaction).slice(0, 6);
 
   return (
     <section className="w-full">
@@ -103,8 +104,9 @@ export default function RecentTransactionsSection() {
           <h3 className="text-[13px] font-medium text-slate-700">
             Recent Transactions
           </h3>
+
           <Link
-            href="/history"
+            href="/History"
             className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-2"
           >
             View All <span aria-hidden>→</span>
@@ -119,16 +121,16 @@ export default function RecentTransactionsSection() {
               fill="none"
             >
               <circle
-                className="opacity-25"
                 cx="12"
                 cy="12"
                 r="10"
                 stroke="currentColor"
                 strokeWidth="4"
+                className="opacity-25"
               />
               <path
-                className="opacity-75"
                 fill="currentColor"
+                className="opacity-75"
                 d="M4 12a8 8 0 018-8v8z"
               />
             </svg>
@@ -138,6 +140,7 @@ export default function RecentTransactionsSection() {
         {!isLoading && error && (
           <div className="px-6 py-8 text-center">
             <p className="text-[13px] text-red-500">{error}</p>
+
             <button
               onClick={fetchTransactions}
               className="mt-3 text-[12px] text-emerald-600 font-medium hover:underline"

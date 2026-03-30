@@ -56,20 +56,6 @@ export default function SendPaymentFlow({ onBack }: Props) {
     <div className="w-full">
       {step === "choose" && (
         <div>
-          {" "}
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-4 cursor-pointer transition"
-          >
-            ← Back{" "}
-          </button>
-          <h2 className="text-[20px] font-semibold text-slate-900 mb-1">
-            Send Payment
-          </h2>
-          <p className="text-[13px] text-slate-500 mb-6">
-            Select the payment method you want to send payment through.
-          </p>
           <PaymentMethodGrid onSelect={handleMethodSelect} />
         </div>
       )}
