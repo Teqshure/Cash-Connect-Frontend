@@ -38,7 +38,7 @@ function authHeaders() {
   return headers;
 }
 
-export const useRateStore = create<RateState>((set, get) => ({
+export const useRateStore = create<RateState>((set: any, get: any) => ({
   rates: [],
   isLoading: false,
   error: null,
@@ -74,7 +74,7 @@ export const useRateStore = create<RateState>((set, get) => ({
 
   getBuyRate: (giftCardId: number) => {
     const rate = get().rates.find(
-      (r) =>
+      (r: any) =>
         r.rateable_id === giftCardId &&
         r.rateable_type?.toLowerCase().includes("gift"),
     );
@@ -97,7 +97,7 @@ export const useRateStore = create<RateState>((set, get) => ({
 
   getSellRate: (giftCardId: number) => {
     const rate = get().rates.find(
-      (r) =>
+      (r: any) =>
         r.rateable_id === giftCardId &&
         r.rateable_type?.toLowerCase().includes("gift"),
     );

@@ -104,7 +104,7 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       /* ---------------- IMAGE UPLOAD ---------------- */
 
       if (formData.imageFiles.length > 0) {
-        formData.imageFiles.forEach((file, index) => {
+        formData.imageFiles.forEach((file) => {
           payload.append("card_images[]", file);
         });
       }

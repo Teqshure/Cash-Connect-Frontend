@@ -43,16 +43,19 @@ export default function ReceivePaymentReceipt({
 
   const [showBalance, setShowBalance] = useState(true);
 
+  const [generatedTransactionId] = useState(() => {
+    if (transactionId) return transactionId;
+
+    return `TXN-${new Date().getFullYear()}-${Math.floor(
+      Math.random() * 1000000,
+    )}`;
+  });
+
   const growth = 5.2;
 
   /* ---------------- SAFE NUMBER CALCULATIONS ---------------- */
 
   const requestAmount = Number(formData.amount || 0);
-
-  // Generate transaction ID if backend did not send one
-  const generatedTransactionId =
-    transactionId ||
-    `TXN-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000000)}`;
 
   // fallback rate if backend has not sent conversion
   const fallbackRate = 1700;

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import avartarimg from "../../../public/images/dashboard/avatar.png";
-import { Bell, Search, Menu, Settings, Gift, ChevronDown } from "lucide-react";
+import { Bell, Search, Menu, Gift, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePathname } from "next/navigation";
 
@@ -29,7 +29,7 @@ export default function Topbar({
 }: {
   onOpenSidebar?: () => void;
 }) {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
   const pathname = usePathname();
 

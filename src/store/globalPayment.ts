@@ -155,151 +155,153 @@ function convertAPIToUIMethods(apiMethods: PaymentMethod[]): UIPaymentMethod[] {
 // STORE
 // ------------------------------------------------------
 
-export const useGlobalPaymentStore = create<GlobalPaymentState>((set, get) => ({
-  methods: [],
-  transactions: [],
-  transaction: null,
-  paypalEmail: null,
-  loading: false,
-  error: null,
-  submitting: false,
+export const useGlobalPaymentStore = create<GlobalPaymentState>(
+  (set: any, get: any) => ({
+    methods: [],
+    transactions: [],
+    transaction: null,
+    paypalEmail: null,
+    loading: false,
+    error: null,
+    submitting: false,
 
-  // ✅ GET /international/available-methods
-  fetchMethods: async () => {
-    set({ loading: true, error: null });
+    // ✅ GET /international/available-methods
+    fetchMethods: async () => {
+      set({ loading: true, error: null });
 
-    try {
-      const res = await fetch(`${BASE_URL}/international/available-methods`, {
-        headers: authHeaders(),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Failed to load methods");
-
-      set({ methods: data.data || [], loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
-    }
-  },
-
-  // ✅ GET /international/my-transactions
-  fetchTransactions: async () => {
-    set({ loading: true, error: null });
-
-    try {
-      const res = await fetch(`${BASE_URL}/international/my-transactions`, {
-        headers: authHeaders(),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok)
-        throw new Error(data.message || "Failed to load transactions");
-
-      set({ transactions: data.data || [], loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
-    }
-  },
-
-  // ✅ GET /international/my-transactions/{id}
-  fetchTransaction: async (id: string) => {
-    set({ loading: true, error: null });
-
-    try {
-      const res = await fetch(
-        `${BASE_URL}/international/my-transactions/${id}`,
-        {
+      try {
+        const res = await fetch(`${BASE_URL}/international/available-methods`, {
           headers: authHeaders(),
-        },
-      );
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok)
-        throw new Error(data.message || "Failed to load transaction");
+        if (!res.ok) throw new Error(data.message || "Failed to load methods");
 
-      set({ transaction: data.data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
-    }
-  },
+        set({ methods: data.data || [], loading: false });
+      } catch (err: any) {
+        set({ error: err.message, loading: false });
+      }
+    },
 
-  // ✅ GET /international/paypal-email
-  fetchPaypalEmail: async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/international/paypal-email`, {
-        headers: authHeaders(),
-      });
+    // ✅ GET /international/my-transactions
+    fetchTransactions: async () => {
+      set({ loading: true, error: null });
 
-      const data = await res.json();
+      try {
+        const res = await fetch(`${BASE_URL}/international/my-transactions`, {
+          headers: authHeaders(),
+        });
 
-      if (data.email) set({ paypalEmail: data.email });
-    } catch (err: any) {
-      console.error("PayPal email fetch failed:", err.message);
-    }
-  },
+        const data = await res.json();
 
-  // ✅ POST /international/send
-  sendPayment: async (payload: SendPaymentPayload) => {
-    set({ submitting: true, error: null });
+        if (!res.ok)
+          throw new Error(data.message || "Failed to load transactions");
 
-    try {
-      const res = await fetch(`${BASE_URL}/international/send`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify(payload),
-      });
+        set({ transactions: data.data || [], loading: false });
+      } catch (err: any) {
+        set({ error: err.message, loading: false });
+      }
+    },
 
-      const data = await res.json();
+    // ✅ GET /international/my-transactions/{id}
+    fetchTransaction: async (id: string) => {
+      set({ loading: true, error: null });
 
-      if (!res.ok) throw new Error(data.message || "Payment failed");
+      try {
+        const res = await fetch(
+          `${BASE_URL}/international/my-transactions/${id}`,
+          {
+            headers: authHeaders(),
+          },
+        );
 
-      await get().fetchTransactions();
+        const data = await res.json();
 
-      set({ submitting: false });
+        if (!res.ok)
+          throw new Error(data.message || "Failed to load transaction");
 
-      return data;
-    } catch (err: any) {
-      set({ error: err.message, submitting: false });
-      throw err;
-    }
-  },
+        set({ transaction: data.data, loading: false });
+      } catch (err: any) {
+        set({ error: err.message, loading: false });
+      }
+    },
 
-  // ✅ POST /international/receive
-  receivePayment: async (payload: ReceivePaymentPayload) => {
-    set({ submitting: true, error: null });
+    // ✅ GET /international/paypal-email
+    fetchPaypalEmail: async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/international/paypal-email`, {
+          headers: authHeaders(),
+        });
 
-    try {
-      console.log("========== RECEIVE PAYMENT DEBUG ==========");
-      console.log("Payload:", payload);
+        const data = await res.json();
 
-      const res = await fetch(`${BASE_URL}/international/receive`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify(payload),
-      });
+        if (data.email) set({ paypalEmail: data.email });
+      } catch (err: any) {
+        console.error("PayPal email fetch failed:", err.message);
+      }
+    },
 
-      const data = await res.json();
+    // ✅ POST /international/send
+    sendPayment: async (payload: SendPaymentPayload) => {
+      set({ submitting: true, error: null });
 
-      if (!res.ok) throw new Error(data.message || "Receive failed");
+      try {
+        const res = await fetch(`${BASE_URL}/international/send`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(payload),
+        });
 
-      await get().fetchTransactions();
+        const data = await res.json();
 
-      set({ submitting: false });
+        if (!res.ok) throw new Error(data.message || "Payment failed");
 
-      return data;
-    } catch (err: any) {
-      set({ error: err.message, submitting: false });
-      throw err;
-    }
-  },
+        await get().fetchTransactions();
 
-  convertToUIMethods: (apiMethods) => convertAPIToUIMethods(apiMethods),
+        set({ submitting: false });
 
-  clearError: () => set({ error: null }),
-}));
+        return data;
+      } catch (err: any) {
+        set({ error: err.message, submitting: false });
+        throw err;
+      }
+    },
+
+    // ✅ POST /international/receive
+    receivePayment: async (payload: ReceivePaymentPayload) => {
+      set({ submitting: true, error: null });
+
+      try {
+        console.log("========== RECEIVE PAYMENT DEBUG ==========");
+        console.log("Payload:", payload);
+
+        const res = await fetch(`${BASE_URL}/international/receive`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || "Receive failed");
+
+        await get().fetchTransactions();
+
+        set({ submitting: false });
+
+        return data;
+      } catch (err: any) {
+        set({ error: err.message, submitting: false });
+        throw err;
+      }
+    },
+
+    convertToUIMethods: (apiMethods: any) => convertAPIToUIMethods(apiMethods),
+
+    clearError: () => set({ error: null }),
+  }),
+);
 
 // ------------------------------------------------------
 // CUSTOM HOOKS
@@ -312,8 +314,8 @@ export const useUIPaymentMethods = () => {
 
 // ✅ auto-load methods hook
 export const useLoadPaymentMethods = () => {
-  const fetchMethods = useGlobalPaymentStore((s) => s.fetchMethods);
-  const methods = useGlobalPaymentStore((s) => s.methods);
+  const fetchMethods = useGlobalPaymentStore((s: any) => s.fetchMethods);
+  const methods = useGlobalPaymentStore((s: any) => s.methods);
 
   useEffect(() => {
     if (!methods.length) fetchMethods();
@@ -381,9 +383,11 @@ export const useAmountValidation = (method: UIPaymentMethod | null) => {
 };
 
 export const usePaymentTransactions = () => {
-  const transactions = useGlobalPaymentStore((s) => s.transactions);
-  const fetchTransactions = useGlobalPaymentStore((s) => s.fetchTransactions);
-  const loading = useGlobalPaymentStore((s) => s.loading);
+  const transactions = useGlobalPaymentStore((s: any) => s.transactions);
+  const fetchTransactions = useGlobalPaymentStore(
+    (s: any) => s.fetchTransactions,
+  );
+  const loading = useGlobalPaymentStore((s: any) => s.loading);
 
   return { transactions, fetchTransactions, loading };
 };

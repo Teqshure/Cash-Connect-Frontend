@@ -41,13 +41,13 @@ function authHeaders() {
 // Store
 // ----------------------------------------------------------------
 
-export const useDepositStore = create<DepositState>()((set) => ({
+export const useDepositStore = create<DepositState>()((set: any) => ({
   depositAccount: null,
   transactionRef: "",
   isLoading: false,
   error: null,
 
-  createDeposit: async (amount) => {
+  createDeposit: async (amount: any) => {
     set({ isLoading: true, error: null });
 
     try {

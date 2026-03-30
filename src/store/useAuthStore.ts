@@ -77,7 +77,7 @@ const API_URL = "https://cashconnect.beamaxtech.com.ng/api";
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set: any, get: any) => ({
       user: null,
       token: null,
       isAuthenticated: false,

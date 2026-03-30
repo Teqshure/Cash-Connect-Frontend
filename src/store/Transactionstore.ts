@@ -125,63 +125,65 @@ function normalizeTransaction(tx: any): ApiTransaction {
 /* STORE */
 /* -------------------------------------------------- */
 
-export const useTransactionStore = create<TransactionState>()((set, get) => ({
-  transactions: [],
-  isLoading: false,
-  error: null,
+export const useTransactionStore = create<TransactionState>()(
+  (set: any, get: any) => ({
+    transactions: [],
+    isLoading: false,
+    error: null,
 
-  fetchTransactions: async (force = false) => {
-    // Prevent unnecessary duplicate fetch
-    if (!force && get().transactions.length > 0) return;
+    fetchTransactions: async (force = false) => {
+      // Prevent unnecessary duplicate fetch
+      if (!force && get().transactions.length > 0) return;
 
-    set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null });
 
-    try {
-      const res = await fetch(`${BASE_URL}/transactions`, {
-        method: "GET",
-        headers: authHeaders(),
-      });
+      try {
+        const res = await fetch(`${BASE_URL}/transactions`, {
+          method: "GET",
+          headers: authHeaders(),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch transactions");
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to fetch transactions");
+        }
+
+        /* -------------------------------------------- */
+        /* Handle Laravel paginated API structure */
+        /* -------------------------------------------- */
+
+        const rawTransactions =
+          data?.data?.data || // paginated
+          data?.data || // standard
+          [];
+
+        /* -------------------------------------------- */
+        /* Normalize all transactions */
+        /* -------------------------------------------- */
+
+        const transactions: ApiTransaction[] =
+          rawTransactions.map(normalizeTransaction);
+
+        /* -------------------------------------------- */
+        /* Sort newest first */
+        /* -------------------------------------------- */
+
+        transactions.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+
+        set({
+          transactions,
+          isLoading: false,
+        });
+      } catch (error: any) {
+        set({
+          error: error.message || "Something went wrong",
+          isLoading: false,
+        });
       }
-
-      /* -------------------------------------------- */
-      /* Handle Laravel paginated API structure */
-      /* -------------------------------------------- */
-
-      const rawTransactions =
-        data?.data?.data || // paginated
-        data?.data || // standard
-        [];
-
-      /* -------------------------------------------- */
-      /* Normalize all transactions */
-      /* -------------------------------------------- */
-
-      const transactions: ApiTransaction[] =
-        rawTransactions.map(normalizeTransaction);
-
-      /* -------------------------------------------- */
-      /* Sort newest first */
-      /* -------------------------------------------- */
-
-      transactions.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
-
-      set({
-        transactions,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        error: error.message || "Something went wrong",
-        isLoading: false,
-      });
-    }
-  },
-}));
+    },
+  }),
+);
