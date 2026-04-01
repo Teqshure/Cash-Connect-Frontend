@@ -42,7 +42,7 @@ export default function MobileWalletDashboard({
   onFundWallet,
   onWithdraw,
 }: Props) {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
 
   return (

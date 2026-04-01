@@ -1,35 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import GiftCardGrid from "../Giftcardgrid";
+
 import SellGiftCardForm from "./Sellgiftcardform";
 import GiftCardReceipt from "../Giftcardreceipt";
 import GiftCardSuccessModal from "../Giftcardsuccessmodal";
+import GiftCardGrid from "../Giftcardgrid";
+
 import {
   useGiftCardStore,
   GiftCard,
   GiftCardProduct,
 } from "@/store/giftCardStore";
 
+import { useRateStore } from "@/store/rateStore";
+
 type Step = "grid" | "form" | "receipt" | "success";
 
-type Props = { onBack: () => void };
+type Props = {
+  onBack: () => void;
+};
+
+type SellFormData = {
+  cardNumber: string;
+  amount: string;
+  quantity: number;
+  imageFiles: File[];
+};
 
 export default function SellGiftCardFlow({ onBack }: Props) {
-  const router = useRouter();
   const [step, setStep] = useState<Step>("grid");
   const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null);
   const [selectedProduct, setSelectedProduct] =
     useState<GiftCardProduct | null>(null);
-  const [formData, setFormData] = useState({
-    cardNumber: "",
-    amount: "",
-    quantity: 1,
-    imageFiles: [] as File[],
-    imagePreviews: [] as string[],
-  });
-  const [sellResponse, setSellResponse] = useState<any>(null);
+  const [formData, setFormData] = useState<SellFormData | null>(null);
 
   const {
     giftCards,
@@ -43,97 +47,110 @@ export default function SellGiftCardFlow({ onBack }: Props) {
     clearError,
   } = useGiftCardStore();
 
+  const { fetchRates } = useRateStore();
+
+  /* ---------------- LOAD APIs ---------------- */
+
   useEffect(() => {
     fetchGiftCards();
     fetchProducts();
-  }, [fetchGiftCards, fetchProducts]);
+    fetchRates();
+  }, []);
+
+  /* ---------------- SELECT CARD ---------------- */
 
   const handleCardSelect = (card: GiftCard) => {
+    console.log("Selected Gift Card:", card);
     setSelectedCard(card);
     setStep("form");
   };
 
-  const handleFormSubmit = (
-    data: typeof formData,
-    product: GiftCardProduct,
-  ) => {
+  /* ---------------- FILTER PRODUCTS ---------------- */
+
+  const filteredProducts = products.filter(
+    (p: GiftCardProduct) => Number(p.gift_card_id) === Number(selectedCard?.id),
+  );
+
+  /* ---------------- FORM SUBMIT ---------------- */
+
+  const handleFormSubmit = (data: SellFormData, product: GiftCardProduct) => {
+    console.log("Form Data Submitted:", data);
+    console.log("Selected Product:", product);
+
     setFormData(data);
     setSelectedProduct(product);
     setStep("receipt");
   };
 
-  const handleConfirmOrder = async () => {
-    if (!selectedCard || !selectedProduct) return;
+  /* ---------------- CONFIRM SELL ---------------- */
 
-    // Convert images to base64 strings for API
-    const imageBase64Strings = await Promise.all(
-      formData.imageFiles.map((file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            resolve(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        });
-      }),
-    );
+  const handleConfirmSell = async () => {
+    if (!selectedCard || !selectedProduct || !formData) {
+      console.error("Missing required data");
+      return;
+    }
 
-    const payload = {
-      gift_card_id: selectedCard.id,
-      card_type: "code" as "physical" | "code",
-      card_value: parseFloat(formData.amount),
-      card_code: formData.cardNumber,
-      card_pin: "",
-      card_images: imageBase64Strings,
-    };
+    if (isSubmitting) return;
 
     try {
+      const payload = new FormData();
+
+      payload.append("gift_card_id", selectedCard.id.toString());
+      payload.append("card_type", "physical");
+      payload.append("amount", formData.amount);
+      payload.append("card_code", formData.cardNumber);
+      payload.append("card_pin", formData.cardNumber);
+
+      /* ---------------- IMAGE UPLOAD ---------------- */
+
+      if (formData.imageFiles.length > 0) {
+        formData.imageFiles.forEach((file) => {
+          payload.append("card_images[]", file);
+        });
+      }
+
+      /* ---------------- DEBUG LOGS ---------------- */
+
+      console.log("===== SELL GIFTCARD REQUEST =====");
+
+      payload.forEach((value, key) => {
+        console.log(key, value);
+      });
+
+      console.log("=================================");
+
       const response = await sellGiftCard(payload);
-      setSellResponse(response);
+
+      console.log("===== BACKEND RESPONSE =====");
+      console.log(response);
+      console.log("============================");
+
       setStep("success");
-    } catch (error) {
-      // Error handled in store
+    } catch (err) {
+      console.error("❌ Sell order failed:", err);
     }
   };
 
+  /* ---------------- SUCCESS ---------------- */
+
   const handleSuccess = () => {
-    setStep("grid");
     setSelectedCard(null);
     setSelectedProduct(null);
-    setFormData({
-      cardNumber: "",
-      amount: "",
-      quantity: 1,
-      imageFiles: [],
-      imagePreviews: [],
-    });
-    setSellResponse(null);
-    router.push("/dashboard/orders");
-  };
-
-  // Filter products for selected card
-  const getCardProducts = () => {
-    if (!selectedCard) return [];
-    // FIX: Add type annotation for p
-    return products.filter(
-      (p: GiftCardProduct) =>
-        p.gift_card_id === selectedCard.id && p.is_active === 1,
-    );
+    setFormData(null);
+    setStep("grid");
+    onBack();
   };
 
   return (
     <div className="w-full">
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[13px] flex justify-between items-center">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm flex justify-between">
           <span>{error}</span>
-          <button
-            onClick={clearError}
-            className="text-red-700 underline text-[11px]"
-          >
-            Dismiss
-          </button>
+          <button onClick={clearError}>Dismiss</button>
         </div>
       )}
+
+      {/* ---------------- CARD GRID ---------------- */}
 
       {step === "grid" && (
         <GiftCardGrid
@@ -145,16 +162,20 @@ export default function SellGiftCardFlow({ onBack }: Props) {
         />
       )}
 
+      {/* ---------------- FORM ---------------- */}
+
       {step === "form" && selectedCard && (
         <SellGiftCardForm
           card={selectedCard}
-          products={getCardProducts()}
+          products={filteredProducts}
           onSubmit={handleFormSubmit}
           onBack={() => setStep("grid")}
         />
       )}
 
-      {step === "receipt" && selectedCard && selectedProduct && (
+      {/* ---------------- RECEIPT ---------------- */}
+
+      {step === "receipt" && selectedCard && selectedProduct && formData && (
         <GiftCardReceipt
           mode="sell"
           card={selectedCard}
@@ -162,18 +183,16 @@ export default function SellGiftCardFlow({ onBack }: Props) {
           qty={formData.quantity}
           isSubmitting={isSubmitting}
           onBack={() => setStep("form")}
-          onConfirm={handleConfirmOrder}
+          onConfirm={handleConfirmSell}
         />
       )}
+
+      {/* ---------------- SUCCESS MODAL ---------------- */}
 
       <GiftCardSuccessModal
         open={step === "success"}
         mode="sell"
         onOk={handleSuccess}
-        message={
-          sellResponse?.message ||
-          "Gift card submitted successfully. Awaiting verification"
-        }
       />
     </div>
   );

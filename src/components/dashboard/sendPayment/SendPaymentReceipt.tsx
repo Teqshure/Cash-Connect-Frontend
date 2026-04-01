@@ -1,34 +1,43 @@
 "use client";
 
-/**
- * SendPaymentReceipt
- * Shows a receipt summary before final confirmation.
- */
-
-import { PaymentMethod } from "./sendPaymentData";
+import { useState } from "react";
+import { Eye, EyeOff, TrendingUp, Loader2 } from "lucide-react";
+import { UIPaymentMethod, useSendPayment } from "@/store/globalPayment";
 import { PaymentFormData } from "./SendPaymentForm";
+import { useAuthStore, User } from "@/store/useAuthStore";
 
 type Props = {
-  method: PaymentMethod;
+  method: UIPaymentMethod;
   formData: PaymentFormData;
   onBack: () => void;
-  onBuyNow: () => void;
+  onSuccess: () => void;
 };
-
-type ReceiptRow = { label: string; value: string; colored?: boolean };
 
 export default function SendPaymentReceipt({
   method,
   formData,
   onBack,
-  onBuyNow,
+  onSuccess,
 }: Props) {
+  const { submitPayment, submitting } = useSendPayment();
+
+  /* Wallet API for header */
+  const user = useAuthStore((s: { user: User | null }) => s.user);
+  const wallet = user?.wallet;
+
+  const balance = Number(wallet?.balance ?? 0);
+  const transactionLimit = Number(wallet?.transaction_limit ?? 0);
+
+  const [showBalance, setShowBalance] = useState(true);
+  const [error, setError] = useState("");
+
+  const growth = 5.2;
+
   const amount = typeof formData.amount === "number" ? formData.amount : 0;
   const transactionFee = 0;
   const totalAmount = amount + transactionFee;
 
-  const rows: ReceiptRow[] = [
-    { label: "Gift Card", value: method.name, colored: true },
+  const rows = [
     {
       label: "Date",
       value: new Date().toLocaleString("en-GB", {
@@ -39,69 +48,149 @@ export default function SendPaymentReceipt({
         minute: "2-digit",
       }),
     },
-    { label: "Name", value: "" },
-    { label: "Value (qty):", value: "$30 (x1)" },
-    { label: "Deliver to", value: "" },
+
+    { label: "Name", value: formData.email },
+
     {
-      label: "Order Amount:",
-      value: `₦${amount.toLocaleString()}.0`,
-      colored: true,
+      label: "Value (qty)",
+      value: `$${(amount / 100).toFixed(0)} (x1)`,
     },
-    { label: "Transaction fee:", value: `₦${transactionFee}.0`, colored: true },
+
     {
-      label: "Total Amount:",
-      value: `₦${totalAmount.toLocaleString()}.0`,
-      colored: true,
+      label: "Order Amount",
+      value: `₦${amount.toLocaleString()}.00`,
+    },
+
+    {
+      label: "Transaction fee",
+      value: `₦${transactionFee}.00`,
     },
   ];
+  async function handleConfirm() {
+    setError("");
+
+    try {
+      await submitPayment(formData, method);
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || "Payment failed. Please try again.");
+    }
+  }
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-md mx-auto">
       {/* Back */}
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-6 cursor-pointer transition"
+        disabled={submitting}
+        className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-4 cursor-pointer transition disabled:opacity-50"
       >
         ← Back
       </button>
 
-      {/* Method name header */}
-      <div className="mb-6 rounded-[16px] bg-emerald-600 px-6 py-5 text-white">
-        <p className="text-[13px] text-white/80">Payment via</p>
-        <p className="text-[22px] font-bold mt-1">{method.name}</p>
-        <p className="text-[13px] text-white/70 mt-1">
-          {formData.currency} · {formData.country}
-        </p>
-      </div>
+      <div className="bg-white rounded-[22px] shadow-sm overflow-hidden">
+        {/* Wallet Header */}
+        <div className="relative bg-emerald-600 px-5 py-5 text-white">
+          <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/20 px-2.5 py-1 rounded-full text-[11px] font-medium">
+            <TrendingUp className="w-3 h-3" />+{growth}%
+          </div>
 
-      {/* Receipt rows */}
-      <div className="bg-white rounded-[16px] border border-slate-100 shadow-sm px-6 py-5 space-y-4">
-        {rows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between">
-            <span
-              className={[
-                "text-[13px]",
-                row.colored ? "text-emerald-600 font-medium" : "text-slate-500",
-              ].join(" ")}
+          <p className="text-[12px] text-white/70">Total Balance</p>
+
+          <div className="flex items-center gap-2 mt-1">
+            <p
+              className={`text-[30px] font-semibold tracking-tight transition-all duration-300 ${
+                showBalance ? "blur-0 opacity-100" : "blur-sm opacity-40"
+              }`}
             >
-              {row.label}
-            </span>
-            <span className="text-[13px] font-semibold text-slate-800">
-              {row.value || "—"}
+              ₦{balance.toLocaleString()}
+            </p>
+
+            <button
+              onClick={() => setShowBalance(!showBalance)}
+              className="opacity-80 hover:opacity-100 transition"
+            >
+              {showBalance ? (
+                <Eye className="w-5 h-5" />
+              ) : (
+                <EyeOff className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
+          <div className="flex justify-between mt-2 text-[12px] text-white/60">
+            <span>Transaction Limit</span>
+            <span className="text-white/80">
+              ₦{transactionLimit.toLocaleString()}
             </span>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Buy Now */}
-      <button
-        type="button"
-        onClick={onBuyNow}
-        className="mt-6 h-[52px] w-full rounded-[12px] bg-emerald-600 text-white font-semibold text-[15px] hover:brightness-110 transition cursor-pointer"
-      >
-        Buy Now
-      </button>
+        {/* Receipt Body */}
+        <div className="px-5 py-5">
+          {/* Header row like "Gift Card → Netflix" */}
+          <div className="flex justify-between mb-4">
+            <span className="text-emerald-600 font-semibold">Send Payment</span>
+
+            <span className="text-slate-800 font-medium">{method.name}</span>
+          </div>
+
+          <div className="space-y-3 text-[13px]">
+            {rows.map((row) => (
+              <DetailRow
+                key={row.label}
+                label={row.label}
+                value={row.value || "—"}
+              />
+            ))}
+
+            {/* Total */}
+            <div className="flex justify-between pt-3 border-t">
+              <span className="text-emerald-600 font-semibold">
+                Total Amount
+              </span>
+
+              <span className="font-semibold text-slate-900">
+                ₦{totalAmount.toLocaleString()}.00
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <p className="px-5 pb-3 text-[13px] text-red-500 text-center">
+            {error}
+          </p>
+        )}
+
+        {/* Confirm Button */}
+        <div className="p-4">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={submitting}
+            className={[
+              "w-full h-[52px] rounded-[12px] text-white font-semibold flex items-center justify-center gap-2 transition",
+              submitting
+                ? "bg-emerald-400 cursor-not-allowed"
+                : "bg-emerald-600 hover:brightness-110 cursor-pointer",
+            ].join(" ")}
+          >
+            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {submitting ? "Processing..." : "Confirm Payment"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-emerald-600 font-medium">{label}:</span>
+      <span className="text-slate-800">{value}</span>
     </div>
   );
 }

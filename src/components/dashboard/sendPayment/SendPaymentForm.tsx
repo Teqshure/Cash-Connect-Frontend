@@ -1,272 +1,333 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Copy } from "lucide-react";
-import {
-  PaymentMethod,
-  Currency,
-  CURRENCIES,
-  AMOUNT_PRESETS,
-  RATE_PER_USDT,
-} from "./sendPaymentData";
-
-type Props = {
-  method: PaymentMethod;
-  onBack: () => void;
-  onContinue: (formData: PaymentFormData) => void;
-};
+import Image from "next/image";
+import { Copy, ChevronDown, Loader2 } from "lucide-react";
+import { UIPaymentMethod, usePaymentMethodRate } from "@/store/globalPayment";
 
 export type PaymentFormData = {
+  email: string;
   currency: string;
   country: string;
-  email: string;
   gender: string;
+  amount: number;
   tagId: string;
-  amount: number | "";
 };
 
+type Props = {
+  method: UIPaymentMethod;
+  onBack: () => void;
+  onContinue: (data: PaymentFormData) => void;
+};
+
+const PRESET_AMOUNTS = [500, 1000, 3000, 5000];
+
 export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
-  const [currencyOpen, setCurrencyOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(
-    CURRENCIES[0],
-  );
+  const rate = usePaymentMethodRate(method);
+
+  const [currency, setCurrency] = useState("USD");
   const [country, setCountry] = useState("Nigeria");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
-  const [tagId] = useState("TXN-2025-0911-00123");
-  const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
+  const [tag, setTag] = useState("");
+
+  const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
 
-  const amount = selectedPreset ?? (customAmount ? Number(customAmount) : "");
-  const usdt =
-    typeof amount === "number" ? (amount / RATE_PER_USDT).toFixed(2) : null;
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [tagVerified, setTagVerified] = useState(false);
 
-  const isValid =
-    !!country &&
-    !!email &&
-    !!gender &&
-    (selectedPreset !== null || customAmount !== "");
+  const finalAmount = amount ?? Number(customAmount || 0);
+  const convertedNGN = finalAmount ? finalAmount * rate : 0;
 
-  const handleContinue = () => {
-    if (!isValid) return;
-    onContinue({
-      currency: selectedCurrency.code,
-      country,
-      email,
-      gender,
-      tagId,
-      amount,
-    });
+  const generateTag = () => {
+    const newTag =
+      "TAG-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+    setTag(newTag);
+    setTagVerified(false);
   };
 
-  const copyTagId = () => {
+  const copyTag = () => {
+    if (!tag) return;
+    navigator.clipboard.writeText(tag);
+  };
+
+  const verifyTag = async () => {
+    if (!tag) return;
+
+    setLoading(true);
+
     try {
-      navigator.clipboard.writeText(tagId).catch(() => {});
+      await new Promise((res) => setTimeout(res, 1000));
+      setTagVerified(true);
     } catch {
-      // fallback for when document is not focused
-      const el = document.createElement("textarea");
-      el.value = tagId;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
+      setError("Tag verification failed");
     }
+
+    setLoading(false);
+  };
+
+  const validate = () => {
+    if (!currency) return "Select payout currency";
+    if (!country) return "Select country";
+    if (!email) return "Enter PayPal email";
+    if (!gender) return "Select gender";
+    if (!finalAmount) return "Select or enter amount";
+    if (!tagVerified) return "Verify tag before continuing";
+    return "";
+  };
+
+  const handleContinue = async () => {
+    setError("");
+
+    if (!tag) {
+      generateTag();
+      return;
+    }
+
+    const validationError = validate();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const data: PaymentFormData = {
+        email,
+        currency,
+        country,
+        gender,
+        amount: finalAmount,
+        tagId: tag,
+      };
+
+      onContinue(data);
+    } catch (err: any) {
+      setError(err?.message || "Transaction failed");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div className="w-full">
-      {/* Back */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-6 cursor-pointer transition"
-      >
-        ← Back
-      </button>
+    <div className="w-full flex justify-center bg-[#F5F5F5] min-h-screen py-12">
+      <div className="w-[796px] bg-white rounded-[32px] pt-[43px] pb-[50px] shadow-[0px_4px_25px_rgba(0,0,0,0.06)]">
+        {/* Back */}
+        <div className="pl-[40px] mb-8">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
+          >
+            ← Back
+          </button>
+        </div>
 
-      {/* Method logo — plain img, no next/image */}
-      <div className="flex justify-center mb-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={method.logo}
-          alt={method.name}
-          className="h-14 w-auto object-contain"
-        />
-      </div>
+        {/* FORM CONTAINER */}
+        <div className="w-[446px] min-h-[775px] mx-auto flex flex-col gap-6">
+          {/* Logo */}
+          <div className="flex justify-center mb-4">
+            <div className="w-20 h-20 rounded-full border border-emerald-200 flex items-center justify-center">
+              <Image
+                src={method.logo}
+                alt={method.name}
+                width={42}
+                height={42}
+              />
+            </div>
+          </div>
 
-      <div className="space-y-4">
-        {/* Currency */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Select Payout Currency
-          </label>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setCurrencyOpen((v) => !v)}
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-white px-4 flex items-center justify-between text-[14px] text-slate-700 cursor-pointer"
-            >
-              <span>
-                {selectedCurrency.flag} {selectedCurrency.code}
-              </span>
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            </button>
-            {currencyOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setCurrencyOpen(false)}
-                />
-                <div className="absolute top-[52px] left-0 right-0 bg-white border border-slate-200 rounded-[12px] shadow-lg z-20 overflow-hidden">
-                  {CURRENCIES.map((c) => (
-                    <button
-                      key={c.code}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCurrency(c);
-                        setCurrencyOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-[14px] text-slate-700 transition"
-                    >
-                      <span>{c.flag}</span>
-                      <span>{c.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
+          {/* Currency */}
+          <div>
+            <label className="text-sm text-gray-600 mb-2 block">
+              Select Payout Currency
+            </label>
+
+            <div className="relative">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm appearance-none outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
+              >
+                <option>USD</option>
+                <option>GBP</option>
+                <option>EUR</option>
+              </select>
+
+              <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Country */}
+          <div>
+            <label className="text-sm text-gray-600 mb-2 block">
+              Select country
+            </label>
+
+            <div className="relative">
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm appearance-none outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
+              >
+                <option>Nigeria</option>
+                <option>Ghana</option>
+                <option>Kenya</option>
+              </select>
+
+              <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="text-sm text-gray-600 mb-2 block">
+              Enter paypal email
+            </label>
+
+            <input
+              type="email"
+              placeholder="Enter paypal email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm outline-none placeholder:text-[#A0A0A0] shadow-[104px_-5px_103.2px_0px_#0000001A]"
+            />
+          </div>
+
+          {/* Gender */}
+          <div>
+            <label className="text-sm text-gray-600 mb-2 block">
+              Select Gender
+            </label>
+
+            <div className="relative">
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm appearance-none outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
+              >
+                <option value="">Enter gender</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+
+              <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Tag */}
+          <div>
+            <label className="text-sm text-gray-600 mb-2 block">Tag ID</label>
+
+            <div className="relative">
+              <input
+                value={tag}
+                placeholder="Paste Tag ID"
+                readOnly
+                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
+              />
+
+              {tag && (
+                <>
+                  <Copy
+                    size={18}
+                    onClick={copyTag}
+                    className="absolute right-10 top-[20px] text-gray-400 cursor-pointer"
+                  />
+
+                  <button
+                    onClick={verifyTag}
+                    className="absolute right-3 top-[14px] text-xs bg-green-100 text-green-700 px-2 py-1 rounded cursor-pointer"
+                  >
+                    Verify
+                  </button>
+                </>
+              )}
+            </div>
+
+            {tagVerified && (
+              <p className="text-green-600 text-xs mt-1">Tag verified ✓</p>
             )}
           </div>
-        </div>
 
-        {/* Country */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Select country
-          </label>
-          <input
-            type="text"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            placeholder="Nigeria"
-            className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
-          />
-        </div>
+          {/* Amount */}
+          <div>
+            <label className="text-sm text-gray-600 mb-2 block">
+              Select Amount
+            </label>
 
-        {/* Email */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Enter {method.name} email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={`Enter ${method.name.toLowerCase()} email`}
-            className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
-          />
-        </div>
+            <div className="grid grid-cols-4 gap-3">
+              {PRESET_AMOUNTS.map((value) => {
+                const isSelected = amount === value;
 
-        {/* Gender */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Select Gender
-          </label>
-          <div className="relative">
-            <select
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 appearance-none cursor-pointer"
-            >
-              <option value="">Enter gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setAmount(value);
+                      setCustomAmount(value.toString());
+                    }}
+                    className={`h-[44px] rounded-xl border text-sm font-medium transition cursor-pointer
+                    ${
+                      isSelected
+                        ? "border-[#22C55E] bg-[#F0FDF4] text-[#16A34A]"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    {value.toLocaleString()}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Tag ID */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-            Tag ID
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={tagId}
-              readOnly
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 pr-12 text-[14px] text-slate-500 outline-none"
-            />
-            <button
-              type="button"
-              onClick={copyTagId}
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-              aria-label="Copy"
-            >
-              <Copy className="h-4 w-4 text-slate-400 hover:text-emerald-600 transition" />
-            </button>
-          </div>
-        </div>
-
-        {/* Amount presets */}
-        <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-2 block">
-            Select Amount
-          </label>
-          <div className="grid grid-cols-4 gap-2 mb-3">
-            {AMOUNT_PRESETS.map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => {
-                  setSelectedPreset(v);
-                  setCustomAmount("");
-                }}
-                className={[
-                  "h-[40px] rounded-[10px] border text-[13px] font-medium transition cursor-pointer",
-                  selectedPreset === v
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                ].join(" ")}
-              >
-                {v.toLocaleString()}
-              </button>
-            ))}
-          </div>
+          {/* Custom Amount */}
           <input
-            type="text"
-            inputMode="numeric"
+            type="number"
+            placeholder="Enter amount"
             value={customAmount}
             onChange={(e) => {
-              setCustomAmount(e.target.value.replace(/\D/g, ""));
-              setSelectedPreset(null);
+              const v = e.target.value;
+              setCustomAmount(v);
+              setAmount(v ? Number(v) : null);
             }}
-            placeholder="Enter other amount"
-            className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
+            className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
           />
-          {usdt && (
-            <p className="mt-2 text-right text-[12px] text-emerald-600 font-medium">
-              {RATE_PER_USDT.toLocaleString()}.00 per USDT
-            </p>
+
+          {/* Conversion */}
+          {finalAmount > 0 && (
+            <div className="text-right text-sm text-gray-600">
+              ≈ ₦{convertedNGN.toLocaleString()}
+            </div>
           )}
+
+          {/* Rate */}
+          <div className="flex justify-end">
+            <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-md">
+              {rate.toLocaleString()} per {currency}
+            </span>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
+          {/* Button */}
+          <button
+            onClick={handleContinue}
+            disabled={loading}
+            className="w-[446px] h-[56px] rounded-xl bg-[#0E9F6E] text-white font-semibold flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {loading && <Loader2 className="animate-spin w-4 h-4" />}
+            {tag ? "Continue" : "Generate Tag"}
+          </button>
         </div>
       </div>
-
-      {/* Continue */}
-      <button
-        type="button"
-        onClick={handleContinue}
-        disabled={!isValid}
-        className={[
-          "mt-6 h-[52px] w-full rounded-[12px] font-semibold text-[15px] transition",
-          isValid
-            ? "bg-emerald-600 text-white hover:brightness-110 cursor-pointer"
-            : "bg-slate-200 text-slate-500 cursor-not-allowed",
-        ].join(" ")}
-      >
-        Continue
-      </button>
     </div>
   );
 }

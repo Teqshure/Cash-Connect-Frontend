@@ -33,6 +33,7 @@ export default function QuickActionTile({
         duration-200
         flex flex-col items-center justify-center
         p-4
+        cursor-pointer
       "
     >
       {/* Icon bubble */}

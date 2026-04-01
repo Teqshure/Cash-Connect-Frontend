@@ -1,78 +1,140 @@
+// components/dashboard/receivePayment/ReceivePaymentFlow.tsx
 "use client";
-
-/**
- * ReceivePaymentFlow
- *
- * Steps:
- *   1. choose   — select payment method
- *   2. form     — fill in details + generate tag
- *   3. receipt  — review full breakdown
- *   4. success  — confirmation
- */
 
 import { useState } from "react";
 import ReceivePaymentMethodGrid from "./ReceivePaymentMethodGrid";
-import ReceivePaymentForm, {
-  ReceivePaymentFormData,
-} from "./ReceivePaymentForm";
+import ReceivePaymentForm from "./ReceivePaymentForm";
 import ReceivePaymentReceipt from "./ReceivePaymentReceipt";
 import ReceiveSuccessModal from "./ReceiveSuccessModal";
-import { ReceivePaymentMethod } from "./receivePaymentData";
+
+import {
+  UIPaymentMethod,
+  useGlobalPaymentStore,
+  usePaymentMethodRate,
+} from "@/store/globalPayment";
 
 type Step = "choose" | "form" | "receipt" | "success";
+
+type FormDataType = {
+  amount: number;
+  currency: string;
+  country: string;
+  email: string;
+  gender: string;
+  tagId: string;
+  conversion?: number;
+  fee?: number;
+};
 
 type Props = {
   onBack: () => void;
 };
 
-function ReceivePaymentFlow({ onBack }: Props) {
+export default function ReceivePaymentFlow({ onBack }: Props) {
   const [step, setStep] = useState<Step>("choose");
-  const [selectedMethod, setSelectedMethod] =
-    useState<ReceivePaymentMethod | null>(null);
-  const [formData, setFormData] = useState<ReceivePaymentFormData | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<UIPaymentMethod | null>(
+    null,
+  );
+  const [formData, setFormData] = useState<FormDataType | null>(null);
+  const [transactionId, setTransactionId] = useState<string | null>(null);
 
-  const handleMethodSelect = (method: ReceivePaymentMethod) => {
+  const receivePayment = useGlobalPaymentStore((s: any) => s.receivePayment);
+  const loading = useGlobalPaymentStore((s: any) => s.submitting);
+
+  const rate = usePaymentMethodRate(selectedMethod);
+
+  // --------------------------------------------------
+  // METHOD SELECT
+  // --------------------------------------------------
+
+  const handleMethodSelect = (method: UIPaymentMethod) => {
     setSelectedMethod(method);
     setStep("form");
   };
 
-  const handleFormContinue = (data: ReceivePaymentFormData) => {
-    setFormData(data);
+  // --------------------------------------------------
+  // FORM CONTINUE
+  // --------------------------------------------------
+
+  const handleFormContinue = (data: Omit<FormDataType, "tagId">) => {
+    const tag = `TXN-${Date.now()}`;
+
+    setTransactionId(tag);
+
+    setFormData({
+      ...data,
+      tagId: tag,
+    });
+
     setStep("receipt");
   };
 
-  const handleSendRequest = () => setStep("success");
+  // --------------------------------------------------
+  // SEND REQUEST TO BACKEND
+  // --------------------------------------------------
+
+  const handleSendRequest = async () => {
+    if (!selectedMethod || !formData) return;
+
+    const usdAmount = Number(formData.amount);
+
+    if (!usdAmount || usdAmount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
+    const cryptoAmount = Number((usdAmount / rate).toFixed(6));
+
+    const payload = {
+      method: selectedMethod.code || selectedMethod.id,
+      crypto_amount: cryptoAmount,
+      currency: formData.currency,
+      sender_email: formData.email,
+    };
+
+    try {
+      const response = await receivePayment(payload);
+
+      const fee = Number(response?.data?.fee ?? 0);
+      const conversion = usdAmount * rate;
+
+      setFormData({
+        ...formData,
+        conversion,
+        fee,
+      });
+
+      setStep("success");
+    } catch (error: any) {
+      console.error("Receive payment failed:", error);
+      alert(error?.message || "Payment request failed.");
+    }
+  };
+
+  // --------------------------------------------------
+  // SUCCESS RESET
+  // --------------------------------------------------
 
   const handleSuccess = () => {
     setStep("choose");
     setSelectedMethod(null);
     setFormData(null);
+    setTransactionId(null);
     onBack();
   };
 
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
+
   return (
     <div className="w-full">
-      {/* Step 1: Choose method */}
+      {/* Step 1 - Method selection */}
       {step === "choose" && (
-        <div>
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-4 cursor-pointer transition"
-          >
-            ← Back
-          </button>
-          <h2 className="text-[20px] font-semibold text-slate-900 mb-1">
-            Receive Payment
-          </h2>
-          <p className="text-[13px] text-slate-500 mb-6">
-            Select the payment method you want to receive payment through.
-          </p>
-          <ReceivePaymentMethodGrid onSelect={handleMethodSelect} />
-        </div>
+        <ReceivePaymentMethodGrid onSelect={handleMethodSelect} />
       )}
 
-      {/* Step 2: Form */}
+      {/* Step 2 - Form */}
       {step === "form" && selectedMethod && (
         <ReceivePaymentForm
           method={selectedMethod}
@@ -81,25 +143,25 @@ function ReceivePaymentFlow({ onBack }: Props) {
         />
       )}
 
-      {/* Step 3: Receipt */}
+      {/* Step 3 - Receipt */}
       {step === "receipt" && selectedMethod && formData && (
         <ReceivePaymentReceipt
           method={selectedMethod}
           formData={formData}
+          transactionId={transactionId || undefined}
           onBack={() => setStep("form")}
           onSendRequest={handleSendRequest}
+          isSubmitting={loading}
         />
       )}
 
-      {/* Step 4: Success */}
+      {/* Step 4 - Success */}
       <ReceiveSuccessModal
         open={step === "success"}
-        title="Thanks"
-        message="🎉 Payment Received. The amount has been credited to your wallet."
+        title="Success"
+        message="Your payment request has been submitted successfully."
         onOk={handleSuccess}
       />
     </div>
   );
 }
-
-export default ReceivePaymentFlow;

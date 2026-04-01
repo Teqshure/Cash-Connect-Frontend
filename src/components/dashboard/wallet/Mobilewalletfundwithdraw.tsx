@@ -31,7 +31,7 @@ export default function MobileWalletFundWithdraw({
   onFundWallet,
   onWithdraw,
 }: Props) {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
 
   return (

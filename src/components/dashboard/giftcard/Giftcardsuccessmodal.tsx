@@ -1,4 +1,3 @@
-// components/dashboard/giftcard/Giftcardsuccessmodal.tsx
 "use client";
 
 type Props = {
@@ -8,15 +7,20 @@ type Props = {
   message?: string;
 };
 
-function GiftCardSuccessModal({ open, mode, onOk, message }: Props) {
+export default function GiftCardSuccessModal({
+  open,
+  mode,
+  onOk,
+  message,
+}: Props) {
   if (!open) return null;
 
-  const defaultMessage =
-    mode === "buy"
-      ? "🛍 Purchase Successful\nYour gift card will be delivered shortly."
-      : "🎁 Gift Card Sold, your payment is being processed to your wallet.";
+  const defaultMessages = {
+    buy: "🛍 Purchase Successful\nYour gift card will be delivered shortly.",
+    sell: "🎁 Gift Card Sold\nYour payment is being processed to your wallet.",
+  };
 
-  const displayMessage = message || defaultMessage;
+  const displayMessage = message ?? defaultMessages[mode];
 
   return (
     <div
@@ -24,6 +28,7 @@ function GiftCardSuccessModal({ open, mode, onOk, message }: Props) {
       style={{ background: "rgba(0,0,0,0.3)" }}
     >
       <div className="w-full max-w-[360px] bg-white rounded-[24px] px-8 py-10 text-center shadow-xl">
+        {/* ICON */}
         <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
             <path
@@ -40,19 +45,28 @@ function GiftCardSuccessModal({ open, mode, onOk, message }: Props) {
             />
           </svg>
         </div>
+
+        {/* TITLE */}
         <h3 className="mt-5 text-[22px] font-semibold text-emerald-600">
-          {mode === "buy" ? "Thanks" : "Submitted!"}
+          {mode === "buy" ? "Thanks!" : "Submitted!"}
         </h3>
+
+        {/* MESSAGE */}
         <p className="mt-2 text-[13px] text-slate-500 leading-6 whitespace-pre-line">
           {displayMessage}
         </p>
-        <p className="mt-2 text-[11px] text-slate-400">
-          {mode === "sell" && "You can track the status in your Orders section"}
-        </p>
+
+        {mode === "sell" && (
+          <p className="mt-2 text-[11px] text-slate-400">
+            You can track the status in your Orders section
+          </p>
+        )}
+
+        {/* BUTTON */}
         <button
           type="button"
           onClick={onOk}
-          className="mt-6 h-[40px] px-8 rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] cursor-pointer hover:brightness-110 transition"
+          className="mt-6 h-[40px] px-8 rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] hover:brightness-110 transition"
         >
           {mode === "sell" ? "View Orders" : "Ok"}
         </button>
@@ -60,5 +74,3 @@ function GiftCardSuccessModal({ open, mode, onOk, message }: Props) {
     </div>
   );
 }
-
-export default GiftCardSuccessModal;

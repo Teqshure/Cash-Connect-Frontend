@@ -51,15 +51,6 @@ export interface CreateOrderPayload {
   quantity: number;
 }
 
-export interface SellGiftCardPayload {
-  gift_card_id: number;
-  card_type: "physical" | "code";
-  card_value: number;
-  card_code: string | null;
-  card_pin: string;
-  card_images: string[];
-}
-
 export interface SellGiftCardResponse {
   status: boolean;
   message: string;
@@ -87,34 +78,41 @@ interface GiftCardState {
   fetchUserOrders: () => Promise<void>;
 
   createOrder: (payload: CreateOrderPayload) => Promise<GiftCardOrder>;
-  sellGiftCard: (payload: SellGiftCardPayload) => Promise<SellGiftCardResponse>;
+
+  sellGiftCard: (payload: FormData) => Promise<SellGiftCardResponse>;
 
   clearError: () => void;
   clearSellResponse: () => void;
-  reset: () => void;
 }
 
 /* -------------------------------------------------- */
 /* HELPERS */
 /* -------------------------------------------------- */
 
+function getToken() {
+  return useAuthStore.getState().token;
+}
+
 function authHeaders() {
-  const token = useAuthStore.getState().token;
+  const token = getToken();
 
   const headers: Record<string, string> = {
     Accept: "application/json",
-    "Content-Type": "application/json",
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   return headers;
 }
 
 async function handleResponse(response: Response) {
-  const data = await response.json();
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid server response");
+  }
 
   if (!response.ok || data.status === false) {
     throw new Error(data.message || "Request failed");
@@ -127,166 +125,166 @@ async function handleResponse(response: Response) {
 /* STORE */
 /* -------------------------------------------------- */
 
-export const useGiftCardStore = create<GiftCardState>()((set, get) => ({
-  giftCards: [],
-  products: [],
-  orders: [],
+export const useGiftCardStore = create<GiftCardState>()(
+  (set: any, get: any) => ({
+    giftCards: [],
+    products: [],
+    orders: [],
 
-  isLoading: false,
-  isSubmitting: false,
-  error: null,
+    isLoading: false,
+    isSubmitting: false,
 
-  sellResponse: null,
+    error: null,
 
-  /* ---------------- FETCH GIFTCARDS ---------------- */
+    sellResponse: null,
 
-  fetchGiftCards: async () => {
-    set({ isLoading: true, error: null });
+    /* ---------------- FETCH GIFTCARDS ---------------- */
 
-    try {
-      const response = await fetch(`${BASE_URL}/giftcards`, {
-        headers: authHeaders(),
-      });
+    fetchGiftCards: async () => {
+      set({ isLoading: true, error: null });
 
-      const data = await handleResponse(response);
+      try {
+        const response = await fetch(`${BASE_URL}/giftcards`, {
+          headers: authHeaders(),
+        });
 
-      set({
-        giftCards: data.data || [],
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        error: error.message,
-        isLoading: false,
-      });
-    }
-  },
+        const data = await handleResponse(response);
 
-  /* ---------------- FETCH PRODUCTS ---------------- */
+        set({
+          giftCards: data.data || [],
+          isLoading: false,
+        });
+      } catch (error: any) {
+        set({
+          error: error.message,
+          isLoading: false,
+        });
+      }
+    },
 
-  fetchProducts: async () => {
-    set({ isLoading: true, error: null });
+    /* ---------------- FETCH PRODUCTS ---------------- */
 
-    try {
-      const response = await fetch(`${BASE_URL}/giftcard-products`, {
-        headers: authHeaders(),
-      });
+    fetchProducts: async () => {
+      set({ isLoading: true, error: null });
 
-      const data = await handleResponse(response);
+      try {
+        const response = await fetch(`${BASE_URL}/giftcard-products`, {
+          headers: authHeaders(),
+        });
 
-      set({
-        products: data.data || [],
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        error: error.message,
-        isLoading: false,
-      });
-    }
-  },
+        const data = await handleResponse(response);
 
-  /* ---------------- FETCH ORDERS ---------------- */
+        set({
+          products: data.data || [],
+          isLoading: false,
+        });
+      } catch (error: any) {
+        set({
+          error: error.message,
+          isLoading: false,
+        });
+      }
+    },
 
-  fetchUserOrders: async () => {
-    set({ isLoading: true, error: null });
+    /* ---------------- FETCH USER ORDERS ---------------- */
 
-    try {
-      const response = await fetch(`${BASE_URL}/user-giftcard-orders`, {
-        headers: authHeaders(),
-      });
+    fetchUserOrders: async () => {
+      set({ isLoading: true, error: null });
 
-      const data = await handleResponse(response);
+      try {
+        const response = await fetch(`${BASE_URL}/user-giftcard-orders`, {
+          headers: authHeaders(),
+        });
 
-      set({
-        orders: data.data || [],
-        isLoading: false,
-      });
-    } catch (error: any) {
-      set({
-        error: error.message,
-        isLoading: false,
-      });
-    }
-  },
+        const data = await handleResponse(response);
 
-  /* ---------------- CREATE BUY ORDER ---------------- */
+        set({
+          orders: data.data || [],
+          isLoading: false,
+        });
+      } catch (error: any) {
+        set({
+          error: error.message,
+          isLoading: false,
+        });
+      }
+    },
 
-  createOrder: async (payload: CreateOrderPayload) => {
-    set({ isSubmitting: true, error: null });
+    /* ---------------- CREATE ORDER ---------------- */
 
-    try {
-      console.log("BUY ORDER:", payload);
+    createOrder: async (payload: CreateOrderPayload) => {
+      set({ isSubmitting: true, error: null });
 
-      const response = await fetch(`${BASE_URL}/giftcard-orders`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch(`${BASE_URL}/giftcard-orders`, {
+          method: "POST",
+          headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
 
-      const result = await handleResponse(response);
+        const result = await handleResponse(response);
 
-      const order = result.data;
+        const newOrder = result.data;
 
-      await get().fetchUserOrders();
+        /* update local orders instantly */
 
-      set({ isSubmitting: false });
+        set((state: any) => ({
+          orders: [newOrder, ...state.orders],
+          isSubmitting: false,
+        }));
 
-      return order;
-    } catch (error: any) {
-      set({
-        error: error.message || "Failed to create order",
-        isSubmitting: false,
-      });
+        /* refresh orders from server */
 
-      throw error;
-    }
-  },
+        await get().fetchUserOrders();
 
-  /* ---------------- SELL GIFTCARD ---------------- */
+        return newOrder;
+      } catch (error: any) {
+        set({
+          error: error.message || "Failed to create order",
+          isSubmitting: false,
+        });
 
-  sellGiftCard: async (payload: SellGiftCardPayload) => {
-    set({ isSubmitting: true, error: null });
+        throw error;
+      }
+    },
 
-    try {
-      console.log("SELL PAYLOAD:", payload);
+    /* ---------------- SELL GIFTCARD ---------------- */
 
-      const response = await fetch(`${BASE_URL}/giftcards/sell`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify(payload),
-      });
+    sellGiftCard: async (payload: FormData) => {
+      set({ isSubmitting: true, error: null });
 
-      const result = await handleResponse(response);
+      try {
+        const response = await fetch(`${BASE_URL}/giftcards/sell`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: payload,
+        });
 
-      set({
-        sellResponse: result,
-        isSubmitting: false,
-      });
+        const result = await handleResponse(response);
 
-      return result;
-    } catch (error: any) {
-      set({
-        error: error.message || "Failed to sell gift card",
-        isSubmitting: false,
-      });
+        set({
+          sellResponse: result,
+          isSubmitting: false,
+        });
 
-      throw error;
-    }
-  },
+        return result;
+      } catch (error: any) {
+        console.error("Sell order failed:", error);
 
-  clearError: () => set({ error: null }),
+        set({
+          error: error.message || "Failed to sell gift card",
+          isSubmitting: false,
+        });
 
-  clearSellResponse: () => set({ sellResponse: null }),
+        throw error;
+      }
+    },
 
-  reset: () =>
-    set({
-      giftCards: [],
-      products: [],
-      orders: [],
-      isLoading: false,
-      isSubmitting: false,
-      error: null,
-      sellResponse: null,
-    }),
-}));
+    clearError: () => set({ error: null }),
+
+    clearSellResponse: () => set({ sellResponse: null }),
+  }),
+);
