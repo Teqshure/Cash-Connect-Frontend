@@ -9,7 +9,6 @@ import {
   History,
   Box,
   ShoppingCart,
-  TrendingUp,
   User,
   Settings,
   HelpCircle,
