@@ -142,7 +142,7 @@ export default function RecentTransactionsSection() {
             <p className="text-[13px] text-red-500">{error}</p>
 
             <button
-              onClick={() => fetchTransactions()}
+              onClick={fetchTransactions}
               className="mt-3 text-[12px] text-emerald-600 font-medium hover:underline"
             >
               Try again
