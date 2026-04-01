@@ -22,7 +22,7 @@ export default function QuickActionsSection() {
       href: "/send-payment",
     },
     {
-      label: "Receive Payment",
+      label: "Recieve Global Payment",
       Icon: ArrowDownLeft,
       iconBgClass: "bg-[#E3F7EC]",
       iconColorClass: "text-[#0B7B4A]",

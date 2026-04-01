@@ -26,15 +26,9 @@ export default function DashboardOverviewSection({
   changePercent = 5.2,
 }: Props) {
   const router = useRouter();
-  // FIX: Add type annotation for the parameter
-  const user = useAuthStore((s: any) => s.user);
-  const name = getFirstName(user?.fullname);
 
   return (
     <section className="space-y-6 min-w-0 overflow-x-hidden pl-0 lg:pl-6 pr-4">
-      {/* Greeting */}
-      <div className="text-lg font-semibold">Welcome back, {name}!</div>
-
       {/* Hero row */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,372px)_minmax(0,440px)] gap-4 lg:gap-[25px] items-stretch min-w-0">
         <div className="min-w-0">
