@@ -31,7 +31,7 @@ export interface ApiTransaction {
 
   deposit: any | null;
   withdrawal: any | null;
-  giftcard: any | null; // ✅ fixed: was gift_card, API returns giftcard
+  giftcard: any | null;
   crypto: any | null;
   international: any | null;
 }
@@ -40,6 +40,10 @@ interface TransactionState {
   transactions: ApiTransaction[];
   isLoading: boolean;
   error: string | null;
+
+  // ✅ NEW
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
 
   fetchTransactions: (force?: boolean) => Promise<void>;
 }
@@ -60,11 +64,9 @@ function authHeaders() {
 
 /* -------------------------------------------------- */
 /* NORMALIZER */
-/* Converts API responses to unified transaction model */
 /* -------------------------------------------------- */
 
 function normalizeTransaction(tx: any): ApiTransaction {
-  // Giftcard transaction
   if (tx.gift_card_product_id) {
     return {
       id: tx.id,
@@ -87,13 +89,12 @@ function normalizeTransaction(tx: any): ApiTransaction {
 
       deposit: null,
       withdrawal: null,
-      giftcard: tx, // ✅ fixed: was gift_card
+      giftcard: tx,
       crypto: null,
       international: null,
     };
   }
 
-  // Default transaction
   return {
     id: tx.id,
     user_id: tx.user_id ?? 0,
@@ -115,7 +116,7 @@ function normalizeTransaction(tx: any): ApiTransaction {
 
     deposit: tx.deposit ?? null,
     withdrawal: tx.withdrawal ?? null,
-    giftcard: tx.giftcard ?? null, // ✅ fixed: was tx.gift_card
+    giftcard: tx.giftcard ?? null,
     crypto: tx.crypto ?? null,
     international: tx.international ?? null,
   };
@@ -131,8 +132,11 @@ export const useTransactionStore = create<TransactionState>()(
     isLoading: false,
     error: null,
 
+    // ✅ NEW
+    searchQuery: "",
+    setSearchQuery: (q: string) => set({ searchQuery: q }),
+
     fetchTransactions: async (force = false) => {
-      // Prevent unnecessary duplicate fetch
       if (!force && get().transactions.length > 0) return;
 
       set({ isLoading: true, error: null });
@@ -149,25 +153,10 @@ export const useTransactionStore = create<TransactionState>()(
           throw new Error(data.message || "Failed to fetch transactions");
         }
 
-        /* -------------------------------------------- */
-        /* Handle Laravel paginated API structure */
-        /* -------------------------------------------- */
-
-        const rawTransactions =
-          data?.data?.data || // paginated
-          data?.data || // standard
-          [];
-
-        /* -------------------------------------------- */
-        /* Normalize all transactions */
-        /* -------------------------------------------- */
+        const rawTransactions = data?.data?.data || data?.data || [];
 
         const transactions: ApiTransaction[] =
           rawTransactions.map(normalizeTransaction);
-
-        /* -------------------------------------------- */
-        /* Sort newest first */
-        /* -------------------------------------------- */
 
         transactions.sort(
           (a, b) =>

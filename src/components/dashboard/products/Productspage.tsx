@@ -29,9 +29,9 @@ const SERVICES: Service[] = [
     description: "Get 20% discount on all gift card purchases this week",
     href: "/buy-giftcard",
     icon: Gift,
-    iconBg: "bg-orange-100",
+    iconBg: "bg-orange-50",
     iconColor: "text-orange-500",
-    sparkleColor: "text-orange-300",
+    sparkleColor: "text-orange-200",
   },
   {
     id: "buy-crypto",
@@ -39,9 +39,9 @@ const SERVICES: Service[] = [
     description: "Get 20% discount on all gift card purchases this week",
     href: "/buy-crypto",
     icon: Bitcoin,
-    iconBg: "bg-yellow-100",
-    iconColor: "text-yellow-500",
-    sparkleColor: "text-yellow-300",
+    iconBg: "bg-yellow-50",
+    iconColor: "text-yellow-600",
+    sparkleColor: "text-yellow-200",
   },
   {
     id: "send-payment",
@@ -49,7 +49,7 @@ const SERVICES: Service[] = [
     description: "Get 20% discount on all gift card purchases this week",
     href: "/send-payment",
     icon: ArrowUpRight,
-    iconBg: "bg-blue-100",
+    iconBg: "bg-blue-50",
     iconColor: "text-blue-500",
     sparkleColor: "text-blue-200",
   },
@@ -59,9 +59,9 @@ const SERVICES: Service[] = [
     description: "Get 20% discount on all gift card purchases this week",
     href: "/receive-payment",
     icon: ArrowDownLeft,
-    iconBg: "bg-emerald-100",
+    iconBg: "bg-emerald-50",
     iconColor: "text-emerald-500",
-    sparkleColor: "text-emerald-300",
+    sparkleColor: "text-emerald-200",
   },
   {
     id: "sell-giftcard",
@@ -69,9 +69,9 @@ const SERVICES: Service[] = [
     description: "Get 20% discount on all gift card purchases this week",
     href: "/sell-giftcard",
     icon: Gift,
-    iconBg: "bg-cyan-100",
-    iconColor: "text-cyan-500",
-    sparkleColor: "text-cyan-300",
+    iconBg: "bg-teal-50",
+    iconColor: "text-teal-500",
+    sparkleColor: "text-teal-200",
   },
   {
     id: "sell-crypto",
@@ -79,9 +79,9 @@ const SERVICES: Service[] = [
     description: "Get 20% discount on all gift card purchases this week",
     href: "/sell-crypto",
     icon: Bitcoin,
-    iconBg: "bg-red-100",
-    iconColor: "text-red-400",
-    sparkleColor: "text-red-300",
+    iconBg: "bg-pink-50",
+    iconColor: "text-pink-500",
+    sparkleColor: "text-orange-200",
   },
   {
     id: "p2p",
@@ -90,7 +90,7 @@ const SERVICES: Service[] = [
     href: "#",
     icon: Users,
     iconBg: "bg-orange-50",
-    iconColor: "text-orange-400",
+    iconColor: "text-orange-500",
     sparkleColor: "text-orange-200",
     comingSoon: true,
   },
@@ -182,25 +182,38 @@ function ServiceCard({ service, onClick }: CardProps) {
       onClick={onClick}
       disabled={comingSoon}
       className={[
-        "w-full h-[180px] text-left bg-white rounded-[18px] border border-slate-100 px-5 pt-5 pb-5 shadow-sm transition-all duration-200",
+        "relative w-full h-[236px] text-left bg-white rounded-[18px] border border-slate-100 shadow-sm transition-all duration-200 overflow-hidden",
         comingSoon
           ? "opacity-70 cursor-not-allowed"
           : "hover:border-emerald-300 hover:shadow-md cursor-pointer",
       ].join(" ")}
     >
-      <div className="flex items-start justify-between mb-5">
-        {/* Icon — larger with more padding like figma */}
-        <div
-          className={`h-14 w-14 rounded-[16px] ${iconBg} flex items-center justify-center`}
-        >
-          <Icon className={`h-7 w-7 ${iconColor}`} />
-        </div>
-        {/* Sparkle top right */}
-        <Sparkles className={`h-5 w-5 ${sparkleColor} mt-1`} />
+      {/* Decorative Sparkle - Top Right */}
+      <div className={`absolute top-8 right-8 ${sparkleColor} opacity-40`}>
+        <Sparkles className="h-5 w-5" />
       </div>
 
-      <p className="text-[16px] font-bold text-slate-900 mb-2">{label}</p>
-      <p className="text-[13px] text-slate-500 leading-5">{description}</p>
+      {/* Icon - Exact Figma positioning */}
+      <div
+        className={`absolute top-[33px] left-[29px] w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center`}
+      >
+        <Icon className={`h-6 w-6 ${iconColor}`} />
+      </div>
+
+      {/* Text Content - Exact Figma positioning */}
+      <div className="absolute top-[104px] left-[29px] w-[179px] flex flex-col gap-[9px]">
+        <h3 className="text-base font-semibold text-slate-900">{label}</h3>
+        <p className="text-sm text-slate-500 leading-snug">{description}</p>
+      </div>
+
+      {/* Coming Soon Overlay */}
+      {comingSoon && (
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+          <span className="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-medium rounded-full">
+            Coming Soon
+          </span>
+        </div>
+      )}
     </button>
   );
 }

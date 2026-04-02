@@ -77,10 +77,10 @@ export default function ReceivePaymentForm({
   };
 
   return (
-    <div className="w-full flex justify-center pb-12 bg-[#F5F5F5] min-h-screen">
-      <div className="w-[796px] bg-white rounded-[32px] pt-[43px] pb-[50px] shadow-[0px_4px_25px_rgba(0,0,0,0.06)]">
+    <div className="w-full flex justify-center pb-12 bg-[#F5F5F5] min-h-screen px-4">
+      <div className="w-full max-w-[796px] bg-white rounded-[24px] sm:rounded-[32px] pt-[30px] sm:pt-[43px] pb-[40px] sm:pb-[50px] shadow-[0px_4px_25px_rgba(0,0,0,0.06)]">
         {/* Back */}
-        <div className="pl-[40px] mb-8">
+        <div className="pl-4 sm:pl-[40px] mb-6 sm:mb-8">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
@@ -89,10 +89,10 @@ export default function ReceivePaymentForm({
           </button>
         </div>
 
-        <div className="px-[200px]">
+        <div className="px-4 sm:px-[120px] lg:px-[200px]">
           {/* Logo */}
-          <div className="flex justify-center mb-10">
-            <div className="w-20 h-20 rounded-full border border-emerald-200 flex items-center justify-center">
+          <div className="flex justify-center mb-8 sm:mb-10">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-emerald-200 flex items-center justify-center">
               <Image
                 src={method.logo}
                 alt={method.name}
@@ -102,7 +102,7 @@ export default function ReceivePaymentForm({
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {/* Currency */}
             <div>
               <label className="text-sm text-gray-600 mb-2 block">
@@ -113,14 +113,14 @@ export default function ReceivePaymentForm({
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm appearance-none outline-none cursor-pointer"
+                  className="w-full h-[52px] sm:h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm appearance-none outline-none cursor-pointer"
                 >
                   <option>USD</option>
                   <option>GBP</option>
                   <option>EUR</option>
                 </select>
 
-                <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-[18px] sm:top-[20px] text-gray-500 pointer-events-none" />
               </div>
             </div>
 
@@ -134,14 +134,14 @@ export default function ReceivePaymentForm({
                 <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="w-full h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm appearance-none outline-none cursor-pointer"
+                  className="w-full h-[52px] sm:h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm appearance-none outline-none cursor-pointer"
                 >
                   <option>Nigeria</option>
                   <option>Ghana</option>
                   <option>Kenya</option>
                 </select>
 
-                <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-[18px] sm:top-[20px] text-gray-500 pointer-events-none" />
               </div>
             </div>
 
@@ -156,7 +156,7 @@ export default function ReceivePaymentForm({
                 placeholder="Enter paypal email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm outline-none placeholder:text-[#A0A0A0]"
+                className="w-full h-[52px] sm:h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm outline-none placeholder:text-[#A0A0A0]"
               />
             </div>
 
@@ -170,14 +170,14 @@ export default function ReceivePaymentForm({
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm appearance-none outline-none cursor-pointer"
+                  className="w-full h-[52px] sm:h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm appearance-none outline-none cursor-pointer"
                 >
                   <option value="">Enter gender</option>
                   <option>Male</option>
                   <option>Female</option>
                 </select>
 
-                <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-[18px] sm:top-[20px] text-gray-500 pointer-events-none" />
               </div>
             </div>
 
@@ -190,26 +190,26 @@ export default function ReceivePaymentForm({
                   value={tag}
                   placeholder="Paste Tag ID"
                   readOnly
-                  className="w-full h-[58px] rounded-xl px-4 pr-10 bg-[#F8F8F8] text-sm outline-none placeholder:text-[#A0A0A0]"
+                  className="w-full h-[52px] sm:h-[58px] rounded-xl px-4 pr-10 bg-[#F8F8F8] text-sm outline-none placeholder:text-[#A0A0A0]"
                 />
 
                 {tag && (
                   <Copy
                     size={18}
                     onClick={copyTag}
-                    className="absolute right-4 top-[20px] text-gray-400 cursor-pointer"
+                    className="absolute right-4 top-[18px] sm:top-[20px] text-gray-400 cursor-pointer"
                   />
                 )}
               </div>
             </div>
 
-            {/* Select Amount */}
+            {/* Amount buttons */}
             <div>
               <label className="text-sm text-gray-600 mb-2 block">
                 Select Amount
               </label>
 
-              <div className="grid grid-cols-4 gap-3 relative z-10">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {PRESET_AMOUNTS.map((value) => {
                   const isSelected = amount === value;
 
@@ -248,7 +248,7 @@ export default function ReceivePaymentForm({
                 setCustomAmount(v);
                 setAmount(v ? Number(v) : null);
               }}
-              className="w-full h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm outline-none placeholder:text-[#A0A0A0]"
+              className="w-full h-[52px] sm:h-[58px] rounded-xl px-4 bg-[#F8F8F8] text-sm outline-none placeholder:text-[#A0A0A0]"
             />
 
             {/* Rate */}
@@ -263,10 +263,10 @@ export default function ReceivePaymentForm({
               <div className="text-red-500 text-sm text-center">{error}</div>
             )}
 
-            {/* Single Button */}
+            {/* Button */}
             <button
               onClick={handleButton}
-              className="w-full h-[56px] rounded-xl bg-[#0E9F6E] text-white font-semibold cursor-pointer"
+              className="w-full h-[52px] sm:h-[56px] rounded-xl bg-[#0E9F6E] text-white font-semibold cursor-pointer"
             >
               {tag ? "Continue" : "Generate Tag"}
             </button>

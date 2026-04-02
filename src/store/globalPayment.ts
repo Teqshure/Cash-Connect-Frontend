@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 import { useEffect } from "react";
 
-// ✅ Correct base URL — no double v1
+// ✅ Correct base URL (keeping v1/v1 as per backend)
 const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1/v1";
 
 // ------------------------------------------------------
@@ -94,7 +94,7 @@ interface GlobalPaymentState {
   error: string | null;
   submitting: boolean;
 
-  fetchMethods: () => Promise<void>;
+  fetchMethods: () => Promise<PaymentMethod[]>;
   fetchTransactions: () => Promise<void>;
   fetchTransaction: (id: string) => Promise<void>;
   fetchPaypalEmail: () => Promise<void>;
@@ -165,7 +165,7 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
     error: null,
     submitting: false,
 
-    // ✅ GET /international/available-methods
+    // ✅ GET /international/available-methods - NOW RETURNS DATA
     fetchMethods: async () => {
       set({ loading: true, error: null });
 
@@ -178,9 +178,12 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
 
         if (!res.ok) throw new Error(data.message || "Failed to load methods");
 
-        set({ methods: data.data || [], loading: false });
+        const methods = data.data || [];
+        set({ methods, loading: false });
+        return methods; // ✅ RETURN THE DATA
       } catch (err: any) {
         set({ error: err.message, loading: false });
+        throw err; // ✅ THROW ERROR SO COMPONENT CAN CATCH IT
       }
     },
 

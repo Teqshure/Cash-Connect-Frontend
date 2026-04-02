@@ -19,12 +19,12 @@ export default function DashboardShell({
 
   return (
     <div className="min-h-screen bg-slate-50 -mt-14 lg:mt-0">
-      {/* Desktop sidebar - hidden on mobile */}
+      {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer */}
       {open && (
         <div className="lg:hidden">
           <button
@@ -38,25 +38,30 @@ export default function DashboardShell({
         </div>
       )}
 
-      {/* Desktop View - lg and above */}
+      {/* Desktop Layout */}
       <div className="hidden lg:block lg:pl-[288px]">
-        <div className="w-full px-4 sm:px-6 lg:pl-0 lg:pr-4">
+        {/* Topbar */}
+        <div className="fixed top-0 left-[288px] right-0 z-40 bg-white">
+          <Topbar onOpenSidebar={() => setOpen(true)} />
+        </div>
+
+        {/* Content */}
+        <div className="pt-[110px] px-4 xl:px-6">
           <div
             className={[
-              "min-h-screen grid grid-cols-1 gap-4 items-start",
+              "grid gap-6 items-start w-full",
               hideRightRail
-                ? "xl:grid-cols-1"
+                ? "grid-cols-1"
                 : "xl:grid-cols-[minmax(0,1fr)_227px]",
             ].join(" ")}
           >
-            <div className="min-w-0 flex flex-col">
-              <Topbar onOpenSidebar={() => setOpen(true)} />
-              <main className="min-w-0 flex-1 px-4 py-4">{children}</main>
-            </div>
+            {/* Main */}
+            <main className="min-w-0 w-full">{children}</main>
 
+            {/* Right Sidebar */}
             {!hideRightRail && (
-              <aside className="hidden xl:block h-full">
-                <div className="sticky top-3">
+              <aside className="hidden xl:block w-[227px]">
+                <div className="sticky top-[24px]">
                   <RightSidebarSection />
                 </div>
               </aside>
@@ -65,10 +70,10 @@ export default function DashboardShell({
         </div>
       </div>
 
-      {/* Mobile View */}
+      {/* Mobile */}
       <div className="lg:hidden">
         <Topbar onOpenSidebar={() => setOpen(true)} />
-        <div className="pb-8">{children}</div>
+        <div className="px-4 pt-6 pb-8">{children}</div>
       </div>
     </div>
   );
