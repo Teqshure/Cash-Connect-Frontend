@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import { useGlobalPaymentStore, UIPaymentMethod } from "@/store/globalPayment";
 
 type Props = {
@@ -14,35 +15,44 @@ export default function ReceivePaymentMethodGrid({ onSelect }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { methods, fetchMethods, convertToUIMethods } = useGlobalPaymentStore();
+  const { fetchMethods, convertToUIMethods } = useGlobalPaymentStore();
 
   useEffect(() => {
     const loadMethods = async () => {
       try {
         setLoading(true);
         setError(null);
-        await fetchMethods();
-        const converted = convertToUIMethods(methods);
-        setUiMethods(converted);
+        const fetchedMethods = await fetchMethods();
+        if (
+          fetchedMethods &&
+          Array.isArray(fetchedMethods) &&
+          fetchedMethods.length > 0
+        ) {
+          const converted = convertToUIMethods(fetchedMethods);
+          if (converted && Array.isArray(converted) && converted.length > 0) {
+            setUiMethods(converted);
+          } else {
+            setUiMethods([]);
+          }
+        } else {
+          setUiMethods([]);
+        }
       } catch (err: any) {
+        console.error("Error loading payment methods:", err);
         setError(err.message || "Failed to load payment methods");
+        setUiMethods([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadMethods();
-  }, [fetchMethods, convertToUIMethods, methods]);
+  }, [fetchMethods, convertToUIMethods]);
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="p-4 rounded-[14px] border bg-gray-50 animate-pulse h-[120px]"
-          />
-        ))}
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
   }
@@ -61,11 +71,17 @@ export default function ReceivePaymentMethodGrid({ onSelect }: Props) {
     );
   }
 
-  const displayMethods = uiMethods.length > 0 ? uiMethods : getMockMethods();
+  if (uiMethods.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-slate-500 text-sm">No payment methods available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {displayMethods.map((method) => (
+      {uiMethods.map((method) => (
         <button
           key={method.id}
           type="button"
@@ -100,65 +116,4 @@ export default function ReceivePaymentMethodGrid({ onSelect }: Props) {
       ))}
     </div>
   );
-}
-
-function getMockMethods(): UIPaymentMethod[] {
-  return [
-    {
-      id: "paypal",
-      name: "PayPal",
-      logo: "/images/payments/paypal.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "zelle",
-      name: "Zelle",
-      logo: "/images/payments/zelle.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "western-union",
-      name: "Western Union",
-      logo: "/images/payments/western-union.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "moneygram",
-      name: "MoneyGram",
-      logo: "/images/payments/money-gram.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "venmo",
-      name: "Venmo",
-      logo: "/images/payments/venmo.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "cashapp",
-      name: "CashApp",
-      logo: "/images/payments/cashapp.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "payoneer",
-      name: "Payoneer",
-      logo: "/images/payments/payoneer.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-    {
-      id: "skrill",
-      name: "Skrill",
-      logo: "/images/payments/skrill.png",
-      eta: "Instant",
-      feeNote: "2%",
-    },
-  ];
 }

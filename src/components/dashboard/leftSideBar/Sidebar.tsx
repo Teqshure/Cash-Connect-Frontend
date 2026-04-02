@@ -46,7 +46,7 @@ export default function Sidebar() {
     pathname === href || pathname.startsWith(href + "/");
 
   const baseRow =
-    "w-[247px] h-[44px] px-[16px] rounded-[18px] flex items-center gap-[18px] transition font-medium";
+    "w-full h-[44px] px-[16px] rounded-[18px] flex items-center gap-[18px] transition font-medium";
 
   const inactiveRow = "text-slate-500 hover:bg-slate-50 hover:text-slate-800";
 
@@ -84,18 +84,23 @@ export default function Sidebar() {
     });
 
   return (
-    <aside className="fixed left-0 top-0 z-40 w-[288px] h-screen bg-white border-r border-slate-100">
+    <aside
+      className="fixed left-0 top-0 z-40 w-[288px] h-screen bg-white"
+      style={{
+        borderRight: "0.67px solid rgba(0,0,0,0.06)",
+      }}
+    >
       <div className="h-full flex flex-col">
         <SidebarBrand />
 
         <div className="flex-1 flex flex-col">
           {/* Top Nav */}
-          <nav className="px-5 pt-3">
+          <nav className="px-5 pt-4">
             <ul className="space-y-2">{renderNav(topNav)}</ul>
           </nav>
 
           {/* Divider */}
-          <div className="mx-5 my-4 h-[1px] bg-slate-200" />
+          <div className="mx-5 my-5 h-[1px] bg-[#00000014]" />
 
           {/* Bottom Nav */}
           <nav className="px-5">

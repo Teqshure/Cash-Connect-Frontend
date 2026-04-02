@@ -4,7 +4,8 @@ import Image from "next/image";
 import avartarimg from "../../../public/images/dashboard/avatar.png";
 import { Bell, Search, Menu, Gift, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { usePathname } from "next/navigation";
+import { useTransactionStore } from "@/store/Transactionstore";
+import { usePathname, useRouter } from "next/navigation";
 
 function getFirstName(fullname?: string | null) {
   if (!fullname) return "User";
@@ -14,12 +15,13 @@ function getFirstName(fullname?: string | null) {
 function getPageTitle(pathname: string): string {
   if (pathname === "/" || pathname === "/dashboard") return "Dashboard";
   if (pathname.startsWith("/wallet")) return "Wallet";
-  if (pathname.startsWith("/history")) return "History";
+  if (pathname.startsWith("/History")) return "History";
   if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/profile")) return "Profile";
   if (pathname.startsWith("/exchange")) return "Exchange";
   if (pathname.startsWith("/transactions")) return "Transactions";
-  // Fallback: auto-capitalise the first path segment
+  if (pathname.startsWith("/notifications")) return "Notifications";
+
   const segment = pathname.split("/").filter(Boolean)[0] ?? "Dashboard";
   return segment.charAt(0).toUpperCase() + segment.slice(1);
 }
@@ -29,12 +31,16 @@ export default function Topbar({
 }: {
   onOpenSidebar?: () => void;
 }) {
+  const router = useRouter();
   const user = useAuthStore((s: any) => s.user);
   const name = getFirstName(user?.fullname);
   const pathname = usePathname();
 
   const isHistoryPage = pathname === "/History";
   const pageTitle = getPageTitle(pathname);
+
+  // ✅ SEARCH STORE
+  const setSearchQuery = useTransactionStore((s: any) => s.setSearchQuery);
 
   return (
     <>
@@ -50,7 +56,6 @@ export default function Topbar({
             <Menu className="h-5 w-5 text-slate-700" />
           </button>
 
-          {/* ← was hardcoded "Dashboard", now reflects active route */}
           <p className="text-[16px] font-semibold text-slate-800">
             {pageTitle}
           </p>
@@ -63,11 +68,14 @@ export default function Topbar({
           >
             <Gift className="h-5 w-5 text-slate-700" />
           </button>
+
+          {/* ✅ CLICK → NOTIFICATIONS */}
           <button
-            className="relative h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
+            onClick={() => router.push("/notifications")}
+            className="relative h-[36px] w-[36px] rounded-full cursor-pointer hover:bg-slate-50 transition"
             aria-label="Notifications"
           >
-            <Bell className="h-5 w-5 text-slate-700" />
+            <Bell className="h-5 w-5  text-slate-700" />
             <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-rose-500" />
           </button>
 
@@ -101,28 +109,35 @@ export default function Topbar({
           sticky top-0 z-50
         "
       >
+        {/* LEFT */}
         <div className="min-w-0 w-[390px] h-[91px] flex items-center">
           <p className="text-[20px] leading-[28px] font-medium text-slate-900 whitespace-nowrap">
             Good Morning, {name}! <span className="ml-1">👋</span>
           </p>
         </div>
 
+        {/* RIGHT */}
         <div className="w-[424px] h-[36px] flex items-center justify-end gap-[13px]">
           {!isHistoryPage && (
             <div className="flex-1 h-[36px] rounded-full border border-slate-200 bg-white flex items-center px-3 gap-2">
               <Search className="h-4 w-4 text-slate-400" />
+
+              {/* ✅ SEARCH WORKING */}
               <input
                 type="text"
                 placeholder="Search transactions..."
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent outline-none text-[12px] text-slate-700 placeholder:text-slate-400"
               />
             </div>
           )}
 
+          {/* ✅ CLICK → NOTIFICATIONS */}
           <button
             type="button"
+            onClick={() => router.push("/notifications")}
             aria-label="Notifications"
-            className="relative h-[36px] w-[36px] rounded-full border border-slate-200 bg-white grid place-items-center hover:bg-slate-50 transition"
+            className="relative h-[36px] w-[36px] rounded-full cursor-pointer border border-slate-200 bg-white grid place-items-center hover:bg-slate-50 transition"
           >
             <Bell className="h-4 w-4 text-slate-500" />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
