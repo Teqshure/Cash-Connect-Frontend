@@ -1,11 +1,18 @@
 "use client";
 
 import { SlidersHorizontal, Search } from "lucide-react";
+import { useState } from "react";
 
-export default function OrdersFilterBar() {
+type Props = {
+  onSearch: (value: string) => void;
+};
+
+export default function OrdersFilterBar({ onSearch }: Props) {
+  const [value, setValue] = useState("");
+
   return (
     <div className="flex justify-end items-center gap-3">
-      {/* Filter */}
+      {/* Filter (UI for now) */}
       <button
         className="
           flex items-center gap-2
@@ -17,6 +24,7 @@ export default function OrdersFilterBar() {
           text-slate-600
           hover:bg-slate-50
           transition
+          cursor-pointer
         "
       >
         <SlidersHorizontal className="h-4 w-4" />
@@ -37,6 +45,11 @@ export default function OrdersFilterBar() {
       >
         <Search className="h-4 w-4 text-slate-400" />
         <input
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            onSearch(e.target.value);
+          }}
           placeholder="Search transactions..."
           className="w-full bg-transparent outline-none text-[13px]"
         />
