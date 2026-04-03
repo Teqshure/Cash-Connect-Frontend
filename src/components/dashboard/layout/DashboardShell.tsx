@@ -15,7 +15,8 @@ export default function DashboardShell({
   const [open, setOpen] = useState(false);
 
   const pathname = usePathname();
-  const hideRightRail = pathname.startsWith("/wallet");
+  const hideRightRail =
+    pathname.startsWith("/wallet") || pathname.startsWith("/help");
 
   return (
     <div className="min-h-screen bg-slate-50 -mt-14 lg:mt-0">
