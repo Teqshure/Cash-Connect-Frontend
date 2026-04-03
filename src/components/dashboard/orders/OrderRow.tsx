@@ -7,7 +7,7 @@ export default function OrderRow({ order }: { order: Order }) {
     <div
       className="
         grid
-        grid-cols-[140px_1.8fr_120px_150px_120px_120px]
+        grid-cols-[130px_1.6fr_110px_140px_110px_110px]
         items-center
         text-[12px]
         text-slate-700
@@ -16,13 +16,14 @@ export default function OrderRow({ order }: { order: Order }) {
         rounded-[10px]
         hover:bg-slate-50
         transition
+        whitespace-nowrap
       "
     >
       {/* ID */}
       <p className="text-slate-600">{order.id}</p>
 
       {/* TYPE */}
-      <p className="truncate">{order.type}</p>
+      <p className="leading-[16px] truncate">{order.type}</p>
 
       {/* CARD */}
       <p className="text-slate-600">{order.card}</p>
