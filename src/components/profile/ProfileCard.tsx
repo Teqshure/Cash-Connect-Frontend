@@ -1,0 +1,53 @@
+"use client";
+
+import Image from "next/image";
+import { CheckCircle, Pencil } from "lucide-react";
+import avatar from "../../../public/images/dashboard/avatar.png";
+import { useAuthStore } from "@/store/useAuthStore";
+
+export default function ProfileCard() {
+  const user = useAuthStore((s: any) => s.user);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* PROFILE CARD */}
+      <div
+        className="
+          bg-white
+          rounded-[20px]
+          p-6
+          border border-slate-100
+          shadow-sm
+          flex flex-col items-center text-center
+        "
+      >
+        {/* Avatar */}
+        <div className="relative h-[90px] w-[90px] rounded-full overflow-hidden border-[4px] border-emerald-100">
+          <Image src={avatar} alt="Profile" fill className="object-cover" />
+        </div>
+
+        {/* Name */}
+        <p className="mt-4 text-[16px] font-semibold text-slate-900">
+          {user?.fullname || "John Davidson"}
+        </p>
+
+        {/* Email */}
+        <p className="text-[13px] text-slate-500">
+          {user?.email || "john@email.com"}
+        </p>
+
+        {/* KYC */}
+        <div className="mt-3 flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[12px] font-medium">
+          <CheckCircle className="h-4 w-4" />
+          KYC Verified
+        </div>
+
+        {/* Edit Photo */}
+        <button className="mt-3 flex items-center cursor-pointer gap-1 text-[13px] text-emerald-600 hover:underline">
+          <Pencil className="h-4 w-4" />
+          Edit Profile Photo
+        </button>
+      </div>
+    </div>
+  );
+}
