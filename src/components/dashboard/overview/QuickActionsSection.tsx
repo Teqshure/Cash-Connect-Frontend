@@ -15,18 +15,18 @@ export default function QuickActionsSection() {
 
   const actions = [
     {
-      label: "Send Payment",
-      Icon: ArrowUpRight,
-      iconBgClass: "bg-[#E8F0FE]",
-      iconColorClass: "text-[#1A4FCC]",
-      href: "/send-payment",
-    },
-    {
       label: "Recieve Global Payment",
       Icon: ArrowDownLeft,
       iconBgClass: "bg-[#E3F7EC]",
       iconColorClass: "text-[#0B7B4A]",
       href: "/receive-payment",
+    },
+    {
+      label: "Buy Crypto",
+      Icon: Bitcoin,
+      iconBgClass: "bg-[#E8F0FE]",
+      iconColorClass: "text-[#1A4FCC]",
+      href: "/buy-crypto",
     },
     {
       label: "Sell Crypto",
@@ -42,6 +42,7 @@ export default function QuickActionsSection() {
       iconColorClass: "text-[#C95A0C]",
       href: "/buy-giftcard",
     },
+
     {
       label: "More",
       Icon: MoreHorizontal,

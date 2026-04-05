@@ -1,14 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  Gift,
-  Bitcoin,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { Gift, Bitcoin, ArrowDownLeft, Sparkles, Users } from "lucide-react";
 
 type Service = {
   id: string;
@@ -43,16 +36,7 @@ const SERVICES: Service[] = [
     iconColor: "text-yellow-600",
     sparkleColor: "text-yellow-200",
   },
-  {
-    id: "send-payment",
-    label: "Send Payment",
-    description: "Get 20% discount on all gift card purchases this week",
-    href: "/send-payment",
-    icon: ArrowUpRight,
-    iconBg: "bg-blue-50",
-    iconColor: "text-blue-500",
-    sparkleColor: "text-blue-200",
-  },
+
   {
     id: "receive-payment",
     label: "Receive Payment",

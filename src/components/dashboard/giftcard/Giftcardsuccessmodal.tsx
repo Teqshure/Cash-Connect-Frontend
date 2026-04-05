@@ -16,8 +16,8 @@ export default function GiftCardSuccessModal({
   if (!open) return null;
 
   const defaultMessages = {
-    buy: "🛍 Purchase Successful\nYour gift card will be delivered shortly.",
-    sell: "🎁 Gift Card Sold\nYour payment is being processed to your wallet.",
+    buy: "🛍 Purchase Successful\nYour gift card will be delivered shortly if confirm and approved.",
+    sell: "🎁 Gift Card Sold\nYour giftcard will be  deposited  to your wallet shortly once comfired .",
   };
 
   const displayMessage = message ?? defaultMessages[mode];
