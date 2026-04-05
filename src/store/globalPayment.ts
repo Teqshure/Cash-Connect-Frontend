@@ -2,28 +2,55 @@
 
 import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
-import { useEffect } from "react";
+import { useEffect, useMemo, useCallback } from "react";
+import { useShallow } from "zustand/react/shallow";
 
-// ✅ Correct base URL (keeping v1/v1 as per backend)
-const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1/v1";
+// ✅ Correct base URL
+const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1";
 
 // ------------------------------------------------------
 // TYPES
 // ------------------------------------------------------
 
-export interface InternationalRate {
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  code: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Currency {
+  id: number;
+  payment_method_id: number;
+  currency: string;
   buy_rate: string;
   sell_rate: string;
   min_amount: string;
   max_amount: string;
-  currency: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface PaymentMethod {
-  name: string;
-  code: string;
-  description: string | null;
-  rates: InternationalRate | null;
+export interface Country {
+  id: number;
+  payment_method_id: number;
+  country: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InternationalAccount {
+  id: number;
+  payment_method: string;
+  currency: string;
+  country: string;
+  gender: string;
+  email?: string;
+  account_details: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UIPaymentMethod {
@@ -33,12 +60,9 @@ export interface UIPaymentMethod {
   eta: string;
   feeNote: string;
   code?: string;
-  rates?: {
-    buy_rate: string;
-    sell_rate: string;
-    min_amount: string;
-    max_amount: string;
-  } | null;
+  paymentMethodId?: number;
+  currencies?: Currency[];
+  countries?: Country[];
 }
 
 export interface InternationalTransaction {
@@ -68,6 +92,19 @@ export interface SendPaymentFormData {
   amount: number | "";
 }
 
+export interface FindAccountPayload {
+  payment_method: string;
+  currency?: string;
+  country?: string;
+  gender?: string;
+  expected_amount: number;
+}
+
+export interface SubmitTransactionPayload {
+  account_id: number;
+  expected_amount: number;
+}
+
 export interface SendPaymentPayload {
   method: string;
   email: string;
@@ -86,17 +123,32 @@ export interface ReceivePaymentPayload {
 
 interface GlobalPaymentState {
   methods: PaymentMethod[];
+  currencies: Record<number, Currency[]>;
+  countries: Record<number, Country[]>;
   transactions: InternationalTransaction[];
   transaction: InternationalTransaction | null;
+  availableAccounts: InternationalAccount[];
   paypalEmail: string | null;
-
   loading: boolean;
   error: string | null;
   submitting: boolean;
 
   fetchMethods: () => Promise<PaymentMethod[]>;
+  fetchCurrenciesForMethod: (
+    methodId: number,
+    methodCode: string,
+  ) => Promise<Currency[]>;
+  fetchCountriesForMethod: (
+    methodId: number,
+    methodCode: string,
+  ) => Promise<Country[]>;
+  findAccounts: (
+    payload: FindAccountPayload,
+  ) => Promise<InternationalAccount[]>;
+  submitTransaction: (payload: SubmitTransactionPayload) => Promise<any>;
   fetchTransactions: () => Promise<void>;
   fetchTransaction: (id: string) => Promise<void>;
+  cancelTransaction: (id: string) => Promise<void>;
   fetchPaypalEmail: () => Promise<void>;
   sendPayment: (data: SendPaymentPayload) => Promise<any>;
   receivePayment: (data: ReceivePaymentPayload) => Promise<any>;
@@ -118,12 +170,6 @@ function authHeaders() {
   };
 }
 
-// ✅ safer crypto calculation helper
-function calculateCrypto(amount: number, rate: number) {
-  if (!rate || rate <= 0) return 0;
-  return Number((amount / rate).toFixed(6));
-}
-
 const LOGO_MAP: Record<string, string> = {
   PayPal: "/images/payments/paypal.png",
   Zelle: "/images/payments/zelle.png",
@@ -143,11 +189,11 @@ function convertAPIToUIMethods(apiMethods: PaymentMethod[]): UIPaymentMethod[] {
   return apiMethods.map((method) => ({
     id: method.code || method.name.toLowerCase().replace(/\s+/g, "-"),
     name: method.name,
-    code: method.code,
-    logo: LOGO_MAP[method.name] || "/images/payments/default.png",
-    eta: method.rates ? "Instant" : "2-3 days",
-    feeNote: method.rates ? `${method.rates.sell_rate} NGN/USDT` : "2%",
-    rates: method.rates,
+    code: method.code || method.name.toLowerCase(),
+    paymentMethodId: method.id,
+    logo: LOGO_MAP[method.name] || "/images/payments/paypal.png",
+    eta: "Instant",
+    feeNote: "Check rates",
   }));
 }
 
@@ -158,19 +204,21 @@ function convertAPIToUIMethods(apiMethods: PaymentMethod[]): UIPaymentMethod[] {
 export const useGlobalPaymentStore = create<GlobalPaymentState>(
   (set: any, get: any) => ({
     methods: [],
+    currencies: {},
+    countries: {},
     transactions: [],
     transaction: null,
+    availableAccounts: [],
     paypalEmail: null,
     loading: false,
     error: null,
     submitting: false,
 
-    // ✅ GET /international/available-methods - NOW RETURNS DATA
     fetchMethods: async () => {
       set({ loading: true, error: null });
 
       try {
-        const res = await fetch(`${BASE_URL}/international/available-methods`, {
+        const res = await fetch(`${BASE_URL}/international/payment-methods`, {
           headers: authHeaders(),
         });
 
@@ -180,19 +228,191 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
 
         const methods = data.data || [];
         set({ methods, loading: false });
-        return methods; // ✅ RETURN THE DATA
+        return methods;
       } catch (err: any) {
         set({ error: err.message, loading: false });
-        throw err; // ✅ THROW ERROR SO COMPONENT CAN CATCH IT
+        throw err;
       }
     },
 
-    // ✅ GET /international/my-transactions
+    fetchCurrenciesForMethod: async (methodId: number, methodCode: string) => {
+      console.log(
+        `🔍 [Store] Fetching currencies for method ${methodCode} (ID: ${methodId})`,
+      );
+
+      try {
+        const res = await fetch(
+          `${BASE_URL}/international/payment-methods/${methodId}/currencies-by-id`,
+          {
+            headers: authHeaders(),
+          },
+        );
+
+        console.log(`📡 [Store] Currencies response status:`, res.status);
+
+        const data = await res.json();
+        console.log(`📦 [Store] Currencies response data:`, data);
+
+        if (!res.ok) {
+          console.error(`❌ [Store] Failed to fetch currencies:`, data);
+          throw new Error(data.message || "Failed to load currencies");
+        }
+
+        let currencies = [];
+        if (data.data && Array.isArray(data.data)) {
+          if (data.data.length > 0 && typeof data.data[0] === "string") {
+            currencies = data.data.map((currency: string, index: number) => ({
+              id: index,
+              payment_method_id: methodId,
+              currency: currency,
+              buy_rate: "0",
+              sell_rate: "0",
+              min_amount: "0",
+              max_amount: "1000000",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }));
+          } else if (data.data.length > 0 && typeof data.data[0] === "object") {
+            currencies = data.data;
+          }
+        }
+
+        console.log(
+          `✅ [Store] Processed ${currencies.length} currencies for ${methodCode}`,
+        );
+
+        set((state: any) => ({
+          currencies: {
+            ...state.currencies,
+            [methodId]: currencies,
+          },
+        }));
+
+        return currencies;
+      } catch (err: any) {
+        console.error(
+          `💥 [Store] Failed to fetch currencies for ${methodCode}:`,
+          err.message,
+        );
+        return [];
+      }
+    },
+
+    fetchCountriesForMethod: async (methodId: number, methodCode: string) => {
+      console.log(
+        `🔍 [Store] Fetching countries for method ${methodCode} (ID: ${methodId})`,
+      );
+
+      try {
+        const res = await fetch(
+          `${BASE_URL}/international/payment-methods/${methodId}/countries-by-id`,
+          {
+            headers: authHeaders(),
+          },
+        );
+
+        console.log(`📡 [Store] Countries response status:`, res.status);
+
+        const data = await res.json();
+        console.log(`📦 [Store] Countries response data:`, data);
+
+        if (!res.ok) {
+          console.error(`❌ [Store] Failed to fetch countries:`, data);
+          throw new Error(data.message || "Failed to load countries");
+        }
+
+        let countries = [];
+        if (data.data && Array.isArray(data.data)) {
+          if (data.data.length > 0 && typeof data.data[0] === "string") {
+            countries = data.data.map((country: string, index: number) => ({
+              id: index,
+              payment_method_id: methodId,
+              country: country,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }));
+          } else if (data.data.length > 0 && typeof data.data[0] === "object") {
+            countries = data.data;
+          }
+        }
+
+        console.log(
+          `✅ [Store] Processed ${countries.length} countries for ${methodCode}`,
+        );
+
+        set((state: any) => ({
+          countries: {
+            ...state.countries,
+            [methodId]: countries,
+          },
+        }));
+
+        return countries;
+      } catch (err: any) {
+        console.error(
+          `💥 [Store] Failed to fetch countries for ${methodCode}:`,
+          err.message,
+        );
+        return [];
+      }
+    },
+
+    findAccounts: async (payload: FindAccountPayload) => {
+      set({ loading: true, error: null });
+
+      try {
+        const res = await fetch(`${BASE_URL}/international/find`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || "Failed to find accounts");
+
+        const accounts = data.data ? [data.data] : [];
+        set({ availableAccounts: accounts, loading: false });
+        return accounts;
+      } catch (err: any) {
+        set({ error: err.message, loading: false });
+        throw err;
+      }
+    },
+
+    submitTransaction: async (payload: SubmitTransactionPayload) => {
+      set({ submitting: true, error: null });
+
+      try {
+        const res = await fetch(
+          `${BASE_URL}/international/transactions/submit`,
+          {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          },
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || "Transaction failed");
+
+        await get().fetchTransactions();
+
+        set({ submitting: false });
+
+        return data;
+      } catch (err: any) {
+        set({ error: err.message, submitting: false });
+        throw err;
+      }
+    },
+
     fetchTransactions: async () => {
       set({ loading: true, error: null });
 
       try {
-        const res = await fetch(`${BASE_URL}/international/my-transactions`, {
+        const res = await fetch(`${BASE_URL}/international/transactions`, {
           headers: authHeaders(),
         });
 
@@ -207,13 +427,12 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
       }
     },
 
-    // ✅ GET /international/my-transactions/{id}
     fetchTransaction: async (id: string) => {
       set({ loading: true, error: null });
 
       try {
         const res = await fetch(
-          `${BASE_URL}/international/my-transactions/${id}`,
+          `${BASE_URL}/international/transactions/${id}`,
           {
             headers: authHeaders(),
           },
@@ -230,7 +449,34 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
       }
     },
 
-    // ✅ GET /international/paypal-email
+    cancelTransaction: async (id: string) => {
+      set({ submitting: true, error: null });
+
+      try {
+        const res = await fetch(
+          `${BASE_URL}/international/transactions/${id}/cancel`,
+          {
+            method: "PATCH",
+            headers: authHeaders(),
+          },
+        );
+
+        const data = await res.json();
+
+        if (!res.ok)
+          throw new Error(data.message || "Failed to cancel transaction");
+
+        await get().fetchTransactions();
+
+        set({ submitting: false });
+
+        return data;
+      } catch (err: any) {
+        set({ error: err.message, submitting: false });
+        throw err;
+      }
+    },
+
     fetchPaypalEmail: async () => {
       try {
         const res = await fetch(`${BASE_URL}/international/paypal-email`, {
@@ -245,8 +491,10 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
       }
     },
 
-    // ✅ POST /international/send
     sendPayment: async (payload: SendPaymentPayload) => {
+      console.warn(
+        "⚠️ sendPayment is deprecated. Use findAccounts + submitTransaction instead.",
+      );
       set({ submitting: true, error: null });
 
       try {
@@ -271,14 +519,13 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
       }
     },
 
-    // ✅ POST /international/receive
     receivePayment: async (payload: ReceivePaymentPayload) => {
+      console.warn(
+        "⚠️ receivePayment is deprecated. Use findAccounts + submitTransaction instead.",
+      );
       set({ submitting: true, error: null });
 
       try {
-        console.log("========== RECEIVE PAYMENT DEBUG ==========");
-        console.log("Payload:", payload);
-
         const res = await fetch(`${BASE_URL}/international/receive`, {
           method: "POST",
           headers: authHeaders(),
@@ -311,11 +558,19 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
 // ------------------------------------------------------
 
 export const useUIPaymentMethods = () => {
-  const { methods, convertToUIMethods, loading } = useGlobalPaymentStore();
-  return { uiMethods: convertToUIMethods(methods), loading };
+  const methods = useGlobalPaymentStore((s: any) => s.methods);
+  const convertToUIMethods = useGlobalPaymentStore(
+    (s: any) => s.convertToUIMethods,
+  );
+  const loading = useGlobalPaymentStore((s: any) => s.loading);
+
+  const uiMethods = useMemo(() => {
+    return convertToUIMethods(methods);
+  }, [methods, convertToUIMethods]);
+
+  return { uiMethods, loading };
 };
 
-// ✅ auto-load methods hook
 export const useLoadPaymentMethods = () => {
   const fetchMethods = useGlobalPaymentStore((s: any) => s.fetchMethods);
   const methods = useGlobalPaymentStore((s: any) => s.methods);
@@ -325,62 +580,157 @@ export const useLoadPaymentMethods = () => {
   }, [methods.length, fetchMethods]);
 };
 
-export const useSendPayment = () => {
-  const { sendPayment, submitting, error } = useGlobalPaymentStore();
+export const usePaymentMethodCurrencies = (methodId?: number) => {
+  const fetchCurrenciesForMethod = useGlobalPaymentStore(
+    (s: any) => s.fetchCurrenciesForMethod,
+  );
 
-  const submitPayment = async (
-    formData: SendPaymentFormData,
-    method: UIPaymentMethod,
-  ) => {
-    const rate = method.rates?.sell_rate
-      ? parseFloat(method.rates.sell_rate)
-      : 1450;
+  const loading = useGlobalPaymentStore((s: any) => s.loading);
 
-    const amount = typeof formData.amount === "number" ? formData.amount : 0;
+  const currencies = useGlobalPaymentStore(
+    useShallow((s: any) => {
+      if (!methodId) return [];
+      return s.currencies[methodId] || [];
+    }),
+  );
 
-    const cryptoAmount = calculateCrypto(amount, rate);
-
-    const payload: SendPaymentPayload = {
-      method: method.code || method.id,
-      email: formData.email,
-      crypto_amount: cryptoAmount,
-      currency: formData.currency,
-      country: formData.country,
-      gender: formData.gender,
-    };
-
-    return await sendPayment(payload);
+  return {
+    currencies,
+    fetchCurrenciesForMethod,
+    loading,
   };
+};
+
+export const usePaymentMethodCountries = (methodId?: number) => {
+  const fetchCountriesForMethod = useGlobalPaymentStore(
+    (s: any) => s.fetchCountriesForMethod,
+  );
+
+  const loading = useGlobalPaymentStore((s: any) => s.loading);
+
+  const countries = useGlobalPaymentStore(
+    useShallow((s: any) => {
+      if (!methodId) return [];
+      return s.countries[methodId] || [];
+    }),
+  );
+
+  return {
+    countries,
+    fetchCountriesForMethod,
+    loading,
+  };
+};
+
+export const useSendPayment = () => {
+  const findAccounts = useGlobalPaymentStore((s: any) => s.findAccounts);
+  const submitTransaction = useGlobalPaymentStore(
+    (s: any) => s.submitTransaction,
+  );
+  const submitting = useGlobalPaymentStore((s: any) => s.submitting);
+  const error = useGlobalPaymentStore((s: any) => s.error);
+
+  const submitPayment = useCallback(
+    async (formData: SendPaymentFormData, method: UIPaymentMethod) => {
+      const findPayload: FindAccountPayload = {
+        payment_method: method.code || method.id,
+        currency: formData.currency,
+        country: formData.country,
+        gender: formData.gender,
+        expected_amount:
+          typeof formData.amount === "number" ? formData.amount : 0,
+      };
+
+      const accounts = await findAccounts(findPayload);
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No available accounts found for this transaction");
+      }
+
+      const submitPayload: SubmitTransactionPayload = {
+        account_id: accounts[0].id,
+        expected_amount:
+          typeof formData.amount === "number" ? formData.amount : 0,
+      };
+
+      return await submitTransaction(submitPayload);
+    },
+    [findAccounts, submitTransaction],
+  );
 
   return { submitPayment, submitting, error };
 };
 
-export const usePaymentMethodRate = (method: UIPaymentMethod | null) => {
-  if (!method?.rates?.sell_rate) return 1450;
-  return parseFloat(method.rates.sell_rate);
+export const usePaymentMethodRate = (
+  method: UIPaymentMethod | null,
+  currency?: string,
+) => {
+  const currencies = useGlobalPaymentStore(
+    useShallow((s: any) => {
+      if (!method?.paymentMethodId) return [];
+      return s.currencies[method.paymentMethodId] || [];
+    }),
+  );
+
+  const rate = useMemo(() => {
+    if (!currency || currencies.length === 0) return 1450;
+
+    const currencyData = currencies.find(
+      (c: Currency) => c.currency === currency,
+    );
+
+    if (!currencyData?.sell_rate) return 1450;
+
+    return parseFloat(currencyData.sell_rate);
+  }, [currency, currencies]);
+
+  return rate;
 };
 
-export const useAmountValidation = (method: UIPaymentMethod | null) => {
-  const validate = (amount: number) => {
-    if (!method?.rates) return { isValid: true, message: "" };
+export const useAmountValidation = (
+  method: UIPaymentMethod | null,
+  currency?: string,
+) => {
+  const currencies = useGlobalPaymentStore(
+    useShallow((s: any) => {
+      if (!method?.paymentMethodId) return [];
+      return s.currencies[method.paymentMethodId] || [];
+    }),
+  );
 
-    const min = parseFloat(method.rates.min_amount);
-    const max = parseFloat(method.rates.max_amount);
+  const validate = useCallback(
+    (amount: number) => {
+      if (!currency || currencies.length === 0) {
+        return { isValid: true, message: "" };
+      }
 
-    if (amount < min)
-      return {
-        isValid: false,
-        message: `Minimum amount is ₦${min.toLocaleString()}`,
-      };
+      const currencyData = currencies.find(
+        (c: Currency) => c.currency === currency,
+      );
 
-    if (amount > max)
-      return {
-        isValid: false,
-        message: `Maximum amount is ₦${max.toLocaleString()}`,
-      };
+      if (!currencyData) {
+        return { isValid: true, message: "" };
+      }
 
-    return { isValid: true, message: "" };
-  };
+      const min = parseFloat(currencyData.min_amount);
+      const max = parseFloat(currencyData.max_amount);
+
+      if (amount < min)
+        return {
+          isValid: false,
+          message: `Minimum amount is ${min.toLocaleString()}`,
+        };
+
+      if (amount > max)
+        return {
+          isValid: false,
+          message: `Maximum amount is ${max.toLocaleString()}`,
+        };
+
+      return { isValid: true, message: "" };
+    },
+    [currency, currencies],
+  );
 
   return { validate };
 };
@@ -393,4 +743,14 @@ export const usePaymentTransactions = () => {
   const loading = useGlobalPaymentStore((s: any) => s.loading);
 
   return { transactions, fetchTransactions, loading };
+};
+
+export const useCancelTransaction = () => {
+  const cancelTransaction = useGlobalPaymentStore(
+    (s: any) => s.cancelTransaction,
+  );
+  const submitting = useGlobalPaymentStore((s: any) => s.submitting);
+  const error = useGlobalPaymentStore((s: any) => s.error);
+
+  return { cancelTransaction, submitting, error };
 };
