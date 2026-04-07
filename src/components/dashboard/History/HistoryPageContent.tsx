@@ -36,7 +36,7 @@ function getLabel(tx: ApiTransaction): string {
   if (type === "withdrawal") return "Send Payment";
   if (type === "gift" || type === "giftcard") return "Giftcard Sale";
   if (type === "crypto") return "Crypto Transaction";
-  if (type === "international") return "Crypto Exchange";
+  if (type === "international") return "International Transfer";
 
   return type;
 }
@@ -107,6 +107,7 @@ function isCredit(icon: Transaction["icon"]) {
 }
 
 function shortType(type: string) {
+  if (type.toLowerCase().includes("international")) return "International";
   if (type.toLowerCase().includes("crypto")) return "Crypto";
   if (type.toLowerCase().includes("gift")) return "Giftcard";
   if (type.toLowerCase().includes("fund")) return "Fund";

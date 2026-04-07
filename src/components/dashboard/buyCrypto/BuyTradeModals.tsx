@@ -8,12 +8,14 @@ type CancelTradeProps = {
   open: boolean;
   onNo: () => void;
   onYesCancel: () => void;
+  loading?: boolean;
 };
 
 export function CancelTradeModal({
   open,
   onNo,
   onYesCancel,
+  loading = false,
 }: CancelTradeProps) {
   if (!open) return null;
 
@@ -30,18 +32,22 @@ export function CancelTradeModal({
           This action cannot be reversed. Are you sure you want to cancel this
           trade?
         </p>
+
         <div className="mt-6 flex gap-3">
           <button
             type="button"
+            disabled={loading}
             onClick={onNo}
-            className="flex-1 h-[44px] rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] hover:brightness-110 transition cursor-pointer"
+            className="flex-1 h-[44px] rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] hover:brightness-110 transition cursor-pointer disabled:opacity-50"
           >
             No
           </button>
+
           <button
             type="button"
+            disabled={loading}
             onClick={onYesCancel}
-            className="flex-1 h-[44px] rounded-[12px] border border-slate-300 text-slate-700 font-semibold text-[14px] hover:bg-slate-50 transition cursor-pointer"
+            className="flex-1 h-[44px] rounded-[12px] border border-slate-300 text-slate-700 font-semibold text-[14px] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
           >
             Yes, Cancel
           </button>
@@ -52,7 +58,7 @@ export function CancelTradeModal({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TransferWarningModal
+// TransferWarningModal - FIXED VERSION
 // ─────────────────────────────────────────────────────────────────────────────
 
 type TransferWarningProps = {
@@ -60,6 +66,7 @@ type TransferWarningProps = {
   amount: number;
   onBack: () => void;
   onContinue: () => void;
+  loading?: boolean;
 };
 
 export function TransferWarningModal({
@@ -67,8 +74,13 @@ export function TransferWarningModal({
   amount,
   onBack,
   onContinue,
+  loading = false,
 }: TransferWarningProps) {
   if (!open) return null;
+
+  // ✅ Safety check for NaN or invalid amount
+  const isValidAmount = !isNaN(amount) && amount > 0;
+  const displayAmount = isValidAmount ? amount.toLocaleString() : "0";
 
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center px-4 bg-black/30">
@@ -80,21 +92,25 @@ export function TransferWarningModal({
           Transfer Warning!
         </h3>
         <p className="mt-2 text-[13px] text-slate-500 leading-6">
-          ₦{amount.toLocaleString()} will be deducted from your Cash Connect
-          balance for this purchase.
+          ₦{displayAmount} will be deducted from your Cash Connect balance for
+          this purchase.
         </p>
+
         <div className="mt-6 flex gap-3">
           <button
             type="button"
+            disabled={loading}
             onClick={onBack}
-            className="flex-1 h-[44px] rounded-[12px] border border-slate-300 text-slate-700 font-semibold text-[14px] hover:bg-slate-50 transition cursor-pointer"
+            className="flex-1 h-[44px] rounded-[12px] border border-slate-300 text-slate-700 font-semibold text-[14px] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
           >
             Back
           </button>
+
           <button
             type="button"
+            disabled={loading || !isValidAmount}
             onClick={onContinue}
-            className="flex-1 h-[44px] rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] hover:brightness-110 transition cursor-pointer"
+            className="flex-1 h-[44px] rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] hover:brightness-110 transition cursor-pointer disabled:opacity-50"
           >
             Continue
           </button>

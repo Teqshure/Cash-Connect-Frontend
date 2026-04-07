@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Copy, Check } from "lucide-react";
-import {
-  CryptoToken,
-  CRYPTO_TOKENS,
-  BUY_AMOUNT_PRESETS,
-  RATE_PER_USDT,
-} from "./buyCryptoData";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { ChevronDown, Copy, Check, Loader2 } from "lucide-react";
+import { BUY_AMOUNT_PRESETS } from "./buyCryptoData";
+import { useCryptoStore } from "@/store/cryptoStore";
+import { useLoadRates, useRateForItem } from "@/store/rateStore";
+
+type CryptoToken = {
+  id: string;
+  name: string;
+  symbol: string;
+  color: string;
+  network: string;
+};
 
 type Props = {
   onBack: () => void;
@@ -19,91 +24,173 @@ type Props = {
 };
 
 export default function BuyCryptoForm({ onBack, onContinue }: Props) {
-  const [tokenOpen, setTokenOpen] = useState(false);
+  const [isTokenOpen, setIsTokenOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<CryptoToken | null>(null);
   const [walletAddress, setWalletAddress] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
-  const [customAmount, setCustomAmount] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [amount, setAmount] = useState<number>(0);
+  const [isCopied, setIsCopied] = useState(false);
 
-  const amount = selectedPreset ?? (customAmount ? Number(customAmount) : 0);
-  const youSend = amount > 0 ? amount * RATE_PER_USDT : 0;
-  const isValid =
-    !!selectedToken && walletAddress.trim().length > 0 && amount > 0;
+  const { cryptos, fetchCryptos, cryptoWithRate, fetchCryptoByTokenNetwork } =
+    useCryptoStore();
+  const { isLoading: ratesLoading } = useLoadRates();
 
-  const handleSelectToken = (t: CryptoToken) => {
-    setSelectedToken(t);
-    setTokenOpen(false);
-  };
+  const tokenId = selectedToken ? parseInt(selectedToken.id) : 0;
+  const { sellRate, minAmount, maxAmount, currency } = useRateForItem(
+    tokenId,
+    "crypto",
+  );
 
-  const copyAddress = () => {
-    navigator.clipboard.writeText(walletAddress).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+  // Load cryptos on mount
+  useEffect(() => {
+    fetchCryptos();
+  }, [fetchCryptos]);
+
+  // Fetch rate when token changes
+  useEffect(() => {
+    if (selectedToken?.symbol && selectedToken?.network) {
+      fetchCryptoByTokenNetwork(selectedToken.symbol, selectedToken.network);
+    }
+  }, [selectedToken, fetchCryptoByTokenNetwork]);
+
+  // Auto-fill wallet from API
+  useEffect(() => {
+    if (cryptoWithRate?.crypto?.wallet_address) {
+      setWalletAddress(cryptoWithRate.crypto.wallet_address);
+    }
+  }, [cryptoWithRate]);
+
+  // Memoized tokens list
+  const tokens = useMemo(
+    () =>
+      cryptos.map((c: any) => ({
+        id: String(c.id),
+        name: c.name,
+        symbol: c.symbol,
+        color: "bg-emerald-500",
+        network: c.network,
+      })),
+    [cryptos],
+  );
+
+  // Calculate the amount to send (amount * rate)
+  const currentRate = sellRate || 1470;
+  const youSend = amount * currentRate;
+
+  // Validate form
+  const isValid = useMemo(() => {
+    return !!(
+      selectedToken &&
+      walletAddress?.trim() &&
+      amount > 0 &&
+      amount >= minAmount &&
+      amount <= maxAmount
+    );
+  }, [selectedToken, walletAddress, amount, minAmount, maxAmount]);
+
+  // Handlers
+  const handleTokenSelect = useCallback((token: CryptoToken) => {
+    setSelectedToken(token);
+    setIsTokenOpen(false);
+    setAmount(0);
+    setWalletAddress("");
+  }, []);
+
+  const handlePresetAmount = useCallback((value: number) => {
+    setAmount(value);
+  }, []);
+
+  const handleCustomAmount = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = parseInt(e.target.value.replace(/\D/g, ""));
+      setAmount(isNaN(value) ? 0 : value);
+    },
+    [],
+  );
+
+  const copyAddress = useCallback(() => {
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  }, [walletAddress]);
+
+  const handleSubmit = useCallback(() => {
+    if (isValid && selectedToken) {
+      onContinue(selectedToken, walletAddress, amount);
+    }
+  }, [isValid, selectedToken, walletAddress, amount, onContinue]);
+
+  // Loading state
+  if (!tokens.length && cryptos.length === 0) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
+      {/* Back Button */}
       <button
-        type="button"
         onClick={onBack}
-        className="flex items-center gap-1 text-[13px] text-slate-500 hover:text-slate-800 mb-6 cursor-pointer transition"
+        className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 mb-6 transition"
       >
         ← Back
       </button>
 
       <div className="space-y-5">
-        {/* ── Select Token ─────────────────────────────────────────────── */}
+        {/* Token Selector */}
         <div>
-          <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
+          <label className="text-sm font-medium text-slate-700 mb-1.5 block">
             Select Token
           </label>
           <div className="relative">
             <button
-              type="button"
-              onClick={() => setTokenOpen((v) => !v)}
-              className="w-full h-[52px] rounded-[14px] border border-slate-200 bg-white px-4 flex items-center justify-between text-[14px] cursor-pointer hover:border-emerald-400 transition"
+              onClick={() => setIsTokenOpen((prev) => !prev)}
+              className="w-full h-[52px] rounded-xl border border-slate-200 bg-white px-4 flex items-center justify-between text-sm hover:border-emerald-400 transition"
             >
               {selectedToken ? (
-                <span className="flex items-center gap-3">
-                  <span
-                    className={`h-7 w-7 rounded-full ${selectedToken.color} flex items-center justify-center text-[11px] font-bold text-white`}
-                  >
+                <div className="flex items-center gap-3">
+                  <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white">
                     {selectedToken.symbol[0]}
+                  </div>
+                  <span className="font-medium">{selectedToken.symbol}</span>
+                  <span className="text-xs text-slate-400">
+                    ({selectedToken.network})
                   </span>
-                  <span className="font-medium text-slate-800">
-                    {selectedToken.symbol}
-                  </span>
-                </span>
+                </div>
               ) : (
                 <span className="text-slate-400">Select Token</span>
               )}
               <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition-transform ${tokenOpen ? "rotate-180" : ""}`}
+                className={`h-4 w-4 text-slate-400 transition-transform ${isTokenOpen ? "rotate-180" : ""}`}
               />
             </button>
 
-            {tokenOpen && (
+            {isTokenOpen && (
               <>
                 <div
                   className="fixed inset-0 z-10"
-                  onClick={() => setTokenOpen(false)}
+                  onClick={() => setIsTokenOpen(false)}
                 />
-                <div className="absolute top-[56px] left-0 right-0 bg-white border border-slate-200 rounded-[14px] shadow-lg z-20 overflow-hidden">
-                  {CRYPTO_TOKENS.map((t) => (
+                <div className="absolute top-[56px] left-0 right-0 bg-white border rounded-xl shadow-lg z-20 max-h-60 overflow-auto">
+                  {tokens.map((token: any) => (
                     <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => handleSelectToken(t)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-[14px] text-slate-700 transition"
+                      key={token.id}
+                      onClick={() => handleTokenSelect(token)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-sm transition"
                     >
-                      <span
-                        className={`h-7 w-7 rounded-full ${t.color} flex items-center justify-center text-[11px] font-bold text-white`}
-                      >
-                        {t.symbol[0]}
-                      </span>
-                      {t.symbol}
+                      <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white">
+                        {token.symbol[0]}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="font-medium">{token.symbol}</div>
+                        <div className="text-xs text-slate-400">
+                          {token.network}
+                        </div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -112,27 +199,26 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
           </div>
         </div>
 
-        {/* ── Wallet Address ────────────────────────────────────────────── */}
+        {/* Wallet Address */}
         {selectedToken && (
-          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-              Enter wallet address
+          <div className="animate-in fade-in duration-300">
+            <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+              Wallet Address
             </label>
-            <div className="relative flex items-center">
+            <div className="relative">
               <input
                 type="text"
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
-                placeholder="Enter your wallet address"
-                className="w-full h-[52px] rounded-[14px] border border-slate-200 bg-white px-4 pr-12 text-[14px] outline-none focus:border-emerald-500 transition"
+                placeholder={`Enter ${selectedToken.symbol} wallet address`}
+                className="w-full h-[52px] rounded-xl border border-slate-200 bg-white px-4 pr-12 text-sm outline-none focus:border-emerald-500 transition"
               />
               {walletAddress && (
                 <button
-                  type="button"
                   onClick={copyAddress}
-                  className="absolute right-3 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
-                  {copied ? (
+                  {isCopied ? (
                     <Check className="h-4 w-4 text-emerald-500" />
                   ) : (
                     <Copy className="h-4 w-4" />
@@ -143,78 +229,103 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
           </div>
         )}
 
-        {/* ── Amount ───────────────────────────────────────────────────── */}
-        {selectedToken && walletAddress.trim().length > 0 && (
-          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <label className="text-[13px] font-bold text-slate-800 mb-3 block">
-              How much are you buying
+        {/* Amount Input */}
+        {selectedToken && walletAddress && (
+          <div className="animate-in fade-in duration-300">
+            <label className="text-sm font-bold text-slate-800 mb-3 block">
+              How much are you buying?
             </label>
 
-            {/* Presets */}
+            {/* Preset Amounts */}
             <div className="grid grid-cols-4 gap-2 mb-3">
-              {BUY_AMOUNT_PRESETS.map((v) => (
+              {BUY_AMOUNT_PRESETS.map((value) => (
                 <button
-                  key={v}
-                  type="button"
-                  onClick={() => {
-                    setSelectedPreset(v);
-                    setCustomAmount("");
-                  }}
-                  className={[
-                    "h-[44px] rounded-[10px] border text-[13px] font-medium transition cursor-pointer",
-                    selectedPreset === v
+                  key={value}
+                  onClick={() => handlePresetAmount(value)}
+                  className={`h-11 rounded-lg border text-sm font-medium transition ${
+                    amount === value
                       ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300",
-                  ].join(" ")}
+                      : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300"
+                  }`}
                 >
-                  {v.toLocaleString()}
+                  {value.toLocaleString()}
                 </button>
               ))}
             </div>
 
-            {/* Custom amount */}
+            {/* Custom Amount */}
             <input
               type="text"
               inputMode="numeric"
-              value={customAmount}
-              onChange={(e) => {
-                setCustomAmount(e.target.value.replace(/\D/g, ""));
-                setSelectedPreset(null);
-              }}
+              value={amount || ""}
+              onChange={handleCustomAmount}
               placeholder="Enter other amount"
-              className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-white px-4 text-[14px] outline-none focus:border-emerald-500 transition"
+              className="w-full h-12 rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none focus:border-emerald-500 transition"
             />
 
-            {/* You send */}
-            {amount > 0 && (
-              <div className="mt-2 flex items-center justify-between rounded-[8px] bg-emerald-50 px-3 py-2">
-                <span className="text-[12px] text-emerald-700 font-medium">
-                  You send: ₦{youSend.toLocaleString()}.00
-                </span>
-                <span className="text-[11px] text-emerald-500">
-                  {RATE_PER_USDT.toLocaleString()}.00 per USDT
-                </span>
+            {/* Amount Validation Error */}
+            {amount > 0 && (amount < minAmount || amount > maxAmount) && (
+              <p className="text-xs text-amber-600 mt-1.5">
+                ⚠️{" "}
+                {amount < minAmount
+                  ? `Minimum is ${minAmount.toLocaleString()}`
+                  : `Maximum is ${maxAmount.toLocaleString()}`}{" "}
+                {selectedToken.symbol}
+              </p>
+            )}
+
+            {/* Rate Display - Only show when amount is valid */}
+            {amount > 0 && amount >= minAmount && amount <= maxAmount && (
+              <div className="mt-3 space-y-2">
+                {/* You Send Amount */}
+                <div className="flex justify-between items-center rounded-xl bg-emerald-50 px-4 py-3">
+                  <span className="text-sm text-emerald-700 font-medium">
+                    You send:
+                  </span>
+                  <span className="text-base text-emerald-800 font-bold">
+                    {currency}{" "}
+                    {youSend.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+
+                {/* Rate Info */}
+                <div className="flex justify-between items-center rounded-xl bg-slate-50 px-4 py-2">
+                  <span className="text-xs text-slate-500">Rate:</span>
+                  <span className="text-xs text-slate-700 font-medium">
+                    1 {selectedToken.symbol} = {currency}{" "}
+                    {currentRate.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Limits Info */}
+                <div className="text-center text-xs text-slate-400">
+                  Limits: {minAmount.toLocaleString()} -{" "}
+                  {maxAmount.toLocaleString()} {selectedToken.symbol}
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Buy button */}
+      {/* Submit Button */}
       <button
-        type="button"
-        disabled={!isValid}
-        onClick={() =>
-          isValid && onContinue(selectedToken!, walletAddress, amount)
-        }
-        className={[
-          "mt-6 h-[52px] w-full rounded-[12px] font-semibold text-[15px] transition",
-          isValid
+        onClick={handleSubmit}
+        disabled={!isValid || ratesLoading}
+        className={`mt-6 h-[52px] w-full rounded-xl font-semibold text-sm transition ${
+          isValid && !ratesLoading
             ? "bg-emerald-600 text-white hover:brightness-110 cursor-pointer"
-            : "bg-slate-200 text-slate-500 cursor-not-allowed",
-        ].join(" ")}
+            : "bg-slate-200 text-slate-500 cursor-not-allowed"
+        }`}
       >
-        Buy
+        {ratesLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+        ) : (
+          `Buy ${selectedToken?.symbol || "Crypto"}`
+        )}
       </button>
     </div>
   );

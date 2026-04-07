@@ -29,24 +29,26 @@ export default function SellGiftCardForm({
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const { fetchRates, getSellRate } = useRateStore();
+  // ✅ Use the typed convenience getter
+  const { fetchRateByTypeAndId, getGiftCardSellRate } = useRateStore();
 
   /* ---------------- FETCH RATES ---------------- */
 
   useEffect(() => {
-    fetchRates();
-  }, [fetchRates]);
+    if (card?.id) {
+      fetchRateByTypeAndId("gift_card", card.id);
+    }
+  }, [card?.id]);
 
-  const rate = getSellRate(card.id) || 0;
+  // ✅ FIXED: was getSellRate(card.id) — missing "gift_card" type
+  const rate = getGiftCardSellRate(card.id) || 0;
 
   /* ---------------- AMOUNT CHANGE ---------------- */
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setError("");
-
     const product = products.find((p) => String(p.amount) === String(value));
-
     setSelectedProduct(product || null);
   };
 
@@ -56,20 +58,16 @@ export default function SellGiftCardForm({
     const files = Array.from(e.target.files || []);
 
     const invalidFiles = files.filter((file) => file.size > 10 * 1024 * 1024);
-
     if (invalidFiles.length > 0) {
       setError("Some files exceed the 10MB limit");
       return;
     }
 
     setError("");
-
     setImageFiles(files);
 
     const previews = files.map((file) => URL.createObjectURL(file));
-
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
-
     setImagePreviews(previews);
   };
 
@@ -80,17 +78,14 @@ export default function SellGiftCardForm({
       setError("Please enter the gift card number");
       return false;
     }
-
     if (!selectedProduct) {
       setError("Please select an amount");
       return false;
     }
-
     if (imageFiles.length === 0) {
       setError("Please upload at least one gift card image");
       return false;
     }
-
     return true;
   };
 
@@ -100,15 +95,7 @@ export default function SellGiftCardForm({
     if (!validateForm()) return;
     if (!selectedProduct) return;
 
-    onSubmit(
-      {
-        cardNumber,
-        amount,
-        quantity,
-        imageFiles,
-      },
-      selectedProduct,
-    );
+    onSubmit({ cardNumber, amount, quantity, imageFiles }, selectedProduct);
   };
 
   /* ---------------- TOTAL ---------------- */
@@ -134,10 +121,8 @@ export default function SellGiftCardForm({
 
       <div className="bg-white p-6 rounded-2xl shadow-sm space-y-6">
         {/* CARD NUMBER */}
-
         <div>
           <p className="text-sm mb-2">Enter giftcard number</p>
-
           <input
             value={cardNumber}
             onChange={(e) => setCardNumber(e.target.value)}
@@ -147,17 +132,14 @@ export default function SellGiftCardForm({
         </div>
 
         {/* AMOUNT */}
-
         <div>
           <p className="text-sm mb-2">Enter amount ($)</p>
-
           <select
             value={amount}
             onChange={(e) => handleAmountChange(e.target.value)}
             className="w-full h-[48px] rounded-xl bg-slate-100 px-4"
           >
             <option value="">Select amount</option>
-
             {products.map((product) => (
               <option key={product.id} value={product.amount}>
                 ${product.amount}
@@ -167,20 +149,16 @@ export default function SellGiftCardForm({
         </div>
 
         {/* IMAGE UPLOAD */}
-
         <div>
           <p className="text-sm mb-2">Upload Giftcard image</p>
-
           <label className="flex items-center gap-3 bg-slate-100 rounded-xl p-4 cursor-pointer">
             <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
               <Upload className="text-white w-5 h-5" />
             </div>
-
             <div>
               <p className="text-xs">Click here</p>
               <p className="text-[10px] text-gray-400">JPG, PNG (max 10MB)</p>
             </div>
-
             <input
               type="file"
               accept="image/*"
@@ -208,41 +186,34 @@ export default function SellGiftCardForm({
         </div>
 
         {/* QUANTITY */}
-
         <div>
           <p className="text-sm mb-2">Quantity</p>
-
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-4 border rounded-xl px-4 py-2">
               <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
                 <Minus size={16} />
               </button>
-
               <span>{quantity}</span>
-
               <button onClick={() => setQuantity((q) => q + 1)}>
                 <Plus size={16} />
               </button>
             </div>
 
             <div className="bg-green-100 text-green-700 text-xs px-3 py-2 rounded-lg">
-              ₦{rate.toLocaleString()} / $
+              {rate > 0 ? `₦${rate.toLocaleString()} / $` : "Loading rate..."}
             </div>
           </div>
         </div>
 
         {/* TOTAL */}
-
         {selectedProduct && (
           <div className="text-center">
             <p className="text-xs text-gray-500">Total Amount</p>
-
             <p className="text-xl font-bold">₦{total.toLocaleString()}</p>
           </div>
         )}
 
         {/* ERROR */}
-
         {error && (
           <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
             {error}
@@ -250,7 +221,6 @@ export default function SellGiftCardForm({
         )}
 
         {/* BUTTON */}
-
         <button
           onClick={handleSubmit}
           className="w-[70%] mx-auto block h-[48px] rounded-xl bg-green-600 text-white font-semibold"

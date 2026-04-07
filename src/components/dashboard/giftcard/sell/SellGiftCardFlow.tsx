@@ -47,14 +47,15 @@ export default function SellGiftCardFlow({ onBack }: Props) {
     clearError,
   } = useGiftCardStore();
 
-  const { fetchRates } = useRateStore();
+  // ✅ Only need fetchRateByTypeAndId here — per-card fetch happens inside
+  // SellGiftCardForm and GiftCardReceipt when card.id is known
+  const { fetchRateByTypeAndId } = useRateStore();
 
   /* ---------------- LOAD APIs ---------------- */
 
   useEffect(() => {
     fetchGiftCards();
     fetchProducts();
-    fetchRates();
   }, []);
 
   /* ---------------- SELECT CARD ---------------- */
@@ -62,6 +63,8 @@ export default function SellGiftCardFlow({ onBack }: Props) {
   const handleCardSelect = (card: GiftCard) => {
     console.log("Selected Gift Card:", card);
     setSelectedCard(card);
+    // ✅ Pre-fetch the rate as soon as user selects a card
+    fetchRateByTypeAndId("gift_card", card.id);
     setStep("form");
   };
 
@@ -76,7 +79,6 @@ export default function SellGiftCardFlow({ onBack }: Props) {
   const handleFormSubmit = (data: SellFormData, product: GiftCardProduct) => {
     console.log("Form Data Submitted:", data);
     console.log("Selected Product:", product);
-
     setFormData(data);
     setSelectedProduct(product);
     setStep("receipt");
@@ -112,11 +114,7 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       /* ---------------- DEBUG LOGS ---------------- */
 
       console.log("===== SELL GIFTCARD REQUEST =====");
-
-      payload.forEach((value, key) => {
-        console.log(key, value);
-      });
-
+      payload.forEach((value, key) => console.log(key, value));
       console.log("=================================");
 
       const response = await sellGiftCard(payload);
@@ -151,7 +149,6 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       )}
 
       {/* ---------------- CARD GRID ---------------- */}
-
       {step === "grid" && (
         <GiftCardGrid
           title="Sell Gift Cards"
@@ -163,7 +160,6 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       )}
 
       {/* ---------------- FORM ---------------- */}
-
       {step === "form" && selectedCard && (
         <SellGiftCardForm
           card={selectedCard}
@@ -174,7 +170,6 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       )}
 
       {/* ---------------- RECEIPT ---------------- */}
-
       {step === "receipt" && selectedCard && selectedProduct && formData && (
         <GiftCardReceipt
           mode="sell"
@@ -188,7 +183,6 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       )}
 
       {/* ---------------- SUCCESS MODAL ---------------- */}
-
       <GiftCardSuccessModal
         open={step === "success"}
         mode="sell"
