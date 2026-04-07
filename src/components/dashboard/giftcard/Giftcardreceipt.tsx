@@ -29,17 +29,19 @@ export default function GiftCardReceipt({
   const router = useRouter();
   const user = useAuthStore((s: { user: User | null }) => s.user);
   const {
-    fetchRates,
-    getBuyRate,
-    getSellRate,
+    fetchRateByTypeAndId,
+    getGiftCardBuyRate,
+    getGiftCardSellRate,
     isLoading: ratesLoading,
   } = useRateStore();
   const [showBalance, setShowBalance] = useState(true);
 
-  // Fetch rates on mount so they're available for calculations
+  // ✅ Fetch the specific gift card rate on mount using the dedicated endpoint
   useEffect(() => {
-    fetchRates();
-  }, []);
+    if (card?.id) {
+      fetchRateByTypeAndId("gift_card", card.id);
+    }
+  }, [card?.id]);
 
   const wallet = user?.wallet;
   const balance = Number(wallet?.balance ?? 0);
@@ -49,9 +51,9 @@ export default function GiftCardReceipt({
   const amount = Number(product.amount);
   const orderUSD = amount * qty;
 
-  // Safe rate lookup with fallback
-  const buyRate = getBuyRate(card.id) || 1700;
-  const sellRate = getSellRate(card.id) || 1500;
+  // ✅ FIXED: Using the correct typed getters — no hardcoded fallbacks
+  const buyRate = getGiftCardBuyRate(card.id);
+  const sellRate = getGiftCardSellRate(card.id);
 
   const orderNGN = orderUSD * buyRate;
   const sellNGN = orderUSD * sellRate;
@@ -60,6 +62,9 @@ export default function GiftCardReceipt({
   const displayAmount = isSell
     ? `₦${sellNGN.toLocaleString()}`
     : `₦${orderNGN.toLocaleString()}`;
+
+  // Show loading if rates not yet fetched
+  const rateReady = isSell ? sellRate > 0 : buyRate > 0;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -131,7 +136,7 @@ export default function GiftCardReceipt({
         <div className="px-5 py-5">
           <h3 className="text-[16px] font-semibold mb-4">{card.name}</h3>
 
-          {ratesLoading ? (
+          {ratesLoading || !rateReady ? (
             <div className="flex justify-center py-6">
               <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
             </div>
@@ -152,6 +157,10 @@ export default function GiftCardReceipt({
                 label="Value (qty)"
                 value={`${product.currency} ${amount.toLocaleString()} (x${qty})`}
               />
+              <DetailRow
+                label="Rate"
+                value={`₦${(isSell ? sellRate : buyRate).toLocaleString()}/$`}
+              />
               <DetailRow label="Deliver to" value="—" />
               <DetailRow label="Order Amount" value={displayAmount} highlight />
               <DetailRow label="Transaction fee" value="₦0" highlight />
@@ -171,10 +180,10 @@ export default function GiftCardReceipt({
         <div className="p-4">
           <button
             onClick={onConfirm}
-            disabled={isSubmitting || ratesLoading}
+            disabled={isSubmitting || ratesLoading || !rateReady}
             className={[
               "w-full h-[52px] rounded-[12px] text-white font-semibold flex items-center justify-center gap-2 transition",
-              isSubmitting || ratesLoading
+              isSubmitting || ratesLoading || !rateReady
                 ? "bg-emerald-400 cursor-not-allowed"
                 : "bg-emerald-600 hover:brightness-110 cursor-pointer",
             ].join(" ")}

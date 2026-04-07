@@ -1,12 +1,10 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Sell Crypto — shared types & static data
-// ─────────────────────────────────────────────────────────────────────────────
+// components/dashboard/sellCrypto/sellCryptoData.ts
 
 export type CryptoToken = {
   id: string;
   name: string;
   symbol: string;
-  color: string; // tailwind bg color
+  color: string;
   textColor: string;
 };
 
@@ -20,74 +18,32 @@ export type PaymentAccountOption = {
   type: "bank" | "crypto" | "wallet";
   label: string;
   sublabel: string;
-  logoText?: string; // initials fallback
+  logoText?: string;
   logoColor?: string;
+  bankAccountId?: number; // ✅ Add bank account ID for bank accounts
 };
-
-export type SellCryptoFormData = {
-  token: CryptoToken;
-  network: CryptoNetwork;
-  amount: number;
-  youGet: number;
-  paymentAccount: PaymentAccountOption;
-};
-
-// ── Static data ───────────────────────────────────────────────────────────────
-
-export const CRYPTO_TOKENS: CryptoToken[] = [
-  {
-    id: "usdt",
-    name: "USDT",
-    symbol: "USDT",
-    color: "bg-emerald-500",
-    textColor: "text-white",
-  },
-  {
-    id: "btc",
-    name: "BTC",
-    symbol: "BTC",
-    color: "bg-orange-500",
-    textColor: "text-white",
-  },
-  {
-    id: "usdc",
-    name: "USDC",
-    symbol: "USDC",
-    color: "bg-blue-500",
-    textColor: "text-white",
-  },
-];
-
-export const CRYPTO_NETWORKS: CryptoNetwork[] = [
-  { id: "erc20", label: "ERC20" },
-  { id: "btc", label: "BTC" },
-  { id: "usdc", label: "USDC" },
-];
 
 export const SELL_AMOUNT_PRESETS = [500, 1000, 3000, 5000];
-export const BUY_AMOUNT_PRESETS = [5000, 25000, 50000, 100000, 200000];
 
-export const RATE_PER_USDT = 1450;
-
-export const WALLET_ADDRESS = "TJaBucewys2MkKcqCastDLvWvndYGQbgwg";
-export const MOCK_QR_CODE = "/images/crypto/qr-placeholder.png"; // replace with real QR
-
+// Payment accounts with proper bank account IDs
 export const PAYMENT_ACCOUNTS: PaymentAccountOption[] = [
   {
     id: "uba",
     type: "bank",
-    label: "2141536385- Emmanuel Nwaezeoma Chijioke",
+    label: "2141536385 - Emmanuel Nwaezeoma Chijioke",
     sublabel: "United Bank of Africa",
-    logoText: "BA",
+    logoText: "UB",
     logoColor: "bg-red-600",
+    bankAccountId: 1, // ✅ Actual bank account ID from backend
   },
   {
-    id: "crypto",
-    type: "crypto",
-    label: "Pay with Crypto",
-    sublabel: "Unlimited transfer",
-    logoText: "₿",
+    id: "gtb",
+    type: "bank",
+    label: "0123456789 - John Doe",
+    sublabel: "Guaranty Trust Bank",
+    logoText: "GT",
     logoColor: "bg-orange-500",
+    bankAccountId: 2, // ✅ Actual bank account ID from backend
   },
   {
     id: "cashconnect",
@@ -96,5 +52,6 @@ export const PAYMENT_ACCOUNTS: PaymentAccountOption[] = [
     sublabel: "Fast and reliable",
     logoText: "CC",
     logoColor: "bg-emerald-500",
+    // ✅ No bankAccountId for wallet type
   },
 ];

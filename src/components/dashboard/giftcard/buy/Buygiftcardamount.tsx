@@ -20,7 +20,7 @@ type Props = {
 
 export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
   const { products, isLoading, fetchProducts } = useGiftCardStore();
-  const { fetchRates, getBuyRate } = useRateStore();
+  const { fetchRates, getGiftCardBuyRate } = useRateStore();
 
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [cardProducts, setCardProducts] = useState<GiftCardProduct[]>([]);
@@ -72,12 +72,16 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
     return cardProducts.reduce((total, product) => {
       const qty = quantities[product.id] ?? 0;
       const amount = Number(product.amount) || 0;
-
       return total + amount * qty;
     }, 0);
   }, [cardProducts, quantities]);
 
-  const rate = useMemo(() => getBuyRate(card.id) || 0, [getBuyRate, card.id]);
+  // ✅ FIXED: Using getGiftCardBuyRate which only needs the ID
+  // and has built-in fallback logic
+  const rate = useMemo(
+    () => getGiftCardBuyRate(card.id) || 0,
+    [getGiftCardBuyRate, card.id],
+  );
 
   const totalNGN = useMemo(() => totalUSD * rate, [totalUSD, rate]);
 

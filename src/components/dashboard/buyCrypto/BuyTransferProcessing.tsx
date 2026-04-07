@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Check } from "lucide-react";
-import { WALLET_ADDRESS } from "./buyCryptoData";
 import BuySuccessModal from "./BuySuccessModal";
+import { useCryptoStore } from "@/store/cryptoStore";
 
 type Props = {
   amountSent: number;
@@ -11,6 +11,7 @@ type Props = {
   amountReceived: number;
   recipientWallet: string;
   onReturnHome: () => void;
+  transactionId?: number;
 };
 
 type StepState = "active" | "done" | "pending";
@@ -30,22 +31,58 @@ export default function BuyTransferProcessing({
   amountReceived,
   recipientWallet,
   onReturnHome,
+  transactionId,
 }: Props) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const fetchMyTransactions = useCryptoStore((s: any) => s.fetchMyTransactions);
+
+  // Fake progression (fallback if no backend status yet)
   useEffect(() => {
+    if (transactionId) return;
+
     if (currentStep >= STEPS.length - 1) return;
-    const t = setTimeout(() => setCurrentStep((s) => s + 1), STEP_DURATION);
+
+    const t = setTimeout(() => {
+      setCurrentStep((s) => s + 1);
+    }, STEP_DURATION);
+
     return () => clearTimeout(t);
-  }, [currentStep]);
+  }, [currentStep, transactionId]);
+
+  // Real API polling (when backend supports status)
+  useEffect(() => {
+    if (!transactionId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const txs = await fetchMyTransactions();
+        const tx = txs.find((t: any) => t.id === transactionId);
+
+        if (!tx) return;
+
+        if (tx.admin_tx_hash) {
+          setCurrentStep(2);
+          setShowSuccess(true);
+          clearInterval(interval);
+        } else {
+          setCurrentStep(1);
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [transactionId, fetchMyTransactions]);
 
   useEffect(() => {
-    if (currentStep === STEPS.length - 1) {
+    if (currentStep === STEPS.length - 1 && !transactionId) {
       const t = setTimeout(() => setShowSuccess(true), 800);
       return () => clearTimeout(t);
     }
-  }, [currentStep]);
+  }, [currentStep, transactionId]);
 
   const getStepState = (index: number): StepState => {
     if (index < currentStep) return "done";
@@ -63,7 +100,7 @@ export default function BuyTransferProcessing({
         </p>
         <p className="text-[12px] text-slate-400 mt-1">to:</p>
         <p className="text-[12px] text-slate-600 truncate px-4">
-          {WALLET_ADDRESS}
+          {recipientWallet}
         </p>
       </div>
 
@@ -74,9 +111,7 @@ export default function BuyTransferProcessing({
           {amountReceived.toLocaleString()} {tokenSymbol}
         </p>
         <p className="text-[12px] text-slate-400 mt-1">to:</p>
-        <p className="text-[12px] text-slate-600 truncate px-4">
-          {recipientWallet}
-        </p>
+        <p className="text-[12px] text-slate-600 truncate px-4">Your Wallet</p>
       </div>
 
       {/* Progress */}
@@ -85,6 +120,7 @@ export default function BuyTransferProcessing({
           {STEPS.map((step, index) => {
             const state = getStepState(index);
             const isLast = index === STEPS.length - 1;
+
             return (
               <div key={step.label} className="flex items-start">
                 <div className="flex flex-col items-center gap-2 w-20">
@@ -103,9 +139,10 @@ export default function BuyTransferProcessing({
                       ].join(" ")}
                     />
                   </div>
+
                   <p
                     className={[
-                      "text-[11px] text-center leading-tight transition-colors duration-300",
+                      "text-[11px] text-center leading-tight transition-colors duration-300 max-w-[80px]",
                       state === "pending"
                         ? "text-slate-400"
                         : "text-emerald-700 font-medium",
@@ -114,6 +151,7 @@ export default function BuyTransferProcessing({
                     {step.label}
                   </p>
                 </div>
+
                 {!isLast && (
                   <div className="mt-5 w-16 h-[2px] flex-shrink-0 mx-1 rounded-full overflow-hidden bg-slate-200">
                     <div

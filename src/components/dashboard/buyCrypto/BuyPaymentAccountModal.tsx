@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Check, ChevronDown } from "lucide-react";
 import { PAYMENT_ACCOUNTS, PaymentAccountOption } from "./buyCryptoData";
 
@@ -8,18 +8,34 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onContinue: (account: PaymentAccountOption) => void;
+
+  // ✅ OPTIONAL (future API support)
+  accounts?: PaymentAccountOption[];
+  loading?: boolean;
 };
 
 export default function BuyPaymentAccountModal({
   open,
   onClose,
   onContinue,
+  accounts,
+  loading = false,
 }: Props) {
-  const [selectedId, setSelectedId] = useState<string>(PAYMENT_ACCOUNTS[0].id);
+  // ✅ Use API accounts if provided, fallback to static
+  const data = accounts && accounts.length ? accounts : PAYMENT_ACCOUNTS;
+
+  const [selectedId, setSelectedId] = useState<string>(data[0]?.id);
+
+  // ✅ Reset selection when modal opens
+  useEffect(() => {
+    if (open && data.length) {
+      setSelectedId(data[0].id);
+    }
+  }, [open, data]);
 
   if (!open) return null;
 
-  const selected = PAYMENT_ACCOUNTS.find((a) => a.id === selectedId)!;
+  const selected = data.find((a) => a.id === selectedId)!;
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
@@ -46,46 +62,55 @@ export default function BuyPaymentAccountModal({
           </button>
         </div>
 
+        {/* ✅ Loading state */}
+        {loading && (
+          <p className="text-center text-sm text-slate-500 mt-6">
+            Loading payment accounts...
+          </p>
+        )}
+
         {/* Account list */}
-        <div className="mt-4 space-y-2">
-          {PAYMENT_ACCOUNTS.map((acc) => {
-            const isSelected = selectedId === acc.id;
-            return (
-              <button
-                key={acc.id}
-                type="button"
-                onClick={() => setSelectedId(acc.id)}
-                className={[
-                  "w-full flex items-center gap-3 px-4 py-3.5 rounded-[14px] border transition text-left",
-                  isSelected
-                    ? "border-emerald-400 bg-white"
-                    : "border-slate-200 bg-white hover:border-slate-300",
-                ].join(" ")}
-              >
-                <div
-                  className={`h-11 w-11 rounded-full ${acc.logoColor} flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0`}
+        {!loading && (
+          <div className="mt-4 space-y-2">
+            {data.map((acc) => {
+              const isSelected = selectedId === acc.id;
+              return (
+                <button
+                  key={acc.id}
+                  type="button"
+                  onClick={() => setSelectedId(acc.id)}
+                  className={[
+                    "w-full flex items-center gap-3 px-4 py-3.5 rounded-[14px] border transition text-left",
+                    isSelected
+                      ? "border-emerald-400 bg-white"
+                      : "border-slate-200 bg-white hover:border-slate-300",
+                  ].join(" ")}
                 >
-                  {acc.logoText}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-slate-800 truncate">
-                    {acc.label}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    {acc.sublabel}
-                  </p>
-                </div>
-                {isSelected ? (
-                  <div className="h-6 w-6 rounded-full bg-emerald-500 grid place-items-center flex-shrink-0">
-                    <Check className="h-3.5 w-3.5 text-white" />
+                  <div
+                    className={`h-11 w-11 rounded-full ${acc.logoColor} flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0`}
+                  >
+                    {acc.logoText}
                   </div>
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-slate-800 truncate">
+                      {acc.label}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {acc.sublabel}
+                    </p>
+                  </div>
+                  {isSelected ? (
+                    <div className="h-6 w-6 rounded-full bg-emerald-500 grid place-items-center flex-shrink-0">
+                      <Check className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <button
           type="button"
@@ -96,8 +121,14 @@ export default function BuyPaymentAccountModal({
 
         <button
           type="button"
+          disabled={!selected}
           onClick={() => onContinue(selected)}
-          className="mt-4 w-full h-[52px] rounded-[14px] bg-emerald-600 text-white text-[15px] font-semibold hover:brightness-110 transition cursor-pointer"
+          className={[
+            "mt-4 w-full h-[52px] rounded-[14px] text-white text-[15px] font-semibold transition",
+            selected
+              ? "bg-emerald-600 hover:brightness-110 cursor-pointer"
+              : "bg-slate-300 cursor-not-allowed",
+          ].join(" ")}
         >
           Continue
         </button>

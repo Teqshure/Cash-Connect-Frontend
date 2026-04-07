@@ -1,5 +1,3 @@
-// components/dashboard/receivePayment/ReceivePaymentFlow.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -19,77 +17,83 @@ type FormDataType = {
   gender: string;
 };
 
-type Props = {
-  onBack: () => void; // ✅ Add this prop
-};
-
-export default function ReceivePaymentFlow({ onBack }: Props) {
+export default function ReceivePaymentFlow({ onBack }: any) {
   const [step, setStep] = useState<Step>("choose");
   const [selectedMethod, setSelectedMethod] = useState<UIPaymentMethod | null>(
     null,
   );
   const [formData, setFormData] = useState<FormDataType | null>(null);
-  const [showCopied, setShowCopied] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const { findAccounts, availableAccounts, loading, currencies } =
-    useGlobalPaymentStore();
+  const [showSuccess, setShowSuccess] = useState(false); // ✅ notify admin modal
+  const [showCopyModal, setShowCopyModal] = useState(false); // ✅ copy modal
 
-  // --------------------------------------------------
-  // METHOD SELECT
-  // --------------------------------------------------
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const {
+    findAccounts,
+    submitTransaction,
+    availableAccounts,
+    loading,
+    currencies,
+  } = useGlobalPaymentStore();
+
+  // ---------------- CLEAN ACCOUNTS ----------------
+  const cleanedAccounts = (availableAccounts || []).map((item: any) => {
+    console.log("🔍 [RAW ITEM]:", item);
+    return item.account || item;
+  });
+
+  console.log("✅ [FINAL CLEAN ACCOUNTS]:", cleanedAccounts);
+
+  // ---------------- METHOD SELECT ----------------
   const handleMethodSelect = (method: UIPaymentMethod) => {
+    console.log("🟢 Selected Method:", method);
     setSelectedMethod(method);
     setStep("form");
   };
 
-  // --------------------------------------------------
-  // Validate amount against currency limits
-  // --------------------------------------------------
+  // ---------------- VALIDATION ----------------
   const validateAmount = (
     amount: number,
     currency: string,
     methodId?: number,
-  ): string | null => {
+  ) => {
+    console.log("🧪 [VALIDATION]:", { amount, currency, methodId });
+
     if (!methodId) return null;
 
     const methodCurrencies = currencies[methodId];
-    if (!methodCurrencies || methodCurrencies.length === 0) return null;
+    if (!methodCurrencies) return null;
 
     const currencyData = methodCurrencies.find(
       (c: any) => c.currency === currency,
     );
+
     if (!currencyData) return null;
 
-    const minAmount = parseFloat(currencyData.min_amount);
-    const maxAmount = parseFloat(currencyData.max_amount);
+    const min = parseFloat(currencyData.min_amount);
+    const max = parseFloat(currencyData.max_amount);
 
-    if (!isNaN(minAmount) && minAmount > 0 && amount < minAmount) {
-      return `Minimum amount is ${minAmount.toLocaleString()} ${currency}`;
-    }
-
-    if (!isNaN(maxAmount) && maxAmount > 0 && amount > maxAmount) {
-      return `Maximum amount is ${maxAmount.toLocaleString()} ${currency}`;
-    }
+    if (amount < min) return `Minimum amount is ${min}`;
+    if (amount > max) return `Maximum amount is ${max}`;
 
     return null;
   };
 
-  // --------------------------------------------------
-  // FORM SUBMIT → FIND ACCOUNTS
-  // --------------------------------------------------
+  // ---------------- FORM SUBMIT ----------------
   const handleFormSubmit = async (data: FormDataType) => {
     if (!selectedMethod) return;
 
-    // Validate amount before sending to API
-    const validationError = validateAmount(
+    console.log("🚀 [FORM SUBMIT DATA]:", data);
+
+    const error = validateAmount(
       data.amount,
       data.currency,
       selectedMethod.paymentMethodId,
     );
 
-    if (validationError) {
-      setErrorMessage(validationError);
+    if (error) {
+      setErrorMessage(error);
       setStep("error");
       return;
     }
@@ -97,57 +101,62 @@ export default function ReceivePaymentFlow({ onBack }: Props) {
     setFormData(data);
 
     try {
-      const payload = {
+      const accounts = await findAccounts({
         payment_method: selectedMethod.code || selectedMethod.id,
         currency: data.currency,
         country: data.country,
         gender: data.gender,
         expected_amount: data.amount,
-      };
+      });
 
-      console.log("🔍 Sending find accounts payload:", payload);
-
-      const accounts = await findAccounts(payload);
-
-      console.log("✅ Accounts found:", accounts);
+      console.log("✅ [ACCOUNTS RETURNED]:", accounts);
 
       if (!accounts || accounts.length === 0) {
-        setErrorMessage(
-          "No accounts found for this request. Please try different options.",
-        );
+        setErrorMessage("No accounts found");
         setStep("error");
         return;
       }
 
+      console.log("➡️ Moving to accounts screen");
       setStep("accounts");
     } catch (err: any) {
-      console.error("Find accounts error:", err);
-
-      let errorMsg = "Failed to find accounts. Please try again.";
-
-      if (err.message) {
-        errorMsg = err.message;
-      }
-
-      if (
-        errorMsg.toLowerCase().includes("amount") &&
-        errorMsg.toLowerCase().includes("range")
-      ) {
-        errorMsg =
-          "The amount you entered is outside the allowed range for this payment method.";
-      }
-
-      setErrorMessage(errorMsg);
+      console.error("❌ ERROR:", err);
+      setErrorMessage(err.message);
       setStep("error");
     }
   };
 
-  // --------------------------------------------------
-  // UI
-  // --------------------------------------------------
+  // ---------------- ACCOUNT SELECT ----------------
+  const handleAccountSelect = async (account: any) => {
+    console.log("📢 [NOTIFY ADMIN CLICKED]");
+    console.log("📢 ACCOUNT:", account);
+    console.log("📢 FORM DATA:", formData);
+
+    try {
+      const payload = {
+        account_id: account.id,
+        expected_amount: formData?.amount || 0,
+      };
+
+      console.log("🚀 [CALLING submitTransaction WITH]:", payload);
+
+      const res = await submitTransaction(payload);
+
+      console.log("✅ [TRANSACTION CREATED]:", res);
+
+      setShowSuccess(true);
+    } catch (err: any) {
+      console.error("❌ TRANSACTION ERROR:", err);
+      setErrorMessage(err.message);
+      setStep("error");
+    }
+  };
+
+  // ---------------- RENDER ----------------
+  console.log("📺 [RENDERING ACCOUNTS]:", cleanedAccounts);
+
   return (
     <div className="w-full">
-      {/* Step 1 - Method selection */}
       {step === "choose" && (
         <ReceivePaymentMethodGrid
           onSelect={handleMethodSelect}
@@ -155,7 +164,6 @@ export default function ReceivePaymentFlow({ onBack }: Props) {
         />
       )}
 
-      {/* Step 2 - Form */}
       {step === "form" && selectedMethod && (
         <ReceivePaymentForm
           method={selectedMethod}
@@ -165,32 +173,43 @@ export default function ReceivePaymentFlow({ onBack }: Props) {
         />
       )}
 
-      {/* Step 3 - Available Accounts */}
       {step === "accounts" && (
         <ReceiveAccountsList
-          accounts={availableAccounts}
-          currency={formData?.currency || "USD"}
+          accounts={cleanedAccounts}
+          currency={formData?.currency || ""}
           onBack={() => setStep("form")}
-          onCopy={() => setShowCopied(true)}
+          onSelect={handleAccountSelect}
+          onCopy={() => {
+            console.log("📋 COPY TRIGGERED");
+            setShowCopyModal(true); // ✅ SHOW COPY MODAL
+          }}
         />
       )}
 
-      {/* Error Modal */}
+      {/* ERROR */}
       <ReceiveErrorModal
         open={step === "error"}
-        onClose={() => {
-          setStep("form");
-          setErrorMessage("");
-        }}
+        onClose={() => setStep("form")}
         errorMessage={errorMessage}
       />
 
-      {/* Success Modal */}
+      {/* SUCCESS (ADMIN NOTIFIED) */}
       <ReceiveSuccessModal
-        open={showCopied}
-        title="Account Copied!"
-        message="Share account details with your sender"
-        onOk={() => setShowCopied(false)}
+        open={showSuccess}
+        title="Admin Notified!"
+        message="Payment will be sent once admin confirms and approves."
+        onOk={() => {
+          setShowSuccess(false);
+          setStep("choose");
+        }}
+      />
+
+      {/* COPY MODAL */}
+      <ReceiveSuccessModal
+        open={showCopyModal}
+        title="Copied!"
+        message="Account details copied successfully."
+        onOk={() => setShowCopyModal(false)}
       />
     </div>
   );
