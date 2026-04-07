@@ -1,5 +1,3 @@
-// components/dashboard/receivePayment/ReceivePaymentForm.tsx
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -77,6 +75,7 @@ export default function ReceivePaymentForm({
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const hasFetchedCurrencies = useRef(false);
   const hasFetchedCountries = useRef(false);
@@ -87,7 +86,13 @@ export default function ReceivePaymentForm({
   const rate = usePaymentMethodRate(method, currency);
   const isLoadingData = currenciesLoading || countriesLoading;
 
-  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -114,7 +119,6 @@ export default function ReceivePaymentForm({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch currencies
   useEffect(() => {
     if (!method?.paymentMethodId) return;
 
@@ -136,7 +140,6 @@ export default function ReceivePaymentForm({
     fetchCurrenciesForMethod,
   ]);
 
-  // Fetch countries
   useEffect(() => {
     if (!method?.paymentMethodId) return;
 
@@ -158,14 +161,12 @@ export default function ReceivePaymentForm({
     fetchCountriesForMethod,
   ]);
 
-  // Set default currency
   useEffect(() => {
     if (currencies.length > 0 && !currency) {
       setCurrency(currencies[0].currency);
     }
   }, [currencies, currency]);
 
-  // Set default country
   useEffect(() => {
     if (countries.length > 0 && !country) {
       setCountry(countries[0].country);
@@ -192,7 +193,6 @@ export default function ReceivePaymentForm({
     onContinue({ currency, country, gender, amount: finalAmount });
   }, [validate, currency, country, gender, finalAmount, onContinue]);
 
-  // Get selected gender display
   const getSelectedGenderDisplay = () => {
     const selected = GENDER_OPTIONS.find((g) => g.value === gender);
     if (selected) {
@@ -211,19 +211,17 @@ export default function ReceivePaymentForm({
     );
   };
 
-  // Get rate display
   const getRateDisplay = () => {
     if (rate > 0 && rate !== 1450) {
       return `${rate.toLocaleString()} per ${currency}`;
     }
-    if (currenciesLoading) {
+    if (currenciesLoading && currencies.length === 0) {
       return "Loading rate...";
     }
     return `1,450.00 per ${currency || "USD"}`;
   };
 
-  // Loading state
-  if (isLoadingData && currencies.length === 0 && countries.length === 0) {
+  if (initialLoading && currencies.length === 0 && countries.length === 0) {
     return (
       <div className="w-full flex justify-center pb-12 bg-[#F5F5F5] min-h-screen px-4">
         <div className="w-full max-w-[600px] bg-white rounded-[28px] pt-10 pb-12 shadow-[0px_4px_25px_rgba(0,0,0,0.06)]">
@@ -243,7 +241,6 @@ export default function ReceivePaymentForm({
   return (
     <div className="w-full flex justify-center pb-12 bg-[#F5F5F5] min-h-screen px-4">
       <div className="w-full max-w-[600px] bg-white rounded-[28px] pt-10 pb-12 shadow-[0px_4px_25px_rgba(0,0,0,0.06)]">
-        {/* Back button */}
         <div className="pl-6 mb-6">
           <button
             onClick={onBack}
@@ -254,7 +251,6 @@ export default function ReceivePaymentForm({
         </div>
 
         <div className="px-6 sm:px-12">
-          {/* Payment Method Logo */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-20 h-20 rounded-full border border-emerald-200 flex items-center justify-center bg-white shadow-sm mb-3">
               <Image
@@ -271,13 +267,12 @@ export default function ReceivePaymentForm({
           </div>
 
           <div className="space-y-5">
-            {/* Currency Selector */}
             <div>
               <label className="text-sm text-gray-600 mb-2 block font-medium">
                 Select Payout Currency
               </label>
 
-              {currencies.length === 0 ? (
+              {currencies.length === 0 && currenciesLoading ? (
                 <div className="h-[56px] rounded-xl bg-gray-100 animate-pulse" />
               ) : (
                 <div className="relative" ref={currencyRef}>
@@ -291,9 +286,13 @@ export default function ReceivePaymentForm({
                         {CURRENCY_FLAGS[currency] || "💰"}
                       </span>
                       <div className="text-left">
-                        <div className="font-medium">{currency}</div>
+                        <div className="font-medium">
+                          {currency || "Select"}
+                        </div>
                         <div className="text-xs text-gray-500">
-                          {CURRENCY_NAMES[currency] || "Currency"}
+                          {currency
+                            ? CURRENCY_NAMES[currency] || "Currency"
+                            : "Choose currency"}
                         </div>
                       </div>
                     </div>
@@ -304,7 +303,7 @@ export default function ReceivePaymentForm({
                     )}
                   </button>
 
-                  {isCurrencyOpen && (
+                  {isCurrencyOpen && currencies.length > 0 && (
                     <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
                       {currencies.map((c: Currency, index: number) => (
                         <button
@@ -342,13 +341,12 @@ export default function ReceivePaymentForm({
               )}
             </div>
 
-            {/* Country Selector */}
             <div>
               <label className="text-sm text-gray-600 mb-2 block font-medium">
                 Select Country
               </label>
 
-              {countries.length === 0 ? (
+              {countries.length === 0 && countriesLoading ? (
                 <div className="h-[56px] rounded-xl bg-gray-100 animate-pulse" />
               ) : (
                 <div className="relative" ref={countryRef}>
@@ -360,7 +358,7 @@ export default function ReceivePaymentForm({
                     <div className="flex items-center gap-2">
                       <span className="text-xl">🌍</span>
                       <div className="text-left">
-                        <div className="font-medium">{country}</div>
+                        <div className="font-medium">{country || "Select"}</div>
                       </div>
                     </div>
                     {isCountryOpen ? (
@@ -370,7 +368,7 @@ export default function ReceivePaymentForm({
                     )}
                   </button>
 
-                  {isCountryOpen && (
+                  {isCountryOpen && countries.length > 0 && (
                     <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
                       {countries.map((c: Country, index: number) => (
                         <button
@@ -399,7 +397,6 @@ export default function ReceivePaymentForm({
               )}
             </div>
 
-            {/* Gender Selector */}
             <div>
               <label className="text-sm text-gray-600 mb-2 block font-medium">
                 Select Gender
@@ -449,7 +446,6 @@ export default function ReceivePaymentForm({
               </div>
             </div>
 
-            {/* Amount Input */}
             <div>
               <label className="text-sm text-gray-600 mb-2 block font-medium">
                 Expected Amount
@@ -493,7 +489,6 @@ export default function ReceivePaymentForm({
               />
             </div>
 
-            {/* Rate Display */}
             <div className="flex justify-end mt-2">
               <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-5 py-2.5 rounded-xl border border-emerald-100">
                 <span className="text-base text-emerald-700 font-bold">
@@ -502,14 +497,12 @@ export default function ReceivePaymentForm({
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="text-red-600 text-sm text-center bg-red-50 py-3 rounded-xl border border-red-100">
                 ⚠️ {error}
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               onClick={handleSubmit}
               disabled={

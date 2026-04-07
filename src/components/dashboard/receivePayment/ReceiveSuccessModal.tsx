@@ -9,8 +9,8 @@ type Props = {
 
 function ReceiveSuccessModal({
   open,
-  title = "Thanks",
-  message = "🎉 Payment Received. The amount has been credited to your wallet.",
+  title = "Admin Notified",
+  message = "Payment will be sent to you once confirmed and approved.",
   onOk,
 }: Props) {
   if (!open) return null;
@@ -21,6 +21,7 @@ function ReceiveSuccessModal({
       style={{ background: "rgba(0,0,0,0.3)" }}
     >
       <div className="w-full max-w-[360px] bg-white rounded-[24px] px-8 py-10 text-center shadow-xl">
+        {/* ICON */}
         <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
             <path
@@ -37,16 +38,25 @@ function ReceiveSuccessModal({
             />
           </svg>
         </div>
+
+        {/* TITLE */}
         <h3 className="mt-5 text-[22px] font-semibold text-emerald-600">
           {title}
         </h3>
+
+        {/* MESSAGE */}
         <p className="mt-2 text-[13px] text-slate-500 leading-6">{message}</p>
+
+        {/* BUTTON */}
         <button
           type="button"
-          onClick={onOk}
+          onClick={() => {
+            console.log("✅ [SUCCESS MODAL OK CLICKED]");
+            onOk();
+          }}
           className="mt-6 h-[40px] px-8 rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] cursor-pointer hover:brightness-110 transition"
         >
-          Ok
+          Back
         </button>
       </div>
     </div>

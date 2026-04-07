@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Check } from "lucide-react";
-import { WALLET_ADDRESS } from "./sellCryptoData";
 import SellSuccessModal from "./Sellsuccessmodal";
+import { useCryptoStore } from "@/store/cryptoStore";
 
 type Props = {
   amountSent: number;
@@ -41,6 +41,11 @@ export default function TransferProcessing({
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Get wallet address from API
+  const { cryptos } = useCryptoStore();
+  const walletAddress =
+    cryptos.find((c: any) => c.symbol === tokenSymbol)?.wallet_address || "";
+
   // Auto-advance steps
   useEffect(() => {
     if (currentStep >= STEPS.length - 1) return;
@@ -76,7 +81,7 @@ export default function TransferProcessing({
         </p>
         <p className="text-[12px] text-slate-400 mt-1">to:</p>
         <p className="text-[12px] text-slate-600 truncate px-4">
-          {WALLET_ADDRESS}
+          {walletAddress}
         </p>
       </div>
 

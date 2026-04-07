@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Copy, Check } from "lucide-react";
-import { WALLET_ADDRESS } from "./buyCryptoData";
+import Image from "next/image";
 
 type Props = {
   amount: number;
@@ -10,7 +10,7 @@ type Props = {
   walletAddress: string;
   onBack: () => void;
   onCancelTrade: () => void;
-  onDeposited: () => void;
+  onDeposited: () => void; // ✅ buyCrypto is handled in BuyCryptoFlow, not here
 };
 
 function formatTime(secs: number) {
@@ -34,6 +34,7 @@ export default function BuyWalletConfirmation({
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [seconds, setSeconds] = useState(60 * 48 + 30);
+  const [qrError, setQrError] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
@@ -43,7 +44,7 @@ export default function BuyWalletConfirmation({
   const { hours, minutes, seconds: secs } = formatTime(seconds);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(WALLET_ADDRESS).then(() => {
+    navigator.clipboard.writeText(walletAddress).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -74,15 +75,21 @@ export default function BuyWalletConfirmation({
       {/* QR Code */}
       <div className="flex justify-center my-6">
         <div className="h-40 w-40 bg-slate-100 rounded-[12px] border border-slate-200 flex flex-col items-center justify-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/crypto/qr-placeholder.png"
-            alt="Wallet QR Code"
-            className="h-28 w-28 object-contain"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-            }}
-          />
+          {!qrError ? (
+            <Image
+              src="/images/crypto/qr-placeholder.png"
+              alt="Wallet QR Code"
+              width={112}
+              height={112}
+              className="object-contain"
+              onError={() => setQrError(true)}
+              priority
+            />
+          ) : (
+            <div className="h-28 w-28 bg-slate-200 rounded-lg flex items-center justify-center">
+              <span className="text-3xl">📱</span>
+            </div>
+          )}
           <p className="text-[10px] text-slate-400">QR Code</p>
         </div>
       </div>
@@ -94,7 +101,7 @@ export default function BuyWalletConfirmation({
         </p>
         <div className="flex items-center gap-2 rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-3">
           <span className="text-[12px] text-slate-600 flex-1 truncate">
-            {WALLET_ADDRESS}
+            {walletAddress}
           </span>
           <button
             type="button"
@@ -116,7 +123,7 @@ export default function BuyWalletConfirmation({
         <p className="text-[13px] text-slate-500">
           Rate refreshes every 1 hour –{" "}
           <span className="text-emerald-600 font-semibold">
-            {hours}h &nbsp; {minutes}m : {secs}s
+            {hours}h {minutes}m {secs}s
           </span>
         </p>
       </div>
@@ -149,6 +156,7 @@ export default function BuyWalletConfirmation({
         >
           Cancel Trade
         </button>
+        {/* ✅ FIXED: no longer calls buyCrypto directly — delegates to BuyCryptoFlow */}
         <button
           type="button"
           onClick={onDeposited}

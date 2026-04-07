@@ -1,27 +1,17 @@
 "use client";
 
-/**
- * SellCryptoFlow
- *
- * step 1 — form        : select token, network, amount
- * step 2 — payment     : choose payment account (modal overlay)
- * step 3 — confirm     : QR code + wallet address + countdown
- * step 4 — processing  : you sent / you receive / progress
- * modals — cancelTrade, transferWarning
- */
-
 import { useState } from "react";
 import SellCryptoForm from "./SellCryptoForm";
 import PaymentAccountModal from "./PaymentAccountModal";
 import WalletConfirmation from "./WalletConfirmation";
 import TransferProcessing from "./TransferProcessing";
-import { CancelTradeModal, TransferWarningModal } from "./TradeModals";
+import { CancelTradeModal } from "./TradeModals";
 import {
   CryptoToken,
   CryptoNetwork,
   PaymentAccountOption,
-  RATE_PER_USDT,
 } from "./sellCryptoData";
+import { useCryptoStore, useCryptoRate } from "@/store/cryptoStore";
 
 type Step = "form" | "confirm" | "processing";
 
@@ -42,9 +32,17 @@ export default function SellCryptoFlow({ onBack }: Props) {
   // Modal visibility
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showWarningModal, setShowWarningModal] = useState(false);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // API
+  const { cryptos } = useCryptoStore();
+  const tokenId = token ? parseInt(token.id) : 0;
+  const { sellRate } = useCryptoRate(tokenId);
+
+  // Get wallet address from API
+  const getWalletAddress = () => {
+    const crypto = cryptos.find((c: any) => c.symbol === token?.symbol);
+    return crypto?.wallet_address || "";
+  };
 
   const handleFormContinue = (t: CryptoToken, n: CryptoNetwork, a: number) => {
     setToken(t);
@@ -56,16 +54,6 @@ export default function SellCryptoFlow({ onBack }: Props) {
   const handlePaymentContinue = (account: PaymentAccountOption) => {
     setPaymentAccount(account);
     setShowPaymentModal(false);
-    // Show transfer warning only for wallet payment
-    if (account.type === "wallet") {
-      setShowWarningModal(true);
-    } else {
-      setStep("confirm");
-    }
-  };
-
-  const handleWarningContinue = () => {
-    setShowWarningModal(false);
     setStep("confirm");
   };
 
@@ -85,9 +73,8 @@ export default function SellCryptoFlow({ onBack }: Props) {
     setStep("form");
   };
 
-  const youGet = amount * RATE_PER_USDT;
-
-  // ─────────────────────────────────────────────────────────────────────────
+  const currentRate = sellRate || 0;
+  const youGet = amount * currentRate;
 
   return (
     <div className="w-full">
@@ -96,19 +83,22 @@ export default function SellCryptoFlow({ onBack }: Props) {
         <SellCryptoForm onBack={onBack} onContinue={handleFormContinue} />
       )}
 
-      {/* Step 2 (modal): Payment Account — overlays on top of form */}
+      {/* Step 2: Payment Account Modal */}
       <PaymentAccountModal
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onContinue={handlePaymentContinue}
       />
 
-      {/* Step 3: Wallet confirmation */}
-      {step === "confirm" && token && network && (
+      {/* Step 3: Wallet Confirmation */}
+      {step === "confirm" && token && network && paymentAccount && (
         <WalletConfirmation
           amount={amount}
           tokenSymbol={token.symbol}
+          tokenId={tokenId}
           network={network.label}
+          walletAddress={getWalletAddress()}
+          paymentAccount={paymentAccount}
           onBack={() => {
             setStep("form");
             setShowPaymentModal(true);
@@ -118,32 +108,22 @@ export default function SellCryptoFlow({ onBack }: Props) {
         />
       )}
 
-      {/* Step 4: Transfer processing */}
-      {step === "processing" && token && (
+      {/* Step 4: Transfer Processing */}
+      {step === "processing" && token && paymentAccount && (
         <TransferProcessing
           amountSent={amount}
           tokenSymbol={token.symbol}
           amountReceived={youGet}
-          recipientAccount={
-            paymentAccount?.label ?? "2141536385 (United Bank For Africa)"
-          }
+          recipientAccount={paymentAccount.label}
           onReturnHome={handleReturnHome}
         />
       )}
 
-      {/* Cancel trade modal */}
+      {/* Cancel Trade Modal */}
       <CancelTradeModal
         open={showCancelModal}
         onNo={() => setShowCancelModal(false)}
         onYesCancel={handleCancelConfirmed}
-      />
-
-      {/* Transfer warning modal */}
-      <TransferWarningModal
-        open={showWarningModal}
-        amount={youGet}
-        onBack={() => setShowWarningModal(false)}
-        onContinue={handleWarningContinue}
       />
     </div>
   );

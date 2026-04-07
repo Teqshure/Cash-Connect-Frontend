@@ -41,6 +41,20 @@ export interface Country {
   updated_at: string;
 }
 
+// ✅ NEW RATE TYPE
+export interface Rate {
+  id: number;
+  rateable_type: string;
+  rateable_id: number;
+  buy_rate: string | null;
+  sell_rate: string | null;
+  min_amount: string;
+  max_amount: string;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface InternationalAccount {
   id: number;
   payment_method: string;
@@ -125,6 +139,7 @@ interface GlobalPaymentState {
   methods: PaymentMethod[];
   currencies: Record<number, Currency[]>;
   countries: Record<number, Country[]>;
+  rates: Rate[]; // ✅ NEW
   transactions: InternationalTransaction[];
   transaction: InternationalTransaction | null;
   availableAccounts: InternationalAccount[];
@@ -142,6 +157,7 @@ interface GlobalPaymentState {
     methodId: number,
     methodCode: string,
   ) => Promise<Country[]>;
+  fetchRates: () => Promise<void>; // ✅ NEW
   findAccounts: (
     payload: FindAccountPayload,
   ) => Promise<InternationalAccount[]>;
@@ -206,6 +222,7 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
     methods: [],
     currencies: {},
     countries: {},
+    rates: [], // ✅ NEW
     transactions: [],
     transaction: null,
     availableAccounts: [],
@@ -213,6 +230,25 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
     loading: false,
     error: null,
     submitting: false,
+
+    // ✅ FETCH RATES (NEW)
+    fetchRates: async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/rates`, {
+          headers: authHeaders(),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || "Failed to fetch rates");
+
+        console.log("📊 [RATES]:", data.data);
+
+        set({ rates: data.data || [] });
+      } catch (err: any) {
+        console.error("❌ [FETCH RATES ERROR]:", err.message);
+      }
+    },
 
     fetchMethods: async () => {
       set({ loading: true, error: null });
@@ -360,6 +396,9 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
     findAccounts: async (payload: FindAccountPayload) => {
       set({ loading: true, error: null });
 
+      console.log("🚀 [FIND ACCOUNTS] REQUEST PAYLOAD:");
+      console.table(payload);
+
       try {
         const res = await fetch(`${BASE_URL}/international/find`, {
           method: "POST",
@@ -367,20 +406,67 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
           body: JSON.stringify(payload),
         });
 
+        console.log("📡 [FIND ACCOUNTS] STATUS:", res.status);
+
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.message || "Failed to find accounts");
+        console.log("📦 [FIND ACCOUNTS] RESPONSE:", data);
 
-        const accounts = data.data ? [data.data] : [];
-        set({ availableAccounts: accounts, loading: false });
-        return accounts;
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to find accounts");
+        }
+
+        // --------------------------------------------
+        // ✅ 🔥 CLEAN THE RESPONSE HERE (MAIN FIX)
+        // --------------------------------------------
+        let cleanedAccounts: InternationalAccount[] = [];
+
+        if (data.data) {
+          // Case 1: array response
+          if (Array.isArray(data.data)) {
+            cleanedAccounts = data.data.flatMap((item: any) => {
+              // nested array
+              if (Array.isArray(item)) {
+                return item.map((i: any) => i.account || i);
+              }
+
+              // wrapped object
+              if (item?.account) {
+                return [item.account]; // ✅ extract account
+              }
+
+              return [item];
+            });
+          }
+
+          // Case 2: single object
+          else if (typeof data.data === "object") {
+            if (data.data.account) {
+              cleanedAccounts = [data.data.account];
+            } else {
+              cleanedAccounts = [data.data];
+            }
+          }
+        }
+
+        console.log("✅ [CLEANED ACCOUNTS]:", cleanedAccounts);
+
+        set({
+          availableAccounts: cleanedAccounts, // ✅ NOW ALWAYS CLEAN
+          loading: false,
+        });
+
+        return cleanedAccounts;
       } catch (err: any) {
+        console.error("❌ [FIND ACCOUNTS ERROR]:", err.message);
+
         set({ error: err.message, loading: false });
         throw err;
       }
     },
-
     submitTransaction: async (payload: SubmitTransactionPayload) => {
+      console.log("🚀 [SUBMIT TRANSACTION] PAYLOAD:", payload);
+
       set({ submitting: true, error: null });
 
       try {
@@ -393,9 +479,18 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
           },
         );
 
+        console.log("📡 [SUBMIT TRANSACTION] STATUS:", res.status);
+
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.message || "Transaction failed");
+        console.log("📦 [SUBMIT TRANSACTION] RESPONSE:", data);
+
+        if (!res.ok) {
+          console.error("❌ [SUBMIT TRANSACTION] FAILED:", data);
+          throw new Error(data.message || "Transaction failed");
+        }
+
+        console.log("✅ [SUBMIT TRANSACTION] SUCCESS:", data);
 
         await get().fetchTransactions();
 
@@ -403,11 +498,12 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
 
         return data;
       } catch (err: any) {
+        console.error("💥 [SUBMIT TRANSACTION] ERROR:", err.message);
+
         set({ error: err.message, submitting: false });
         throw err;
       }
     },
-
     fetchTransactions: async () => {
       set({ loading: true, error: null });
 
@@ -629,11 +725,10 @@ export const useSendPayment = () => {
   );
   const submitting = useGlobalPaymentStore((s: any) => s.submitting);
   const error = useGlobalPaymentStore((s: any) => s.error);
-
   const submitPayment = useCallback(
     async (formData: SendPaymentFormData, method: UIPaymentMethod) => {
       const findPayload: FindAccountPayload = {
-        payment_method: method.code || method.id,
+        payment_method: method.name, // ✅ already fixed
         currency: formData.currency,
         country: formData.country,
         gender: formData.gender,
@@ -641,9 +736,16 @@ export const useSendPayment = () => {
           typeof formData.amount === "number" ? formData.amount : 0,
       };
 
+      console.log("🧠 [SUBMIT PAYMENT] METHOD:", method);
+      console.log("🧾 [SUBMIT PAYMENT] FORM DATA:", formData);
+      console.log("📤 [SUBMIT PAYMENT] FINAL PAYLOAD:", findPayload);
+
       const accounts = await findAccounts(findPayload);
 
+      console.log("📥 [SUBMIT PAYMENT] ACCOUNTS RECEIVED:", accounts);
+
       if (!accounts || accounts.length === 0) {
+        console.error("❌ No accounts found after request");
         throw new Error("No available accounts found for this transaction");
       }
 
@@ -652,6 +754,8 @@ export const useSendPayment = () => {
         expected_amount:
           typeof formData.amount === "number" ? formData.amount : 0,
       };
+
+      console.log("📤 [SUBMIT TRANSACTION PAYLOAD]:", submitPayload);
 
       return await submitTransaction(submitPayload);
     },
@@ -665,24 +769,59 @@ export const usePaymentMethodRate = (
   method: UIPaymentMethod | null,
   currency?: string,
 ) => {
-  const currencies = useGlobalPaymentStore(
-    useShallow((s: any) => {
-      if (!method?.paymentMethodId) return [];
-      return s.currencies[method.paymentMethodId] || [];
-    }),
-  );
+  const rates = useGlobalPaymentStore((s: any) => s.rates);
+  const fetchRates = useGlobalPaymentStore((s: any) => s.fetchRates);
+
+  useEffect(() => {
+    if (!rates.length) {
+      fetchRates();
+    }
+  }, [rates.length, fetchRates]);
 
   const rate = useMemo(() => {
-    if (!currency || currencies.length === 0) return 1450;
+    if (!method?.paymentMethodId || !rates.length) {
+      return 1450;
+    }
 
-    const currencyData = currencies.find(
-      (c: Currency) => c.currency === currency,
-    );
+    // Strategy 1: Try to find rate with matching rateable_id AND currency
+    let matched = rates.find((r: Rate) => {
+      const typeMatch = r.rateable_type === "international";
+      const idMatch = r.rateable_id === method.paymentMethodId;
+      const currencyMatch = currency
+        ? r.currency?.toUpperCase() === currency?.toUpperCase()
+        : true;
 
-    if (!currencyData?.sell_rate) return 1450;
+      return typeMatch && idMatch && currencyMatch;
+    });
 
-    return parseFloat(currencyData.sell_rate);
-  }, [currency, currencies]);
+    // Strategy 2: If no currency match found, try without currency (rate applies to all currencies)
+    if (!matched && currency) {
+      matched = rates.find((r: Rate) => {
+        const typeMatch = r.rateable_type === "international";
+        const idMatch = r.rateable_id === method.paymentMethodId;
+
+        return typeMatch && idMatch;
+      });
+    }
+
+    if (!matched) {
+      return 1450;
+    }
+
+    // Extract the rate value - prefer sell_rate over buy_rate
+    const sellRate = matched.sell_rate ? parseFloat(matched.sell_rate) : NaN;
+    const buyRate = matched.buy_rate ? parseFloat(matched.buy_rate) : NaN;
+
+    if (!isNaN(sellRate) && sellRate > 0) {
+      return sellRate;
+    }
+
+    if (!isNaN(buyRate) && buyRate > 0) {
+      return buyRate;
+    }
+
+    return 1450;
+  }, [rates, currency, method]);
 
   return rate;
 };

@@ -52,7 +52,7 @@ function getLabel(tx: ApiTransaction): string {
   if (type.includes("crypto")) return "Crypto Transaction";
 
   if (type.includes("international") || type.includes("exchange"))
-    return "Crypto Exchange";
+    return "International Transfer";
 
   return tx.type ?? "Transaction";
 }
