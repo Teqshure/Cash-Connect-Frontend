@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronUp, User, Check } from "lucide-react";
+import { CurrencyFlag, CountryFlag } from "@/components/ui/FlagIcon";
 import {
   UIPaymentMethod,
-  usePaymentMethodRate,
   usePaymentMethodCurrencies,
   usePaymentMethodCountries,
   type Currency,
@@ -83,7 +83,6 @@ export default function ReceivePaymentForm({
   const countryRef = useRef<HTMLDivElement>(null);
   const genderRef = useRef<HTMLDivElement>(null);
 
-  const rate = usePaymentMethodRate(method, currency);
   const isLoadingData = currenciesLoading || countriesLoading;
 
   useEffect(() => {
@@ -211,16 +210,6 @@ export default function ReceivePaymentForm({
     );
   };
 
-  const getRateDisplay = () => {
-    if (rate > 0 && rate !== 1450) {
-      return `${rate.toLocaleString()} per ${currency}`;
-    }
-    if (currenciesLoading && currencies.length === 0) {
-      return "Loading rate...";
-    }
-    return `1,450.00 per ${currency || "USD"}`;
-  };
-
   if (initialLoading && currencies.length === 0 && countries.length === 0) {
     return (
       <div className="w-full flex justify-center pb-12 bg-[#F5F5F5] min-h-screen px-4">
@@ -282,9 +271,7 @@ export default function ReceivePaymentForm({
                     className="w-full h-[56px] rounded-xl px-4 bg-[#F8F8F8] cursor-pointer text-sm flex items-center justify-between hover:bg-gray-100 transition"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">
-                        {CURRENCY_FLAGS[currency] || "💰"}
-                      </span>
+                      <CurrencyFlag currency={currency} />
                       <div className="text-left">
                         <div className="font-medium">
                           {currency || "Select"}
@@ -318,9 +305,7 @@ export default function ReceivePaymentForm({
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className="text-xl">
-                              {CURRENCY_FLAGS[c.currency] || "💰"}
-                            </span>
+                            <CurrencyFlag currency={c.currency} />
                             <div>
                               <div className="font-medium text-sm">
                                 {c.currency}
@@ -356,7 +341,7 @@ export default function ReceivePaymentForm({
                     className="w-full h-[56px] rounded-xl px-4 bg-[#F8F8F8] cursor-pointer text-sm flex items-center justify-between hover:bg-gray-100 transition"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">🌍</span>
+                      <CountryFlag countryName={country} />
                       <div className="text-left">
                         <div className="font-medium">{country || "Select"}</div>
                       </div>
@@ -383,7 +368,7 @@ export default function ReceivePaymentForm({
                           }`}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-xl">🌍</span>
+                            <CountryFlag countryName={c.country} />
                             <span className="text-sm">{c.country}</span>
                           </div>
                           {country === c.country && (
@@ -487,14 +472,6 @@ export default function ReceivePaymentForm({
                 }}
                 className="w-full h-[56px] rounded-xl px-4 bg-[#F8F8F8] text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition"
               />
-            </div>
-
-            <div className="flex justify-end mt-2">
-              <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-5 py-2.5 rounded-xl border border-emerald-100">
-                <span className="text-base text-emerald-700 font-bold">
-                  💱 {getRateDisplay()}
-                </span>
-              </div>
             </div>
 
             {error && (

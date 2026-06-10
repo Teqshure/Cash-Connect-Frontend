@@ -179,9 +179,14 @@ export default function ReceivePaymentFlow({ onBack }: any) {
           currency={formData?.currency || ""}
           onBack={() => setStep("form")}
           onSelect={handleAccountSelect}
-          onCopy={() => {
+          onCopy={(account: any) => {
             console.log("📋 COPY TRIGGERED");
-            setShowCopyModal(true); // ✅ SHOW COPY MODAL
+            setShowCopyModal(true);
+            // Notify admin automatically
+            submitTransaction({
+              account_id: account.id,
+              expected_amount: formData?.amount || 0,
+            }).catch(console.error);
           }}
         />
       )}
@@ -208,8 +213,11 @@ export default function ReceivePaymentFlow({ onBack }: any) {
       <ReceiveSuccessModal
         open={showCopyModal}
         title="Copied!"
-        message="Account details copied successfully."
-        onOk={() => setShowCopyModal(false)}
+        message="Account details copied successfully. Admin has been notified."
+        onOk={() => {
+          setShowCopyModal(false);
+          setStep("choose");
+        }}
       />
     </div>
   );

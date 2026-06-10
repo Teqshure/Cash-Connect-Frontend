@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ArrowUpCircle,
   ArrowDownCircle,
+  Download,
 } from "lucide-react";
 import { Transaction } from "../overview/TransactionsTable";
 import TransactionsTable from "../overview/TransactionsTable";
@@ -107,14 +108,36 @@ function isCredit(icon: Transaction["icon"]) {
 }
 
 function shortType(type: string) {
-  if (type.toLowerCase().includes("international")) return "International";
+  if (type.toLowerCase().includes("fund")) return "Deposit";
+  if (type.toLowerCase().includes("withdrawal")) return "Withdrawal";
   if (type.toLowerCase().includes("crypto")) return "Crypto";
-  if (type.toLowerCase().includes("gift")) return "Giftcard";
-  if (type.toLowerCase().includes("fund")) return "Fund";
-  if (type.toLowerCase().includes("card")) return "Card";
-  if (type.toLowerCase().includes("exchange")) return "Exchange";
-  if (type.toLowerCase().includes("send")) return "Send";
+  if (type.toLowerCase().includes("gift")) return "Gift Card";
   return type;
+}
+
+function downloadReceipt(tx: Transaction) {
+  const secondaryAmount = (tx as any).amountSecondary ? " (" + (tx as any).amountSecondary + ")" : "";
+  const receiptContent = [
+    "CASH CONNECT RECEIPT",
+    "-----------------------------",
+    "Transaction ID: " + tx.id,
+    "Date: " + tx.date + " " + (tx.time || ""),
+    "Type: " + tx.type,
+    "Amount: " + tx.amountPrimary + secondaryAmount,
+    "Status: " + tx.status.toUpperCase(),
+    "-----------------------------",
+    "Thank you for using Cash Connect!"
+  ].join("\n");
+
+  const blob = new Blob([receiptContent], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Receipt_" + tx.id + ".txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ----------------------------------------------------------------
@@ -148,83 +171,106 @@ export default function HistoryPageContent() {
     return matchesStatus && matchesSearch;
   });
 
+  const filterControls = (
+    <div className="flex justify-end mb-6">
+      <div className="flex items-center gap-[11px] w-full lg:w-[435px] h-[49px]">
+        {/* Filter */}
+        <div className="relative h-full">
+          <button
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            className="cursor-pointer h-full px-4 rounded-full border border-slate-200 flex items-center gap-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition"
+          >
+            <Filter className="h-4 w-4" />
+            <span className="capitalize">{filter === "all" ? "Filter" : filter}</span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${
+                showFilterDropdown ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {showFilterDropdown && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowFilterDropdown(false)}
+              />
+
+              <div className="absolute top-[52px] left-0 bg-white rounded-xl border border-slate-200 shadow-lg p-2 z-50 min-w-[180px]">
+                {["all", "successful", "pending", "failed"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => {
+                      setFilter(f);
+                      setShowFilterDropdown(false);
+                    }}
+                    className={`cursor-pointer w-full text-left px-4 py-2.5 rounded-lg text-[13px] font-medium transition capitalize ${
+                      filter === f
+                        ? f === "pending"
+                          ? "bg-amber-600 text-white"
+                          : f === "failed"
+                            ? "bg-rose-600 text-white"
+                            : "bg-emerald-600 text-white"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {f === "all"
+                      ? "All"
+                      : f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Search */}
+        <div className="flex-1 h-full">
+          <div className="relative h-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-full pl-10 pr-4 rounded-full border border-slate-200 text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* DESKTOP */}
       <div className="hidden lg:block w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-end mb-6">
-          <div className="flex items-center gap-[11px] w-[435px] h-[49px]">
-            {/* Filter */}
-            <div className="relative h-full">
-              <button
-                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className="cursor-pointer h-full px-4 rounded-full border border-slate-200 flex items-center gap-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition"
-              >
-                <Filter className="h-4 w-4" />
-                <span>Filter</span>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    showFilterDropdown ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {showFilterDropdown && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowFilterDropdown(false)}
-                  />
-
-                  <div className="absolute top-[52px] left-0 bg-white rounded-xl border border-slate-200 shadow-lg p-2 z-50 min-w-[180px]">
-                    {["all", "successful", "pending", "failed"].map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => {
-                          setFilter(f);
-                          setShowFilterDropdown(false);
-                        }}
-                        className={`cursor-pointer w-full text-left px-4 py-2.5 rounded-lg text-[13px] font-medium transition capitalize ${
-                          filter === f
-                            ? f === "pending"
-                              ? "bg-amber-600 text-white"
-                              : f === "failed"
-                                ? "bg-rose-600 text-white"
-                                : "bg-emerald-600 text-white"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        {f === "all"
-                          ? "All"
-                          : f.charAt(0).toUpperCase() + f.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Search */}
-            <div className="flex-1 h-full">
-              <div className="relative h-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-
-                <input
-                  type="text"
-                  placeholder="Search transactions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-full pl-10 pr-4 rounded-full border border-slate-200 text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        {filterControls}
 
         <div className="rounded-[18px] bg-white border border-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.06)] p-6">
-          {!isLoading && !error && filteredItems.length > 0 && (
+          {!isLoading && !error && filteredItems.length > 0 ? (
             <TransactionsTable items={filteredItems} />
-          )}
+          ) : !isLoading && !error && filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <p className="text-[14px] text-slate-400 text-center">
+                {searchQuery || filter !== "all"
+                  ? "No transactions found matching your criteria"
+                  : "No transactions available"}
+              </p>
+              {(searchQuery || filter !== "all") && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilter("all");
+                  }}
+                  className="mt-3 text-[13px] text-emerald-600 font-medium hover:underline cursor-pointer"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -234,11 +280,14 @@ export default function HistoryPageContent() {
           Good Morning, {name}! 👋
         </p>
 
+        {filterControls}
+
         <div className="bg-white rounded-[18px] border border-slate-100 shadow-sm overflow-hidden">
-          {filteredItems.map((tx: Transaction) => (
-            <div
+          {filteredItems.length > 0 ? (
+            filteredItems.map((tx: Transaction) => (
+              <div
               key={tx.id}
-              className="cursor-pointer grid grid-cols-[1fr_1fr_80px] px-4 py-3 border-b border-slate-50 items-center"
+              className="cursor-pointer grid grid-cols-[1fr_1fr_70px_40px] px-4 py-3 border-b border-slate-50 items-center"
             >
               <div className="flex items-center gap-2">
                 {isCredit(tx.icon) ? (
@@ -259,8 +308,41 @@ export default function HistoryPageContent() {
               <p className="text-[12px] text-slate-600 font-medium">
                 {tx.status}
               </p>
+
+              <div className="flex justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadReceipt(tx);
+                  }}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                  title="Download Receipt"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          ))}
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-[14px] text-slate-400 text-center">
+              {searchQuery || filter !== "all"
+                ? "No transactions found matching your criteria"
+                : "No transactions available"}
+            </p>
+            {(searchQuery || filter !== "all") && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilter("all");
+                }}
+                className="mt-3 text-[13px] text-emerald-600 font-medium hover:underline cursor-pointer"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
         </div>
       </div>
     </>

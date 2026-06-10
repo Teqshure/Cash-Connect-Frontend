@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+
 import Image from "next/image";
 import avartarimg from "../../../public/images/dashboard/avatar.png";
 import { Bell, Search, Menu, Gift, ChevronDown } from "lucide-react";
@@ -25,6 +27,65 @@ function getPageTitle(pathname: string): string {
   const segment = pathname.split("/").filter(Boolean)[0] ?? "Dashboard";
   return segment.charAt(0).toUpperCase() + segment.slice(1);
 }
+
+const ProfileMenu = ({ router, withChevron = false }: { router: any, withChevron?: boolean }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1 cursor-pointer outline-none focus:outline-none hover:opacity-80 transition"
+      >
+        <div className="relative h-[36px] w-[36px] rounded-full overflow-hidden border border-slate-200 bg-slate-200">
+          <Image
+            src={avartarimg}
+            alt="Profile"
+            fill
+            className="object-cover"
+            sizes="36px"
+            priority
+          />
+        </div>
+        {withChevron && <ChevronDown className="h-4 w-4 text-slate-600" />}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 py-2 z-50">
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              router.push("/settings");
+            }}
+            className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            Settings
+          </button>
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              router.push("/profile");
+            }}
+            className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            Profile Settings
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Topbar({
   onOpenSidebar,
@@ -79,19 +140,7 @@ export default function Topbar({
             <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-rose-500" />
           </button>
 
-          <div className="flex items-center gap-1">
-            <div className="relative h-9 w-9 rounded-full overflow-hidden border border-slate-200 bg-slate-200">
-              <Image
-                src={avartarimg}
-                alt="Profile"
-                fill
-                className="object-cover"
-                sizes="36px"
-                priority
-              />
-            </div>
-            <ChevronDown className="h-4 w-4 text-slate-600" />
-          </div>
+          <ProfileMenu router={router} withChevron />
         </div>
       </header>
 
@@ -143,16 +192,7 @@ export default function Topbar({
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
           </button>
 
-          <div className="relative h-[36px] w-[36px] rounded-full overflow-hidden border border-slate-200 bg-slate-200">
-            <Image
-              src={avartarimg}
-              alt="Profile"
-              fill
-              className="object-cover"
-              sizes="36px"
-              priority
-            />
-          </div>
+          <ProfileMenu router={router} />
         </div>
       </header>
     </>

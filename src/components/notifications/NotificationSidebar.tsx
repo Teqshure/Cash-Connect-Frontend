@@ -1,4 +1,10 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
 export default function NotificationSidebar() {
+  const router = useRouter();
+
   return (
     <div className="space-y-4">
       {/* Card */}
@@ -8,7 +14,10 @@ export default function NotificationSidebar() {
           Get 20% discount on all gift card purchases this week
         </p>
 
-        <button className="mt-3 bg-white text-purple-600 px-3 py-1 rounded-md text-sm">
+        <button 
+          onClick={() => router.push("/giftcard")}
+          className="mt-3 bg-white text-purple-600 px-3 py-1 rounded-md text-sm cursor-pointer hover:bg-slate-50 transition"
+        >
           Shop Now
         </button>
       </div>

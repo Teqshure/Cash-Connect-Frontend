@@ -1,13 +1,15 @@
 "use client";
 
-import { User, Mail, Phone, Globe, ChevronRight } from "lucide-react";
+import { User, Mail, Phone, Globe, ChevronRight, Edit3 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import LogoutButton from "./LogoutButton";
+import EditProfileModal from "./EditProfileModal";
 
 export default function AccountDetails() {
   const user = useAuthStore((s: any) => s.user);
   const refreshUser = useAuthStore((s: any) => s.refreshUser);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // ✅ Ensure latest user data from API
   useEffect(() => {
@@ -26,9 +28,18 @@ export default function AccountDetails() {
         flex flex-col
       "
     >
-      <p className="text-[16px] font-semibold text-slate-800 mb-4">
-        Account Details
-      </p>
+      <div className="flex justify-between items-center mb-4">
+        <p className="text-[16px] font-semibold text-slate-800">
+          Account Details
+        </p>
+        <button 
+          onClick={() => setIsEditModalOpen(true)}
+          className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition cursor-pointer"
+        >
+          <Edit3 className="h-4 w-4" />
+          Edit
+        </button>
+      </div>
 
       <div className="flex flex-col divide-y divide-slate-100">
         {/* FULL NAME */}
@@ -87,6 +98,11 @@ export default function AccountDetails() {
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </div>
       </div>
+
+      <EditProfileModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+      />
     </div>
   );
 }

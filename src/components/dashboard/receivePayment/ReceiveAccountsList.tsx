@@ -7,7 +7,7 @@ type Props = {
   accounts: InternationalAccount[];
   currency: string;
   onBack: () => void;
-  onCopy: () => void;
+  onCopy: (account: InternationalAccount) => void;
   onSelect: (account: InternationalAccount) => void;
 };
 
@@ -36,7 +36,7 @@ ${(account as any).extra_information ? `Info: ${(account as any).extra_informati
     `.trim();
 
     navigator.clipboard.writeText(text);
-    onCopy();
+    onCopy(account);
   };
 
   return (

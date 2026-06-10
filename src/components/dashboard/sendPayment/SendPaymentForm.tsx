@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Copy, ChevronDown, Loader2 } from "lucide-react";
 import { UIPaymentMethod, usePaymentMethodRate } from "@/store/globalPayment";
+import { CurrencyFlag, CountryFlag } from "@/components/ui/FlagIcon";
 
 export type PaymentFormData = {
   email: string;
@@ -33,6 +34,24 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
 
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
+
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const currencyRef = useRef<HTMLDivElement>(null);
+  const countryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (currencyRef.current && !currencyRef.current.contains(event.target as Node)) {
+        setIsCurrencyOpen(false);
+      }
+      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+        setIsCountryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -146,18 +165,37 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
               Select Payout Currency
             </label>
 
-            <div className="relative">
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm appearance-none outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
+            <div className="relative" ref={currencyRef}>
+              <button
+                type="button"
+                onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm flex items-center justify-between outline-none shadow-[104px_-5px_103.2px_0px_#0000001A] cursor-pointer"
               >
-                <option>USD</option>
-                <option>GBP</option>
-                <option>EUR</option>
-              </select>
+                <div className="flex items-center gap-2">
+                  <CurrencyFlag currency={currency} />
+                  <span>{currency}</span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-              <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+              {isCurrencyOpen && (
+                <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                  {["USD", "GBP", "EUR"].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setCurrency(c);
+                        setIsCurrencyOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 cursor-pointer"
+                    >
+                      <CurrencyFlag currency={c} />
+                      <span className="text-sm font-medium">{c}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -167,18 +205,37 @@ export default function SendPaymentForm({ method, onBack, onContinue }: Props) {
               Select country
             </label>
 
-            <div className="relative">
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm appearance-none outline-none shadow-[104px_-5px_103.2px_0px_#0000001A]"
+            <div className="relative" ref={countryRef}>
+              <button
+                type="button"
+                onClick={() => setIsCountryOpen(!isCountryOpen)}
+                className="w-[446px] h-[58px] rounded-[12px] px-[16px] py-[14px] bg-white text-sm flex items-center justify-between outline-none shadow-[104px_-5px_103.2px_0px_#0000001A] cursor-pointer"
               >
-                <option>Nigeria</option>
-                <option>Ghana</option>
-                <option>Kenya</option>
-              </select>
+                <div className="flex items-center gap-2">
+                  <CountryFlag countryName={country} />
+                  <span>{country}</span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isCountryOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-              <ChevronDown className="absolute right-4 top-[20px] text-gray-500 pointer-events-none" />
+              {isCountryOpen && (
+                <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                  {["Nigeria", "Ghana", "Kenya"].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setCountry(c);
+                        setIsCountryOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 cursor-pointer"
+                    >
+                      <CountryFlag countryName={c} />
+                      <span className="text-sm font-medium">{c}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
