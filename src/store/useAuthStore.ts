@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { jwtDecode } from "jwt-decode";
 
 // ------------------------------------------------------------------
 // Types
@@ -102,7 +103,7 @@ export const useAuthStore = create<AuthState>()(
             const overrides = get().localProfileOverrides || {};
             set({ user: { ...data.user, ...overrides } });
           }
-        } catch {}
+        } catch { }
       },
 
       updateProfile: async (profileData) => {
@@ -186,12 +187,22 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
+          let fullname = "Google User";
+          try {
+            const decoded: any = jwtDecode(googleId);
+            console.log("Decoded Google JWT", decoded.name);
+            if (decoded?.name) fullname = decoded.name;
+          } catch (e) {
+            console.error("Failed to decode Google JWT", e);
+          }
+
           const response = await fetch(`${API_URL}/v1/auth/google`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Accept: "application/json",
             },
-            body: JSON.stringify({ google_id: googleId }),
+            body: JSON.stringify({ google_id: googleId, fullname }),
           });
 
           const data: AuthResponse = await response.json();
@@ -223,6 +234,7 @@ export const useAuthStore = create<AuthState>()(
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Accept: "application/json",
             },
             body: JSON.stringify({ fullname, email, password }),
           });
@@ -301,7 +313,7 @@ export const useAuthStore = create<AuthState>()(
                 Authorization: `Bearer ${token}`,
               },
             });
-          } catch {}
+          } catch { }
         }
 
         set({

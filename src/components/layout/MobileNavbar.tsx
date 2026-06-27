@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import Menu from "../icons/menu";
 import Close from "../icons/close";
@@ -24,8 +25,15 @@ export const MobileNavbar = () => {
     <nav className="lg:hidden fixed top-0 left-0 right-0 z-100">
       {/* Top Bar - Acts as persistent header */}
       <div className="bg-[#007042] text-white flex items-center justify-between px-4 py-4">
-        <Link href="/" className="flex flex-col leading-none group">
-          <span className="text-xl font-bold tracking-tight">CashConnect</span>
+        <Link href="/" className="flex items-center gap-2 group">
+          <Image
+            src="/logo.png"
+            alt="Cash Connect Logo"
+            width={100}
+            height={34}
+            className="object-contain brightness-0 invert"
+            priority
+          />
         </Link>
 
         <button
@@ -58,9 +66,8 @@ export const MobileNavbar = () => {
                   <Link
                     href={link.href}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`text-lg font-medium block transition-colors ${
-                      isActive ? "text-white" : "text-white/90 hover:text-white"
-                    }`}
+                    className={`text-lg font-medium block transition-colors ${isActive ? "text-white" : "text-white/90 hover:text-white"
+                      }`}
                   >
                     {link.name}
                   </Link>

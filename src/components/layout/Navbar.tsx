@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "../ui/Button";
 import { MobileNavbar } from "./MobileNavbar";
 
@@ -10,10 +11,15 @@ export const Navbar = () => {
       <MobileNavbar />
       <nav className="hidden lg:block fixed top-4 left-0 right-0 z-50">
         <div className="mx-auto flex max-w-300 py-2 w-[95%] rounded-full border border-primary bg-white/50 backdrop-blur-md items-center justify-between px-3 lg:px-4 relative">
-          <Link href="/" className="flex flex-col leading-none group">
-            <span className="text-2xl font-thin tracking-tighter text-primary">
-              CashConnect
-            </span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <Image
+              src="/logo.png"
+              alt="Cash Connect Logo"
+              width={120}
+              height={40}
+              className="object-contain"
+              priority
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -47,7 +53,7 @@ export const Navbar = () => {
               Our Team
             </Link>
           </div>
-            {/* <div className="group relative flex items-center gap-1 cursor-pointer">
+          {/* <div className="group relative flex items-center gap-1 cursor-pointer">
               <span className="text-[15px] font-bold text-primary/80 group-hover:text-primary transition-colors">
                 Resources
               </span>

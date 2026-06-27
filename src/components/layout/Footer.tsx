@@ -1,6 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
 import Btcfly from "../icons/btc_fly";
-import Logo from "../icons/logo";
 import React from "react";
 import Instagram from "../icons/instagram";
 
@@ -13,12 +13,13 @@ export const Footer = () => {
             {/* Brand Column - Mobile: 1/2 width (50%), Desktop: 4/12 width (33%) */}
             <div className="col-span-6 lg:col-span-4">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 relative">
-                  <Logo className="w-full h-full" />
-                </div>
-                <span className="text-sm sm:text-xl font-semibold tracking-tight text-primary-light">
-                  Cash Connect
-                </span>
+                <Image
+                  src="/logo.png"
+                  alt="Cash Connect Logo"
+                  width={120}
+                  height={40}
+                  className="object-contain"
+                />
               </div>
 
               <div className="space-y-2 text-[10px] sm:text-[13px] font-semibold text-primary-dark max-w-xs leading-relaxed">

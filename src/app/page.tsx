@@ -19,13 +19,7 @@ export default function Home() {
   const router = useRouter();
   const { isAuthenticated, isHydrated } = useAuthStore();
 
-  useEffect(() => {
-    if (isAuthenticated && isHydrated) {
-      router.push("/dashboard");
-    }
-  }, [isAuthenticated, isHydrated, router]);
-
-  if (!isHydrated || isAuthenticated) {
+  if (!isHydrated) {
     return null;
   }
 
