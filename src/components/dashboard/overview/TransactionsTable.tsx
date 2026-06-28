@@ -26,9 +26,10 @@ export type Transaction = {
 
 type Props = {
   items: Transaction[];
+  onSelect?: (tx: Transaction) => void;
 };
 
-export default function TransactionsTable({ items }: Props) {
+export default function TransactionsTable({ items, onSelect }: Props) {
   const searchQuery = useTransactionStore((s: any) => s.searchQuery);
 
   // 🔥 FILTER LOGIC
@@ -67,7 +68,9 @@ export default function TransactionsTable({ items }: Props) {
       {/* Rows */}
       <div className="mt-3">
         {filteredItems.length > 0 ? (
-          filteredItems.map((tx) => <TransactionRow key={tx.id} tx={tx} />)
+          filteredItems.map((tx) => (
+            <TransactionRow key={tx.id} tx={tx} onSelect={onSelect} />
+          ))
         ) : (
           <div className="py-10 text-center">
             <p className="text-sm text-slate-400">No transactions found</p>

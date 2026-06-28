@@ -15,6 +15,25 @@ function getFirstName(fullname?: string | null) {
   return fullname.trim().split(" ")[0] || "User";
 }
 
+function getGreeting(): string {
+  try {
+    const lagosTimeStr = new Date().toLocaleString("en-US", {
+      timeZone: "Africa/Lagos",
+      hour: "numeric",
+      hour12: false,
+    });
+    const hour = parseInt(lagosTimeStr, 10);
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  } catch (e) {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }
+}
+
 export default function MobileDashboard() {
   const router = useRouter();
   const user = useAuthStore((s: { user: User | null }) => s.user);
@@ -44,7 +63,7 @@ export default function MobileDashboard() {
             color: "#030319",
           }}
         >
-          Good Morning, {name}! 👋
+          {getGreeting()}, {name}! 👋
         </p>
       </div>
 

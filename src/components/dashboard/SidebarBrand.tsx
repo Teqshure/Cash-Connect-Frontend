@@ -13,10 +13,10 @@ export default function SidebarBrand() {
       <Link href="/dashboard" className="block">
         <div className="w-[239.33px] h-[48px] flex items-center gap-[12px]">
           <Image
-            src="/logo.png"
+            src="/images/cash-connect-logo.png"
             alt="Cash Connect Logo"
-            width={160}
-            height={48}
+            width={110}
+            height={30}
             className="object-contain"
             priority
           />

@@ -77,6 +77,7 @@ export default function Sidebar() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      prefetch={false}
                       className={[
                         baseRow,
                         active ? "text-white" : inactiveRow,
@@ -114,6 +115,7 @@ export default function Sidebar() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      prefetch={false}
                       className={[
                         baseRow,
                         active ? "text-white" : inactiveRow,

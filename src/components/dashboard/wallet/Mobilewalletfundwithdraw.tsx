@@ -22,6 +22,25 @@ function getFirstName(fullname?: string | null) {
   return fullname.trim().split(" ")[0] || "User";
 }
 
+function getGreeting(): string {
+  try {
+    const lagosTimeStr = new Date().toLocaleString("en-US", {
+      timeZone: "Africa/Lagos",
+      hour: "numeric",
+      hour12: false,
+    });
+    const hour = parseInt(lagosTimeStr, 10);
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  } catch (e) {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }
+}
+
 export default function MobileWalletFundWithdraw({
   mode,
   totalBalance,
@@ -47,7 +66,7 @@ export default function MobileWalletFundWithdraw({
           color: "#030319",
         }}
       >
-        Good Morning, {name}! 👋
+        {getGreeting()}, {name}! 👋
       </p>
 
       {/* Balance Card */}

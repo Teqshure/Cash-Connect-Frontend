@@ -26,6 +26,7 @@ export interface User {
   status?: string;
   kyc_status?: string;
   wallet?: Wallet;
+  profile_image?: string | null;
 }
 
 interface AuthResponse {
@@ -62,7 +63,7 @@ interface AuthState {
     password: string,
     password_confirmation: string,
   ) => Promise<string>;
-  updateProfile: (data: { fullname?: string; phone?: string; country?: string }) => Promise<void>;
+  updateProfile: (data: { fullname?: string; phone?: string; country?: string; profile_image?: string | null }) => Promise<void>;
   setError: (error: string | null) => void;
   setHydrated: (state: boolean) => void;
 }

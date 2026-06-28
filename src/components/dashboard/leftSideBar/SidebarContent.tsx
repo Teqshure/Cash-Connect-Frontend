@@ -58,6 +58,7 @@ export default function SidebarContent({ onNavigate }: Props) {
             <Link
               key={href}
               href={href}
+              prefetch={false}
               onClick={onNavigate}
               className={[
                 "flex items-center gap-3 rounded-[12px] px-3 py-3 text-[14px]",

@@ -50,6 +50,7 @@ export default function AdminSidebar() {
       <Link
         key={item.href}
         href={item.href}
+        prefetch={false}
         className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 group ${
           active
             ? "bg-white text-slate-800 shadow-sm"
@@ -73,25 +74,17 @@ export default function AdminSidebar() {
 
   return (
     <aside className="fixed left-0 top-0 z-40 w-65 h-screen bg-[#192038] flex flex-col pt-7 pb-6 px-5">
-      {/* Brand */}
-      <div className="mb-10 flex items-center gap-3 px-2">
-        <div className="w-11 h-11 rounded-xl bg-linear-to-br from-[#00B86B] to-[#00E096] flex items-center justify-center shadow-[0_4px_20px_rgb(0,184,107,0.25)] shrink-0">
+      <div className="mb-10 px-2 flex items-center h-[30px] w-full">
+        <Link href="/admin/dashboard" prefetch={false} className="block">
           <Image
-            src="/images/dashboard/dashboardnav/walletlogo.png"
-            alt="Logo"
-            width={22}
-            height={22}
-            className="object-contain"
+            src="/images/cash-connect-logo.png"
+            alt="Cash Connect Logo"
+            width={110}
+            height={30}
+            className="object-contain brightness-0 invert"
+            priority
           />
-        </div>
-        <div>
-          <h1 className="text-[#00B86B] font-bold text-[17px] leading-tight tracking-tight">
-            CashConnect
-          </h1>
-          <p className="text-slate-400/70 text-[11px] font-medium mt-0.5">
-            Financial Freedom
-          </p>
-        </div>
+        </Link>
       </div>
 
       {/* Navigation */}

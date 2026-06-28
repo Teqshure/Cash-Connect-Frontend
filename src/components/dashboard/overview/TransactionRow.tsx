@@ -7,9 +7,10 @@ import TransactionStatusBadge from "./TransactionStatusBadge";
 
 type Props = {
   tx: Transaction;
+  onSelect?: (tx: Transaction) => void;
 };
 
-export default function TransactionRow({ tx }: Props) {
+export default function TransactionRow({ tx, onSelect }: Props) {
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -24,7 +25,7 @@ export default function TransactionRow({ tx }: Props) {
       "Status: " + tx.status.toUpperCase(),
       "-----------------------------",
       "Thank you for using Cash Connect!"
-    ].join("\\n");
+    ].join("\n");
 
     const blob = new Blob([receiptContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -37,8 +38,19 @@ export default function TransactionRow({ tx }: Props) {
     URL.revokeObjectURL(url);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onSelect) {
+      onSelect(tx);
+    } else {
+      handleDownload(e);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-[120px_1fr_140px_90px_50px] gap-3 items-center py-3 hover:bg-slate-50/60 transition">
+    <div 
+      onClick={handleClick}
+      className="grid grid-cols-[120px_1fr_140px_90px_50px] gap-3 items-center py-3 hover:bg-slate-50/60 transition cursor-pointer"
+    >
       {/* Date */}
       <div className="pl-3">
         <p className="text-[11px] text-slate-700 font-medium whitespace-nowrap">
@@ -79,9 +91,12 @@ export default function TransactionRow({ tx }: Props) {
       {/* Action */}
       <div className="flex justify-center">
         <button 
-          onClick={handleDownload}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick(e);
+          }}
           className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
-          title="Download Receipt"
+          title="View Details"
         >
           <Download className="h-4 w-4" />
         </button>

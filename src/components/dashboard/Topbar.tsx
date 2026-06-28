@@ -14,6 +14,25 @@ function getFirstName(fullname?: string | null) {
   return fullname.trim().split(" ")[0] || "User";
 }
 
+function getGreeting(): string {
+  try {
+    const lagosTimeStr = new Date().toLocaleString("en-US", {
+      timeZone: "Africa/Lagos",
+      hour: "numeric",
+      hour12: false,
+    });
+    const hour = parseInt(lagosTimeStr, 10);
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  } catch (e) {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }
+}
+
 function getPageTitle(pathname: string): string {
   if (pathname === "/" || pathname === "/dashboard") return "Dashboard";
   if (pathname.startsWith("/wallet")) return "Wallet";
@@ -31,6 +50,7 @@ function getPageTitle(pathname: string): string {
 const ProfileMenu = ({ router, withChevron = false }: { router: any, withChevron?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const user = useAuthStore((s: any) => s.user);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,7 +70,7 @@ const ProfileMenu = ({ router, withChevron = false }: { router: any, withChevron
       >
         <div className="relative h-[36px] w-[36px] rounded-full overflow-hidden border border-slate-200 bg-slate-200">
           <Image
-            src={avartarimg}
+            src={user?.profile_image || avartarimg}
             alt="Profile"
             fill
             className="object-cover"
@@ -161,7 +181,7 @@ export default function Topbar({
         {/* LEFT */}
         <div className="min-w-0 w-[390px] h-[91px] flex items-center">
           <p className="text-[20px] leading-[28px] font-medium text-slate-900 whitespace-nowrap">
-            Good Morning, {name}! <span className="ml-1">👋</span>
+            {getGreeting()}, {name}! <span className="ml-1">👋</span>
           </p>
         </div>
 

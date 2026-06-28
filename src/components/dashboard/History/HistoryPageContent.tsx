@@ -140,6 +140,27 @@ function downloadReceipt(tx: Transaction) {
   URL.revokeObjectURL(url);
 }
 
+import TransactionDetailModal from "./TransactionDetailModal";
+
+function getGreeting(): string {
+  try {
+    const lagosTimeStr = new Date().toLocaleString("en-US", {
+      timeZone: "Africa/Lagos",
+      hour: "numeric",
+      hour12: false,
+    });
+    const hour = parseInt(lagosTimeStr, 10);
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  } catch (e) {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }
+}
+
 // ----------------------------------------------------------------
 // Component
 // ----------------------------------------------------------------
@@ -148,6 +169,7 @@ export default function HistoryPageContent() {
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const user = useAuthStore((s: { user: User | null }) => s.user);
   const name = getFirstName(user?.fullname);
@@ -250,7 +272,7 @@ export default function HistoryPageContent() {
 
         <div className="rounded-[18px] bg-white border border-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.06)] p-6">
           {!isLoading && !error && filteredItems.length > 0 ? (
-            <TransactionsTable items={filteredItems} />
+            <TransactionsTable items={filteredItems} onSelect={setSelectedTx} />
           ) : !isLoading && !error && filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <p className="text-[14px] text-slate-400 text-center">
@@ -277,7 +299,7 @@ export default function HistoryPageContent() {
       {/* MOBILE */}
       <div className="lg:hidden px-4 pb-8">
         <p className="mt-6 mb-4 text-[18px] text-[#030319]">
-          Good Morning, {name}! 👋
+          {getGreeting()}, {name}! 👋
         </p>
 
         {filterControls}
@@ -286,65 +308,72 @@ export default function HistoryPageContent() {
           {filteredItems.length > 0 ? (
             filteredItems.map((tx: Transaction) => (
               <div
-              key={tx.id}
-              className="cursor-pointer grid grid-cols-[1fr_1fr_70px_40px] px-4 py-3 border-b border-slate-50 items-center"
-            >
-              <div className="flex items-center gap-2">
-                {isCredit(tx.icon) ? (
-                  <ArrowUpCircle className="h-7 w-7 text-emerald-500 flex-shrink-0" />
-                ) : (
-                  <ArrowDownCircle className="h-7 w-7 text-rose-400 flex-shrink-0" />
-                )}
-
-                <span className="text-[13px] font-medium text-slate-700">
-                  {shortType(tx.type)}
-                </span>
-              </div>
-
-              <p className="text-[12px] text-slate-500">
-                #{tx.id.padStart(8, "0")}
-              </p>
-
-              <p className="text-[12px] text-slate-600 font-medium">
-                {tx.status}
-              </p>
-
-              <div className="flex justify-center">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadReceipt(tx);
-                  }}
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
-                  title="Download Receipt"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16">
-            <p className="text-[14px] text-slate-400 text-center">
-              {searchQuery || filter !== "all"
-                ? "No transactions found matching your criteria"
-                : "No transactions available"}
-            </p>
-            {(searchQuery || filter !== "all") && (
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilter("all");
-                }}
-                className="mt-3 text-[13px] text-emerald-600 font-medium hover:underline cursor-pointer"
+                key={tx.id}
+                onClick={() => setSelectedTx(tx)}
+                className="cursor-pointer grid grid-cols-[1fr_1fr_70px_40px] px-4 py-3 border-b border-slate-50 items-center"
               >
-                Clear filters
-              </button>
-            )}
-          </div>
-        )}
+                <div className="flex items-center gap-2">
+                  {isCredit(tx.icon) ? (
+                    <ArrowUpCircle className="h-7 w-7 text-emerald-500 flex-shrink-0" />
+                  ) : (
+                    <ArrowDownCircle className="h-7 w-7 text-rose-400 flex-shrink-0" />
+                  )}
+
+                  <span className="text-[13px] font-medium text-slate-700">
+                    {shortType(tx.type)}
+                  </span>
+                </div>
+
+                <p className="text-[12px] text-slate-500">
+                  #{tx.id.padStart(8, "0")}
+                </p>
+
+                <p className="text-[12px] text-slate-600 font-medium font-sans uppercase">
+                  {tx.status}
+                </p>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedTx(tx);
+                    }}
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                    title="View Details"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16">
+              <p className="text-[14px] text-slate-400 text-center">
+                {searchQuery || filter !== "all"
+                  ? "No transactions found matching your criteria"
+                  : "No transactions available"}
+              </p>
+              {(searchQuery || filter !== "all") && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilter("all");
+                  }}
+                  className="mt-3 text-[13px] text-emerald-600 font-medium hover:underline cursor-pointer"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      <TransactionDetailModal
+        isOpen={selectedTx !== null}
+        onClose={() => setSelectedTx(null)}
+        tx={selectedTx}
+      />
     </>
   );
 }

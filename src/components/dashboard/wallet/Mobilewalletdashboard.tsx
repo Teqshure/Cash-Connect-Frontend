@@ -27,6 +27,25 @@ function getFirstName(fullname?: string | null) {
   return fullname.trim().split(" ")[0] || "User";
 }
 
+function getGreeting(): string {
+  try {
+    const lagosTimeStr = new Date().toLocaleString("en-US", {
+      timeZone: "Africa/Lagos",
+      hour: "numeric",
+      hour12: false,
+    });
+    const hour = parseInt(lagosTimeStr, 10);
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  } catch (e) {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }
+}
+
 // Sample transactions for the default view
 const sampleTxs = [
   { id: "1", label: "Crypto", txId: "#12548796", type: "Swap", credit: true },
@@ -58,7 +77,7 @@ export default function MobileWalletDashboard({
           color: "#030319",
         }}
       >
-        Good Morning, {name}! 👋
+        {getGreeting()}, {name}! 👋
       </p>
 
       {/* Balance Card */}

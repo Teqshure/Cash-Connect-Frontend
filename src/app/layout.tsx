@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import Preloader from "@/components/ui/Preloader";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -10,8 +11,11 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Cash Connect",
-  description: "Simplifying digital exchange",
+  title: {
+    template: "%s | Cash Connect",
+    default: "Cash Connect - Secure Financial Platform",
+  },
+  description: "Simplifying digital exchange and financial freedom",
 };
 
 export default function RootLayout({
@@ -25,6 +29,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className="antialiased font-sans pt-14 lg:pt-0 no-scrollbar"
       >
+        <Preloader />
         <Providers>{children}</Providers>
       </body>
     </html>
