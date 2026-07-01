@@ -26,6 +26,7 @@ export default function ReceivePaymentFlow({ onBack }: any) {
 
   const [showSuccess, setShowSuccess] = useState(false); // ✅ notify admin modal
   const [showCopyModal, setShowCopyModal] = useState(false); // ✅ copy modal
+  const [unavailableMethodName, setUnavailableMethodName] = useState<string | null>(null);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -48,6 +49,10 @@ export default function ReceivePaymentFlow({ onBack }: any) {
   // ---------------- METHOD SELECT ----------------
   const handleMethodSelect = (method: UIPaymentMethod) => {
     console.log("🟢 Selected Method:", method);
+    if (!method.accounts || method.accounts.length === 0) {
+      setUnavailableMethodName(method.name);
+      return;
+    }
     setSelectedMethod(method);
     setStep("form");
   };
@@ -143,12 +148,12 @@ export default function ReceivePaymentFlow({ onBack }: any) {
       const res = await submitTransaction(payload);
 
       console.log("✅ [TRANSACTION CREATED]:", res);
-
-      setShowSuccess(true);
+      return res;
     } catch (err: any) {
       console.error("❌ TRANSACTION ERROR:", err);
       setErrorMessage(err.message);
       setStep("error");
+      throw err;
     }
   };
 
@@ -181,8 +186,6 @@ export default function ReceivePaymentFlow({ onBack }: any) {
           onSelect={handleAccountSelect}
           onCopy={(account: any) => {
             console.log("📋 COPY TRIGGERED");
-            setShowCopyModal(true);
-            // Notify admin automatically
             submitTransaction({
               account_id: account.id,
               expected_amount: formData?.amount || 0,
@@ -219,6 +222,29 @@ export default function ReceivePaymentFlow({ onBack }: any) {
           setStep("choose");
         }}
       />
+
+      {/* UNAVAILABLE MODAL */}
+      {unavailableMethodName && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[24px] shadow-2xl p-8 max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="w-16 h-16 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center mb-5 text-amber-500 text-2xl animate-bounce">
+              ⚠️
+            </div>
+            <h3 className="text-[17px] font-bold text-slate-800 mb-2">
+              Payment method not available
+            </h3>
+            <p className="text-[13px] text-slate-500 mb-6 px-3 leading-relaxed">
+              Payment method not available check back later
+            </p>
+            <button
+              onClick={() => setUnavailableMethodName(null)}
+              className="w-full py-3 bg-[#007042] hover:bg-[#005a35] text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-sm"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

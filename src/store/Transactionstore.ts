@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 
-const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
 
 /* -------------------------------------------------- */
 /* TYPES */
@@ -176,3 +176,4 @@ export const useTransactionStore = create<TransactionState>()(
     },
   }),
 );
+

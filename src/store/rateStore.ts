@@ -5,7 +5,7 @@ import { useAuthStore } from "./useAuthStore";
 import { useEffect, useMemo, useRef } from "react";
 import { useCallback } from "react";
 
-const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
 
 export interface Rate {
   id: number;
@@ -443,3 +443,4 @@ export const useValidateAmount = (itemId: number, type: string) => {
 
   return { validate };
 };
+

@@ -4,7 +4,7 @@ import WalletBalanceCard from "@/components/dashboard/overview/WalletBalanceCard
 import FundWalletCard from "@/components/dashboard/wallet/FundWalletCard";
 import QuickActionTile from "@/components/dashboard/overview/QuickActionTile";
 import {
-  ArrowUpRight,
+  ArrowDownLeft,
   Gift,
   Bitcoin,
   MoreHorizontal,
@@ -144,10 +144,11 @@ export default function MobileWalletDashboard({
         </h2>
         <div className="grid grid-cols-4 gap-2">
           <QuickActionTile
-            label="Send Payment"
-            Icon={ArrowUpRight}
-            iconBgClass="bg-[#DCEBFF]"
-            iconColorClass="text-[#1D4ED8]"
+            label="Receive Payout"
+            Icon={ArrowDownLeft}
+            iconBgClass="bg-[#E3F7EC]"
+            iconColorClass="text-[#0B7B4A]"
+            onClick={() => window.location.href = "/receive-payment"}
           />
           <QuickActionTile
             label="Sell Giftcard"

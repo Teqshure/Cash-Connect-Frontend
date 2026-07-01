@@ -501,7 +501,7 @@ export default function ReceivePaymentForm({
               ) : currencies.length === 0 || countries.length === 0 ? (
                 "Loading options..."
               ) : (
-                "Request Account"
+                "Generate Payment Account"
               )}
             </button>
           </div>

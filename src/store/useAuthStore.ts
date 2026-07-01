@@ -70,7 +70,7 @@ interface AuthState {
 
 // ------------------------------------------------------------------
 
-const API_URL = "https://cashconnect.beamaxtech.com.ng/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/v1', '') : "https://api.cashconnectworld.com/api";
 
 // ------------------------------------------------------------------
 
@@ -346,3 +346,4 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
+

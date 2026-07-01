@@ -6,7 +6,7 @@ import { useEffect, useMemo, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 // ✅ Correct base URL
-const BASE_URL = "https://cashconnect.beamaxtech.com.ng/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
 
 // ------------------------------------------------------
 // TYPES
@@ -77,6 +77,7 @@ export interface UIPaymentMethod {
   paymentMethodId?: number;
   currencies?: Currency[];
   countries?: Country[];
+  accounts?: any[];
 }
 
 export interface InternationalTransaction {
@@ -193,15 +194,18 @@ const LOGO_MAP: Record<string, string> = {
   MoneyGram: "/images/payments/money-gram.png",
   Venmo: "/images/payments/venmo.png",
   CashApp: "/images/payments/cashapp.png",
+  "Cash App": "/images/payments/cashapp.png",
   Payoneer: "/images/payments/payoneer.png",
   Skrill: "/images/payments/skrill.png",
   Neteller: "/images/payments/neteller.png",
   Wise: "/images/payments/wise.png",
   Chime: "/images/payments/chime.png",
   Remitly: "/images/payments/remitly.png",
+  "Bank Wire": "/images/payments/wise.png",
+  "Wire Transfer": "/images/payments/wise.png",
 };
 
-function convertAPIToUIMethods(apiMethods: PaymentMethod[]): UIPaymentMethod[] {
+function convertAPIToUIMethods(apiMethods: any[]): UIPaymentMethod[] {
   return apiMethods.map((method) => ({
     id: method.code || method.name.toLowerCase().replace(/\s+/g, "-"),
     name: method.name,
@@ -210,6 +214,7 @@ function convertAPIToUIMethods(apiMethods: PaymentMethod[]): UIPaymentMethod[] {
     logo: LOGO_MAP[method.name] || "/images/payments/paypal.png",
     eta: "Instant",
     feeNote: "Check rates",
+    accounts: method.accounts || [],
   }));
 }
 
@@ -893,3 +898,4 @@ export const useCancelTransaction = () => {
 
   return { cancelTransaction, submitting, error };
 };
+

@@ -1,6 +1,7 @@
 "use client";
 
-import { Copy } from "lucide-react";
+import { useState } from "react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import { InternationalAccount } from "@/store/globalPayment";
 
 type Props = {
@@ -20,9 +21,13 @@ export default function ReceiveAccountsList({
 }: Props) {
   console.log("📺 [ACCOUNTS LIST RECEIVED]:", accounts);
 
-  const handleCopyAccount = (account: InternationalAccount) => {
-    console.log("📋 [COPY ACCOUNT]:", account);
+  const [loadingIds, setLoadingIds] = useState<number[]>([]);
+  const [successIds, setSuccessIds] = useState<number[]>([]);
 
+  const handleCopyAndNotify = async (account: InternationalAccount) => {
+    if (loadingIds.includes(account.id) || successIds.includes(account.id)) return;
+
+    // 1. Copy account details to clipboard
     const text = `
 Currency: ${account.currency}
 Country: ${account.country}
@@ -35,8 +40,22 @@ ${account.email ? `Email: ${account.email}` : ""}
 ${(account as any).extra_information ? `Info: ${(account as any).extra_information}` : ""}
     `.trim();
 
-    navigator.clipboard.writeText(text);
-    onCopy(account);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      console.error("Clipboard copy failed", e);
+    }
+
+    // 2. Notify the backend API
+    setLoadingIds((prev) => [...prev, account.id]);
+    try {
+      await onSelect(account);
+      setSuccessIds((prev) => [...prev, account.id]);
+    } catch (err) {
+      console.error("Failed to notify admin", err);
+    } finally {
+      setLoadingIds((prev) => prev.filter((id) => id !== account.id));
+    }
   };
 
   return (
@@ -111,30 +130,35 @@ ${(account as any).extra_information ? `Info: ${(account as any).extra_informati
               {/* COUNTRY */}
               <Row label="Country" value={account.country} />
 
-              {/* ACTION BUTTONS */}
-              <div className="flex gap-3 pt-4">
-                {/* COPY */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCopyAccount(account);
-                  }}
-                  className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition"
-                >
-                  <Copy size={16} className="inline mr-2" />
-                  Copy Details
-                </button>
-
-                {/* NOTIFY ADMIN */}
-                <button
-                  onClick={() => {
-                    console.log("📢 [NOTIFY ADMIN CLICKED]:", account);
-                    onSelect(account);
-                  }}
-                  className="flex-1 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition"
-                >
-                  Notify Admin
-                </button>
+              {/* ACTION BUTTON */}
+              <div className="pt-4 space-y-2">
+                {successIds.includes(account.id) ? (
+                  <>
+                    <button
+                      disabled
+                      className="w-full py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-2 transition duration-300"
+                    >
+                      <Check size={18} />
+                      Details Copied & Admin Notified!
+                    </button>
+                    <p className="text-[12px] text-emerald-600 font-semibold text-center mt-2 animate-in fade-in duration-300">
+                      Admin is now monitoring the account for your incoming payment.
+                    </p>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => handleCopyAndNotify(account)}
+                    disabled={loadingIds.includes(account.id)}
+                    className="w-full py-3.5 rounded-xl bg-[#007042] text-white text-sm font-semibold hover:bg-[#005a35] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                  >
+                    {loadingIds.includes(account.id) ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Copy size={16} />
+                    )}
+                    Copy Details & Notify Admin
+                  </button>
+                )}
               </div>
             </div>
           </div>

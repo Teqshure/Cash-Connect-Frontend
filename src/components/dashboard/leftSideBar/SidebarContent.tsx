@@ -22,7 +22,7 @@ type Props = {
 const nav = [
   { label: "Home", href: "/dashboard", icon: Home },
   { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "History", href: "/History", icon: History },
+  { label: "History", href: "/history", icon: History },
   { label: "My Orders", href: "/orders", icon: ShoppingCart },
   { label: "Product", href: "/product", icon: Package },
   { label: "Earnings", href: "/earnings", icon: Coins },
@@ -53,6 +53,19 @@ export default function SidebarContent({ onNavigate }: Props) {
       <div className="px-3 py-2 space-y-1">
         {nav.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
+          const isEarnings = label === "Earnings";
+
+          if (isEarnings) {
+            return (
+              <div
+                key={href}
+                className="flex items-center gap-3 rounded-[12px] px-3 py-3 text-[14px] text-slate-350 cursor-not-allowed font-medium"
+              >
+                <Icon className="h-5 w-5 text-slate-300" />
+                <span>{label}</span>
+              </div>
+            );
+          }
 
           return (
             <Link

@@ -36,7 +36,7 @@ function getGreeting(): string {
 function getPageTitle(pathname: string): string {
   if (pathname === "/" || pathname === "/dashboard") return "Dashboard";
   if (pathname.startsWith("/wallet")) return "Wallet";
-  if (pathname.startsWith("/History")) return "History";
+  if (pathname.startsWith("/history")) return "History";
   if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/profile")) return "Profile";
   if (pathname.startsWith("/exchange")) return "Exchange";
@@ -51,6 +51,7 @@ const ProfileMenu = ({ router, withChevron = false }: { router: any, withChevron
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s: any) => s.user);
+  const logout = useAuthStore((s: any) => s.logout);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -86,21 +87,184 @@ const ProfileMenu = ({ router, withChevron = false }: { router: any, withChevron
           <button
             onClick={() => {
               setIsOpen(false);
-              router.push("/settings");
-            }}
-            className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-          >
-            Settings
-          </button>
-          <button
-            onClick={() => {
-              setIsOpen(false);
               router.push("/profile");
             }}
             className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer"
           >
             Profile Settings
           </button>
+          <button
+            onClick={async () => {
+              setIsOpen(false);
+              await logout();
+              router.push("/login");
+            }}
+            className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+          >
+            Log Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?: boolean }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const transactions = useTransactionStore((s: any) => s.transactions);
+  const fetchTransactions = useTransactionStore((s: any) => s.fetchTransactions);
+  const [readIds, setReadIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    fetchTransactions();
+    try {
+      const stored = localStorage.getItem("cc_read_notifications");
+      if (stored) {
+        setReadIds(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [fetchTransactions]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const recentTx = transactions.slice(0, 5);
+  const unreadCount = recentTx.filter((tx: any) => !readIds.includes(tx.id)).length;
+
+  const markAllAsRead = () => {
+    const newReadIds = Array.from(new Set([...readIds, ...recentTx.map((tx: any) => tx.id)]));
+    setReadIds(newReadIds);
+    try {
+      localStorage.setItem("cc_read_notifications", JSON.stringify(newReadIds));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const toggleOpen = () => {
+    if (!isOpen) {
+      markAllAsRead();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={toggleOpen}
+        className={[
+          "relative h-[36px] w-[36px] rounded-full cursor-pointer transition flex items-center justify-center outline-none focus:outline-none",
+          isMobile 
+            ? "hover:bg-slate-50 text-slate-700" 
+            : "border border-slate-200 bg-white hover:bg-slate-50 text-slate-500"
+        ].join(" ")}
+        aria-label="Notifications"
+      >
+        <Bell className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
+        {unreadCount > 0 && (
+          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+        )}
+      </button>
+
+      {isOpen && (
+        <div 
+          className={[
+            "absolute mt-2 w-80 bg-white rounded-2xl shadow-[0_4px_25px_rgba(0,0,0,0.1)] border border-slate-100 py-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200",
+            isMobile ? "right-[-60px]" : "right-0"
+          ].join(" ")}
+        >
+          <div className="px-4 pb-2 border-b border-slate-50 flex items-center justify-between">
+            <span className="text-[14px] font-semibold text-slate-800">Notifications</span>
+            {unreadCount > 0 && (
+              <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                {unreadCount} new
+              </span>
+            )}
+          </div>
+
+          <div className="max-h-[300px] overflow-y-auto divide-y divide-slate-50 no-scrollbar">
+            {recentTx.length === 0 ? (
+              <div className="py-8 text-center text-[12px] text-slate-400">
+                No recent activity.
+              </div>
+            ) : (
+              recentTx.map((tx: any) => {
+                const isUnread = !readIds.includes(tx.id);
+                const isCredit = tx.direction === "credit";
+                const amountSign = isCredit ? "+" : "-";
+                const amountColor = isCredit ? "text-emerald-600" : "text-slate-800";
+                
+                let title = "Transaction";
+                if (tx.type === "deposit") title = "Deposit Money";
+                else if (tx.type === "withdrawal") title = "Withdraw Money";
+                else if (tx.type === "crypto") title = "Crypto Trade";
+                else if (tx.type === "gift") title = "Giftcard Trade";
+                else if (tx.type === "international") title = "Global Payment";
+
+                const dateStr = new Date(tx.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+
+                return (
+                  <div 
+                    key={tx.id} 
+                    className={[
+                      "p-3.5 flex items-start gap-3 hover:bg-slate-50/50 transition cursor-pointer relative",
+                      isUnread ? "bg-emerald-50/10" : ""
+                    ].join(" ")}
+                    onClick={() => {
+                      setIsOpen(false);
+                      router.push("/history");
+                    }}
+                  >
+                    {isUnread && (
+                      <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[12px] font-semibold text-slate-800 truncate">{title}</p>
+                        <p className={["text-[12px] font-bold shrink-0", amountColor].join(" ")}>
+                          {amountSign}{tx.currency}{parseFloat(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 truncate capitalize">
+                        Status: <span className={
+                          tx.status === "approved" ? "text-emerald-600 font-medium" :
+                          tx.status === "rejected" || tx.status === "failed" ? "text-rose-500 font-medium" : "text-amber-500 font-medium"
+                        }>{tx.status}</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-1">{dateStr}</p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="px-4 pt-2.5 border-t border-slate-50 text-center">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                router.push("/history");
+              }}
+              className="text-[12px] font-medium text-emerald-600 hover:text-emerald-700 cursor-pointer"
+            >
+              View all notifications
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -117,7 +281,7 @@ export default function Topbar({
   const name = getFirstName(user?.fullname);
   const pathname = usePathname();
 
-  const isHistoryPage = pathname === "/History";
+  const isHistoryPage = pathname === "/history";
   const pageTitle = getPageTitle(pathname);
 
   // ✅ SEARCH STORE
@@ -151,14 +315,7 @@ export default function Topbar({
           </button>
 
           {/* ✅ CLICK → NOTIFICATIONS */}
-          <button
-            onClick={() => router.push("/notifications")}
-            className="relative h-[36px] w-[36px] rounded-full cursor-pointer hover:bg-slate-50 transition"
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5  text-slate-700" />
-            <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-rose-500" />
-          </button>
+          <NotificationMenu router={router} isMobile />
 
           <ProfileMenu router={router} withChevron />
         </div>
@@ -202,15 +359,7 @@ export default function Topbar({
           )}
 
           {/* ✅ CLICK → NOTIFICATIONS */}
-          <button
-            type="button"
-            onClick={() => router.push("/notifications")}
-            aria-label="Notifications"
-            className="relative h-[36px] w-[36px] rounded-full cursor-pointer border border-slate-200 bg-white grid place-items-center hover:bg-slate-50 transition"
-          >
-            <Bell className="h-4 w-4 text-slate-500" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
-          </button>
+          <NotificationMenu router={router} />
 
           <ProfileMenu router={router} />
         </div>

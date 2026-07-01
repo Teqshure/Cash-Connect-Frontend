@@ -29,7 +29,7 @@ export default function ExchangePromoCard() {
         <h3 className="text-[18px] font-semibold mt-1">Exchange Hub</h3>
 
         <p className="text-[14px] mt-3 text-white/90 leading-[20px]">
-          Trade Crypto, Giftcards <br />& Send Payments Worldwide.
+          Trade Crypto, Giftcards <br />& Receive Payments Worldwide.
         </p>
 
         <button

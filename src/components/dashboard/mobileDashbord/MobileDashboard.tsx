@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WalletBalanceCard from "@/components/dashboard/overview/WalletBalanceCard";
 import QuickActionTile from "@/components/dashboard/overview/QuickActionTile";
-import { ArrowUpRight, Gift, Bitcoin, MoreHorizontal } from "lucide-react";
+import { ArrowDownLeft, Gift, Bitcoin, MoreHorizontal } from "lucide-react";
 import MobileTradeBanner from "./MobileTradeBanner";
 import MobileRecentTransactions from "./MobileRecentTransactions";
 import MobileEarningOpportunities from "./MobileEarningOpportunities";
@@ -85,11 +85,11 @@ export default function MobileDashboard() {
         </h2>
         <div className="grid grid-cols-4 gap-2">
           <QuickActionTile
-            label="Send Payment"
-            Icon={ArrowUpRight}
-            iconBgClass="bg-[#DCEBFF]"
-            iconColorClass="text-[#1D4ED8]"
-            onClick={() => router.push("/send-payment")}
+            label="Receive Payout"
+            Icon={ArrowDownLeft}
+            iconBgClass="bg-[#E3F7EC]"
+            iconColorClass="text-[#0B7B4A]"
+            onClick={() => router.push("/receive-payment")}
           />
           <QuickActionTile
             label="Sell Giftcard"

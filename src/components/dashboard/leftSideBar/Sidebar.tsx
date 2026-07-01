@@ -27,7 +27,7 @@ type NavItem = {
 const topNav: NavItem[] = [
   { label: "Home", href: "/dashboard", Icon: Home },
   { label: "Wallet", href: "/wallet", Icon: Wallet },
-  { label: "History", href: "/History", Icon: History },
+  { label: "History", href: "/history", Icon: History },
   { label: "Products", href: "/product", Icon: Box },
   { label: "Orders", href: "/orders", Icon: ShoppingCart },
   { label: "Earnings", href: "/earnings", Icon: BadgeDollarSign },
@@ -58,6 +58,22 @@ export default function Sidebar() {
   const renderNav = (items: NavItem[]) =>
     items.map((item) => {
       const active = isActive(item.href);
+      const isEarnings = item.label === "Earnings";
+
+      if (isEarnings) {
+        return (
+          <li key={item.href}>
+            <div
+              className={[baseRow, "text-slate-300 cursor-not-allowed"].join(" ")}
+            >
+              <item.Icon
+                className="h-[20px] w-[20px] shrink-0 text-slate-300"
+              />
+              <span className="text-[15px]">{item.label}</span>
+            </div>
+          </li>
+        );
+      }
 
       return (
         <li key={item.href}>
