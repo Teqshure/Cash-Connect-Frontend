@@ -50,7 +50,7 @@ export const RECEIVE_PAYMENT_METHODS: ReceivePaymentMethod[] = [
   },
   {
     id: "cashapp",
-    name: "CashApp",
+    name: "Cash App",
     logo: "/images/payments/cashapp.png",
     eta: "Instant",
     feeNote: "2%",

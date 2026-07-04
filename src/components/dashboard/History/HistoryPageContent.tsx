@@ -75,13 +75,117 @@ function formatDate(dateStr: string): { date: string; time: string } {
 
 function mapTransaction(tx: ApiTransaction): Transaction {
   const { date, time } = formatDate(tx.created_at);
+  const icon = getIcon(tx);
+  const status = getStatus(tx.status);
 
+  // ── International transaction: special display logic ──────────────────
+  if (tx.type === "international" && tx.international) {
+    const intl = tx.international as any;
+    const currency = intl.account?.currency ?? "USD";
+    const expectedAmt = parseFloat(intl.expected_amount ?? "0");
+    const fiatAmt     = parseFloat(intl.fiat_equivalent ?? "0");
+    const rate        = parseFloat(intl.rate ?? "0");
+
+    const foreignFormatted = expectedAmt.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const ngnFormatted = fiatAmt.toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    // Before approval: show foreign currency so user knows what they sent
+    // After approval:  show credited NGN amount
+    const isApproved = status === "successful";
+
+    return {
+      id: String(tx.id),
+      date,
+      time,
+      type: getLabel(tx),
+      // Pending → foreign amount; Approved → NGN credited
+      amountPrimary: isApproved
+        ? `₦${ngnFormatted}`
+        : `${currency} ${foreignFormatted}`,
+      status,
+      icon,
+      isInternational: true,
+      intlId: intl.id,
+      receipt: intl.receipt,
+      foreignAmount: `${currency} ${foreignFormatted}`,
+      foreignCurrency: currency,
+      // Only expose rate & NGN once approved
+      exchangeRate: isApproved && rate > 0 ? `₦${rate.toLocaleString("en-NG", { minimumFractionDigits: 2 })}/${currency}` : undefined,
+      ngnAmount:    isApproved ? `₦${ngnFormatted}` : undefined,
+    };
+  }
+
+  // ── Gift Card Transaction Mapping ──────────────────────────────────────
+  if ((tx.type as any) === "giftcard") {
+    const isDebit = tx.direction === "debit"; // Buy
+    const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    if (isDebit) {
+      // Buy Order
+      const gco = (tx as any).gift_card_order;
+      const product = gco?.product;
+      const brand = product?.gift_card?.name ?? "Giftcard";
+      const cardQty = gco?.quantity ?? 1;
+      const faceVal = product?.amount ? `$${product.amount}` : "";
+
+      return {
+        id: String(tx.id),
+        date,
+        time,
+        type: "Giftcard Purchase",
+        amountPrimary: `₦${amount}`,
+        status,
+        icon: "gift",
+        isGiftCard: true,
+        tradeType: "buy",
+        cardName: brand,
+        cardAmount: faceVal,
+        cardCurrency: product?.currency ?? "USD",
+        quantity: cardQty,
+        cardCode: product?.card_code,
+        cardPin: product?.card_pin,
+        cardImages: product?.card_images,
+      };
+    } else {
+      // Sell Order (GiftCardTransaction)
+      const stx = (tx as any).giftcard;
+      const brand = stx?.card_brand ?? "Giftcard";
+      const faceVal = stx?.card_value ? `$${stx.card_value}` : "";
+
+      return {
+        id: String(tx.id),
+        date,
+        time,
+        type: "Giftcard Sale",
+        amountPrimary: `₦${amount}`,
+        status,
+        icon: "gift",
+        isGiftCard: true,
+        tradeType: "sell",
+        cardName: brand,
+        cardAmount: faceVal,
+        cardCurrency: stx?.currency ?? "USD",
+        cardCode: stx?.card_code,
+        cardPin: stx?.card_pin,
+        cardImages: stx?.card_images,
+      };
+    }
+  }
+
+  // ── All other transaction types ────────────────────────────────────────
   const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-
-  const icon = getIcon(tx);
 
   return {
     id: String(tx.id),
@@ -89,7 +193,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     time,
     type: getLabel(tx),
     amountPrimary: `${tx.currency === "NGN" ? "₦" : tx.currency} ${amount}`,
-    status: getStatus(tx.status),
+    status,
     icon,
   };
 }
@@ -297,53 +401,58 @@ export default function HistoryPageContent() {
       </div>
 
       {/* MOBILE */}
-      <div className="lg:hidden px-4 pb-8">
-        <p className="mt-6 mb-4 text-[18px] text-[#030319]">
+      <div className="lg:hidden px-0 pb-8">
+        <p className="mt-6 mb-4 text-[18px] text-[#030319] px-4">
           {getGreeting()}, {name}! 👋
         </p>
 
-        {filterControls}
+        <div className="px-4">{filterControls}</div>
 
-        <div className="bg-white rounded-[18px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[18px] border border-slate-100 shadow-sm overflow-hidden mx-4">
           {filteredItems.length > 0 ? (
-            filteredItems.map((tx: Transaction) => (
+            filteredItems.map((tx: Transaction, idx: number) => (
               <div
                 key={tx.id}
                 onClick={() => setSelectedTx(tx)}
-                className="cursor-pointer grid grid-cols-[1fr_1fr_70px_40px] px-4 py-3 border-b border-slate-50 items-center"
+                className={`cursor-pointer flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50/60 transition ${idx < filteredItems.length - 1 ? "border-b border-slate-100" : ""}`}
               >
-                <div className="flex items-center gap-2">
+                {/* Icon */}
+                <div className="shrink-0">
                   {isCredit(tx.icon) ? (
-                    <ArrowUpCircle className="h-7 w-7 text-emerald-500 flex-shrink-0" />
+                    <div className="h-9 w-9 rounded-full bg-emerald-50 flex items-center justify-center">
+                      <ArrowUpCircle className="h-5 w-5 text-emerald-500" />
+                    </div>
                   ) : (
-                    <ArrowDownCircle className="h-7 w-7 text-rose-400 flex-shrink-0" />
+                    <div className="h-9 w-9 rounded-full bg-rose-50 flex items-center justify-center">
+                      <ArrowDownCircle className="h-5 w-5 text-rose-400" />
+                    </div>
                   )}
-
-                  <span className="text-[13px] font-medium text-slate-700">
-                    {shortType(tx.type)}
-                  </span>
                 </div>
 
-                <p className="text-[12px] text-slate-500">
-                  #{tx.id.padStart(8, "0")}
-                </p>
+                {/* Type + ID */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-slate-800 truncate">{shortType(tx.type)}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">#{tx.id.padStart(6, "0")}</p>
+                </div>
 
-                <p className="text-[12px] text-slate-600 font-medium font-sans uppercase">
+                {/* Status badge */}
+                <span className={[
+                  "text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize shrink-0",
+                  tx.status === "successful" ? "bg-emerald-50 text-emerald-600" :
+                  tx.status === "pending" ? "bg-amber-50 text-amber-600" :
+                  "bg-rose-50 text-rose-500"
+                ].join(" ")}>
                   {tx.status}
-                </p>
+                </span>
 
-                <div className="flex justify-center">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedTx(tx);
-                    }}
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
-                    title="View Details"
-                  >
-                    <Download className="h-4 w-4" />
-                  </button>
-                </div>
+                {/* View button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setSelectedTx(tx); }}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition cursor-pointer shrink-0"
+                  title="View Details"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
               </div>
             ))
           ) : (
@@ -355,10 +464,7 @@ export default function HistoryPageContent() {
               </p>
               {(searchQuery || filter !== "all") && (
                 <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setFilter("all");
-                  }}
+                  onClick={() => { setSearchQuery(""); setFilter("all"); }}
                   className="mt-3 text-[13px] text-emerald-600 font-medium hover:underline cursor-pointer"
                 >
                   Clear filters

@@ -14,6 +14,7 @@ import { Stats } from "@/components/sections/Stats";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Team } from "@/components/sections/Team";
 import { WhyChooseUs } from "@/components/sections/WhyChooseUs";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const router = useRouter();
@@ -30,12 +31,54 @@ export default function Home() {
       {/* pt-14 clears the fixed mobile navbar (~56px). lg:pt-0 resets on desktop */}
       <main className="grow  lg:pt-0">
         <Hero />
-        <Stats />
-        <LandingServices />
-        <LiveRates />
-        <Process />
+        
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Stats />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
+        >
+          <LandingServices />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
+        >
+          <LiveRates />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Process />
+        </motion.div>
+
         <WhyChooseUs />
-        <Testimonials />
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Testimonials />
+        </motion.div>
+
         <CallToAction />
       </main>
 

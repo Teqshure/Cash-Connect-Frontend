@@ -4,6 +4,7 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import React from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface ProductFeatureProps {
   title: string;
@@ -40,7 +41,13 @@ export const ProductFeature = ({
           } items-center gap-12 lg:gap-20`}
         >
           {/* Content */}
-          <div className="w-full lg:w-1/2 space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: isImageRight ? -40 : 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="w-full lg:w-1/2 space-y-6"
+          >
             {label && (
               <span className="text-emerald-500 font-bold tracking-widest uppercase text-xs block mb-2">
                 {label}
@@ -53,14 +60,22 @@ export const ProductFeature = ({
               {description}
             </p>
             <Link href={buttonLink}>
-              <button className="rounded-full bg-primary] hover:bg-emerald-500 bg-primary md:text-xl md:px-8 md:py-4 px-4 py-2 text-[10px] font-normal text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105">
+              <button className="rounded-full bg-primary] hover:bg-emerald-500 bg-primary md:text-xl md:px-8 md:py-4 px-4 py-2 text-[10px] font-normal text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 cursor-pointer">
                 {buttonText}
               </button>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Image/Visual Content */}
-          <div className="w-full lg:w-1/2">{imageContent}</div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+            className="w-full lg:w-1/2"
+          >
+            {imageContent}
+          </motion.div>
         </div>
       </div>
     </Section>

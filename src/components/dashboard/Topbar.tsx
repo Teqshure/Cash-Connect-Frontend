@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 
 import Image from "next/image";
 import avartarimg from "../../../public/images/dashboard/avatar.png";
-import { Bell, Search, Menu, Gift, ChevronDown } from "lucide-react";
+import { Bell, Search, Menu, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTransactionStore } from "@/store/Transactionstore";
 import { usePathname, useRouter } from "next/navigation";
@@ -307,12 +307,6 @@ export default function Topbar({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
-            aria-label="Rewards"
-          >
-            <Gift className="h-5 w-5 text-slate-700" />
-          </button>
 
           {/* ✅ CLICK → NOTIFICATIONS */}
           <NotificationMenu router={router} isMobile />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, Loader2 } from "lucide-react";
 import { InternationalAccount } from "@/store/globalPayment";
+import CopySuccessModal from "./CopySuccessModal";
 
 type Props = {
   accounts: InternationalAccount[];
@@ -23,9 +24,17 @@ export default function ReceiveAccountsList({
 
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
   const [successIds, setSuccessIds] = useState<number[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleCopyAndNotify = async (account: InternationalAccount) => {
     if (loadingIds.includes(account.id) || successIds.includes(account.id)) return;
+
+    const isVenmo = (account as any).payment_method?.name?.toLowerCase().includes("venmo") || 
+                    (account as any).payment_method_name?.toLowerCase().includes("venmo") ||
+                    (account as any).type?.toLowerCase().includes("venmo");
+    const isCashApp = (account as any).payment_method?.name?.toLowerCase().includes("cash app") || 
+                      (account as any).payment_method_name?.toLowerCase().includes("cash app") ||
+                      (account as any).type?.toLowerCase().includes("cash app");
 
     // 1. Copy account details to clipboard
     const text = `
@@ -35,7 +44,8 @@ Country: ${account.country}
 ${(account as any).account_name ? `Account Name: ${(account as any).account_name}` : ""}
 ${(account as any).bank_name ? `Bank: ${(account as any).bank_name}` : ""}
 ${(account as any).account_number ? `Account Number: ${(account as any).account_number}` : ""}
-${(account as any).routing_number ? `Routing Number: ${(account as any).routing_number}` : ""}
+${(account as any).username ? `${isCashApp ? "Cashtag" : "Username"}: ${(account as any).username}` : ""}
+${(account as any).routing_number ? `${isVenmo ? "Last Digit(s)" : "Routing Number"}: ${(account as any).routing_number}` : ""}
 ${account.email ? `Email: ${account.email}` : ""}
 ${(account as any).extra_information ? `Info: ${(account as any).extra_information}` : ""}
     `.trim();
@@ -51,6 +61,7 @@ ${(account as any).extra_information ? `Info: ${(account as any).extra_informati
     try {
       await onSelect(account);
       setSuccessIds((prev) => [...prev, account.id]);
+      setShowSuccessModal(true);
     } catch (err) {
       console.error("Failed to notify admin", err);
     } finally {
@@ -84,86 +95,108 @@ ${(account as any).extra_information ? `Info: ${(account as any).extra_informati
           <div className="text-center text-gray-500">No accounts available</div>
         )}
 
-        {accounts.map((account, index) => (
-          <div
-            key={account.id || index}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
-          >
-            <div className="p-6 space-y-3">
-              {/* ACCOUNT NAME */}
-              {(account as any).account_name && (
-                <Row
-                  label="Account Name"
-                  value={(account as any).account_name}
-                />
-              )}
+        {accounts.map((account, index) => {
+          const isVenmo = (account as any).payment_method?.name?.toLowerCase().includes("venmo") || 
+                          (account as any).payment_method_name?.toLowerCase().includes("venmo") ||
+                          (account as any).type?.toLowerCase().includes("venmo");
+          const isCashApp = (account as any).payment_method?.name?.toLowerCase().includes("cash app") || 
+                            (account as any).payment_method_name?.toLowerCase().includes("cash app") ||
+                            (account as any).type?.toLowerCase().includes("cash app");
 
-              {/* EMAIL */}
-              {account.email && <Row label="Email" value={account.email} />}
-
-              {/* BANK */}
-              {(account as any).bank_name && (
-                <Row label="Bank" value={(account as any).bank_name} />
-              )}
-
-              {/* ACCOUNT NUMBER */}
-              {(account as any).account_number && (
-                <Row
-                  label="Account Number"
-                  value={(account as any).account_number}
-                />
-              )}
-
-              {/* ROUTING */}
-              {(account as any).routing_number && (
-                <Row
-                  label="Routing Number"
-                  value={(account as any).routing_number}
-                />
-              )}
-
-              {/* EXTRA INFO */}
-              {(account as any).extra_information && (
-                <Row label="Info" value={(account as any).extra_information} />
-              )}
-
-              {/* COUNTRY */}
-              <Row label="Country" value={account.country} />
-
-              {/* ACTION BUTTON */}
-              <div className="pt-4 space-y-2">
-                {successIds.includes(account.id) ? (
-                  <>
-                    <button
-                      disabled
-                      className="w-full py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-2 transition duration-300"
-                    >
-                      <Check size={18} />
-                      Details Copied & Admin Notified!
-                    </button>
-                    <p className="text-[12px] text-emerald-600 font-semibold text-center mt-2 animate-in fade-in duration-300">
-                      Admin is now monitoring the account for your incoming payment.
-                    </p>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => handleCopyAndNotify(account)}
-                    disabled={loadingIds.includes(account.id)}
-                    className="w-full py-3.5 rounded-xl bg-[#007042] text-white text-sm font-semibold hover:bg-[#005a35] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
-                  >
-                    {loadingIds.includes(account.id) ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <Copy size={16} />
-                    )}
-                    Copy Details & Notify Admin
-                  </button>
+          return (
+            <div
+              key={account.id || index}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
+            >
+              <div className="p-6 space-y-3">
+                {/* ACCOUNT NAME */}
+                {(account as any).account_name && (
+                  <Row
+                    label="Account Name"
+                    value={(account as any).account_name}
+                  />
                 )}
+
+                {/* EMAIL */}
+                {account.email && <Row label="Email" value={account.email} />}
+
+                {/* USERNAME / CASHTAG */}
+                {(account as any).username && (
+                  <Row
+                    label={isCashApp ? "Cashtag" : "Username"}
+                    value={(account as any).username}
+                  />
+                )}
+
+                {/* BANK */}
+                {(account as any).bank_name && (
+                  <Row label="Bank" value={(account as any).bank_name} />
+                )}
+
+                {/* ACCOUNT NUMBER */}
+                {(account as any).account_number && (
+                  <Row
+                    label="Account Number"
+                    value={(account as any).account_number}
+                  />
+                )}
+
+                {/* ROUTING / LAST DIGITS */}
+                {(account as any).routing_number && (
+                  <Row
+                    label={isVenmo ? "Last Digit(s)" : "Routing Number"}
+                    value={(account as any).routing_number}
+                  />
+                )}
+
+                {/* EXTRA INFO */}
+                {(account as any).extra_information && (
+                  <Row label="Info" value={(account as any).extra_information} />
+                )}
+
+                {/* COUNTRY */}
+                <Row label="Country" value={account.country} />
+
+                {/* ACTION BUTTON */}
+                <div className="pt-4 space-y-2">
+                  {successIds.includes(account.id) ? (
+                    <>
+                      <button
+                        disabled
+                        className="w-full py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-2 transition duration-300"
+                      >
+                        <Check size={18} />
+                        Details Copied & Admin Notified!
+                      </button>
+                      <p className="text-[12px] text-emerald-600 font-semibold text-center mt-2 animate-in fade-in duration-300">
+                        Admin is now monitoring the account for your incoming payment.
+                      </p>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => handleCopyAndNotify(account)}
+                      disabled={loadingIds.includes(account.id) || successIds.length > 0}
+                      className="w-full py-3.5 rounded-xl bg-[#007042] text-white text-sm font-semibold hover:bg-[#005a35] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                    >
+                      {loadingIds.includes(account.id) ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <Copy size={16} />
+                      )}
+                      Copy Details & Notify Admin
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      <CopySuccessModal
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </div>
   );
 }

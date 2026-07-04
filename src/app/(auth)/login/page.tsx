@@ -81,32 +81,20 @@ export default function LoginPage() {
 
         {/* Desktop: Social Login at Top */}
         <div className="hidden lg:block space-y-6">
-          <div className="flex gap-6">
-            {/* Custom wrapper to maintain your button style */}
-            <div className="flex-1">
-              <div className="relative">
-                {/* Hidden GoogleLogin component */}
-                <div className="absolute inset-0 opacity-0 cursor-pointer z-10">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    width="100%"
-                  />
-                </div>
-                {/* Your custom styled button */}
-                <div className="flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 pointer-events-none">
-                  <Google className="h-5 w-5" />
-                  <span className="text-sm">Log In with Google</span>
-                </div>
-              </div>
+          <div className="relative">
+            {/* Hidden GoogleLogin component */}
+            <div className="absolute inset-0 opacity-0 cursor-pointer z-10">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                width="100%"
+              />
             </div>
-            <button
-              type="button"
-              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 cursor-pointer"
-            >
-              <Apple className="h-5 w-5 text-black" />
-              <span className="text-sm">Log In with Apple</span>
-            </button>
+            {/* Your custom styled button */}
+            <div className="flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 pointer-events-none">
+              <Google className="h-5 w-5" />
+              <span className="text-sm">Log In with Google</span>
+            </div>
           </div>
 
           <div className="relative py-2">
@@ -190,14 +178,7 @@ export default function LoginPage() {
           <div className="text-center text-[10px] font-normal text-zinc-600">
             Continue with
           </div>
-          <div className="flex justify-center items-center gap-6">
-            <button
-              type="button"
-              className="hover:scale-110 transition-transform cursor-pointer"
-            >
-              <Facebook className="h-6 w-6" />
-            </button>
-            {/* Custom wrapper for mobile Google icon */}
+          <div className="flex justify-center items-center">
             <div className="relative hover:scale-110 transition-transform">
               {/* Hidden GoogleLogin component */}
               <div className="absolute inset-0 opacity-0 cursor-pointer z-10 flex items-center justify-center">
@@ -208,16 +189,10 @@ export default function LoginPage() {
                 />
               </div>
               {/* Your custom Google icon */}
-              <div className="pointer-events-none">
+              <div className="pointer-events-none border border-zinc-200 hover:bg-zinc-50 rounded-full p-3">
                 <Google className="h-5 w-5" />
               </div>
             </div>
-            <button
-              type="button"
-              className="hover:scale-110 transition-transform cursor-pointer"
-            >
-              <Apple className="h-6 w-6 text-black" />
-            </button>
           </div>
           <p className="text-center text-primary-dark font-normal text-xs mt-4">
             New User?{" "}
@@ -235,7 +210,7 @@ export default function LoginPage() {
           <p className="text-primary-dark font-bold text-[12px]">
             New User?{" "}
             <Link
-              href="/select-country"
+              href="/signup"
               className="text-primary hover:text-primary-hover underline decoration-2 decoration-primary/30 underline-offset-4"
             >
               Sign Up Here

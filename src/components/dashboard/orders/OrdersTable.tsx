@@ -1,31 +1,44 @@
 "use client";
 
+import { useEffect } from "react";
 import OrderRow from "./OrderRow";
 import { Order } from "./orders.types";
-
-const orders: Order[] = [
-  {
-    id: "ORD-2025-000",
-    type: "Sell USDT → Bank Transfer",
-    card: "1234 ****",
-    date: "28/01, 12.30 AM",
-    amount: "-$2,500",
-  },
-  {
-    id: "ORD-2025-001",
-    type: "Sell BTC → Wallet",
-    card: "5678 ****",
-    date: "28/01, 02.10 PM",
-    amount: "-$1,200",
-  },
-];
+import { useGiftCardStore } from "@/store/giftCardStore";
+import { Loader2 } from "lucide-react";
 
 type Props = {
   search: string;
 };
 
 export default function OrdersTable({ search }: Props) {
-  const filteredOrders = orders.filter((order) => {
+  const orders = useGiftCardStore((s: any) => s.orders);
+  const fetchUserOrders = useGiftCardStore((s: any) => s.fetchUserOrders);
+  const isLoading = useGiftCardStore((s: any) => s.isLoading);
+
+  useEffect(() => {
+    fetchUserOrders();
+  }, [fetchUserOrders]);
+
+  const mappedOrders: Order[] = orders.map((o: any) => {
+    const d = new Date(o.created_at || Date.now());
+    const formattedDate = d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+    }) + ", " + d.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return {
+      id: `ORD-${String(o.id).padStart(5, "0")}`,
+      type: o.product?.gift_card?.name ? `Buy ${o.product.gift_card.name}` : "Buy Giftcard",
+      card: o.product ? `${o.product.currency} ${parseFloat(o.product.amount).toLocaleString()}` : "N/A",
+      date: formattedDate,
+      amount: `₦${parseFloat(o.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+    };
+  });
+
+  const filteredOrders = mappedOrders.filter((order) => {
     const value = search.toLowerCase();
 
     return (
@@ -53,13 +66,18 @@ export default function OrdersTable({ search }: Props) {
 
           {/* ROWS */}
           <div className="mt-2 flex flex-col gap-[6px]">
-            {filteredOrders.length > 0 ? (
+            {isLoading ? (
+              <div className="py-12 flex justify-center items-center gap-2 text-slate-400">
+                <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
+                <span className="text-sm">Loading orders...</span>
+              </div>
+            ) : filteredOrders.length > 0 ? (
               filteredOrders.map((order, index) => (
                 <OrderRow key={index} order={order} />
               ))
             ) : (
-              <p className="text-center text-slate-400 text-sm py-6">
-                No transactions found
+              <p className="text-center text-slate-400 text-sm py-8">
+                No orders found
               </p>
             )}
           </div>

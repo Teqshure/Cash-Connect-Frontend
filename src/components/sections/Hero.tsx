@@ -8,6 +8,7 @@ import Giftid from "../icons/giftid";
 import Cart from "../icons/cart";
 import curvedLine from "../../../public/images/arc.png";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export const Hero = () => {
   const [amount, setAmount] = useState("450.00");
@@ -20,8 +21,6 @@ export const Hero = () => {
   return (
     <Section
       background="mesh"
-      // pt-16 on mobile = 64px, safely clears the fixed navbar (~56px)
-      // lg:pt-32 keeps the desktop layout unchanged
       className="relative pt-16 pb-12 lg:pt-32 lg:pb-20 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto relative px-4 md:px-6 h-full gap-y-12 md:gap-y-20 flex flex-col justify-center min-h-100 md:min-h-125">
@@ -31,7 +30,12 @@ export const Hero = () => {
 
         {/* Left Floating Card — desktop only */}
         <div className="absolute top-1/2 -translate-y-[120%] lg:-translate-y-1/2 left-0 hidden lg:block z-20">
-          <div className="bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 min-w-45 animate-in fade-in slide-in-from-left-4 duration-700">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-4 min-w-45"
+          >
             <div className="w-10 h-10 rounded-full bg-zinc-200 overflow-hidden relative">
               <Image
                 src="/images/avata.png"
@@ -50,12 +54,17 @@ export const Hero = () => {
                 Reliable partner
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Floating Card — desktop only */}
         <div className="absolute top-1/2 -translate-y-[120%] lg:-translate-y-1/2 right-0 hidden lg:block z-20">
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-w-40 animate-in fade-in slide-in-from-right-4 duration-700 delay-100">
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+            className="bg-white/90 backdrop-blur-sm p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-w-40"
+          >
             <div className="flex justify-between items-start mb-1">
               <p className="text-[10px] font-medium text-zinc-400">
                 Total Income
@@ -69,7 +78,7 @@ export const Hero = () => {
                 <div className="w-1 h-4 bg-emerald-400 rounded-t-sm"></div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Main Content */}
@@ -91,13 +100,20 @@ export const Hero = () => {
                 />
               </div>
             </div>
-            <button className="bg-primary text-white text-sm font-bold px-6 py-2 rounded-full hover:bg-emerald-600 transition-colors cursor-pointer">
-              Send
-            </button>
+            <Link href="/login">
+              <button className="bg-primary text-white text-sm font-bold px-6 py-2 rounded-full hover:bg-emerald-600 transition-colors cursor-pointer">
+                Send
+              </button>
+            </Link>
           </div>
 
           {/* Heading */}
-          <div className="flex flex-col gap-3 md:gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col gap-3 md:gap-4"
+          >
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-black leading-[1.1]">
               Trade Crypto & Gift <br />
               <span className="text-[#007A4D]">Cards</span> Seamlessly
@@ -117,10 +133,15 @@ export const Hero = () => {
                 (Zelle, PayPal, bank, etc.)
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* CTA Row */}
-          <div className="grid grid-cols-3 gap-2 w-full items-center justify-between md:justify-center mt-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            className="grid grid-cols-3 gap-2 w-full items-center justify-between md:justify-center mt-4"
+          >
             <Link href="/signup" className="w-full">
               <Button
                 size="lg"
@@ -129,15 +150,19 @@ export const Hero = () => {
                 Get Started
               </Button>
             </Link>
-            <div className="flex flex-row w-full items-center justify-center gap-x-2 text-xs md:text-lg font-medium text-black cursor-pointer hover:text-primary transition-colors text-center whitespace-nowrap">
-              <Giftid className="w-6 h-6 md:w-auto md:h-auto" />
-              <span>Sell Gift Card</span>
-            </div>
-            <div className="flex flex-row w-full items-center justify-center gap-x-2 text-xs md:text-lg font-medium text-black cursor-pointer hover:text-primary transition-colors text-center whitespace-nowrap">
-              <Cart className="w-6 h-6 md:w-auto md:h-auto" />
-              <span>Sell Crypto</span>
-            </div>
-          </div>
+            <Link href="/login" className="w-full flex justify-center">
+              <div className="flex flex-row w-full items-center justify-center gap-x-2 text-xs md:text-lg font-medium text-black cursor-pointer hover:text-primary transition-colors text-center whitespace-nowrap">
+                <Giftid className="w-6 h-6 md:w-auto md:h-auto" />
+                <span>Sell Gift Card</span>
+              </div>
+            </Link>
+            <Link href="/login" className="w-full flex justify-center">
+              <div className="flex flex-row w-full items-center justify-center gap-x-2 text-xs md:text-lg font-medium text-black cursor-pointer hover:text-primary transition-colors text-center whitespace-nowrap">
+                <Cart className="w-6 h-6 md:w-auto md:h-auto" />
+                <span>Sell Crypto</span>
+              </div>
+            </Link>
+          </motion.div>
         </div>
       </div>
     </Section>

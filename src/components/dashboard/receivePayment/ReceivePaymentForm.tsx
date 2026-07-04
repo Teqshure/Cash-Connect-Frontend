@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp, User, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, User, Check, AlertCircle, TrendingUp } from "lucide-react";
 import { CurrencyFlag, CountryFlag } from "@/components/ui/FlagIcon";
 import {
   UIPaymentMethod,
@@ -42,10 +42,18 @@ const CURRENCY_NAMES: Record<string, string> = {
   NGN: "Nigerian Naira",
 };
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  GBP: "£",
+  CAD: "CA$",
+  EUR: "€",
+  NGN: "₦",
+};
+
 const GENDER_OPTIONS = [
-  { value: "male", label: "Male", icon: "👨" },
-  { value: "female", label: "Female", icon: "👩" },
-  { value: "other", label: "Other", icon: "👤" },
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
 ];
 
 export default function ReceivePaymentForm({
@@ -197,8 +205,8 @@ export default function ReceivePaymentForm({
     if (selected) {
       return (
         <div className="flex items-center gap-2">
-          <span className="text-xl">{selected.icon}</span>
-          <span className="font-medium">{selected.label}</span>
+          <User className="w-5 h-5 text-emerald-600" />
+          <span className="font-medium text-slate-800">{selected.label}</span>
         </div>
       );
     }
@@ -264,7 +272,7 @@ export default function ReceivePaymentForm({
               {currencies.length === 0 && currenciesLoading ? (
                 <div className="h-[56px] rounded-xl bg-gray-100 animate-pulse" />
               ) : (
-                <div className="relative" ref={currencyRef}>
+                <div className="relative animate-in fade-in duration-200" ref={currencyRef}>
                   <button
                     type="button"
                     onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
@@ -274,7 +282,7 @@ export default function ReceivePaymentForm({
                       <CurrencyFlag currency={currency} />
                       <div className="text-left">
                         <div className="font-medium">
-                          {currency || "Select"}
+                          {currency ? `${currency} (${CURRENCY_SYMBOLS[currency] || ""})` : "Select"}
                         </div>
                         <div className="text-xs text-gray-500">
                           {currency
@@ -291,7 +299,7 @@ export default function ReceivePaymentForm({
                   </button>
 
                   {isCurrencyOpen && currencies.length > 0 && (
-                    <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                    <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
                       {currencies.map((c: Currency, index: number) => (
                         <button
                           key={c.id || index}
@@ -307,10 +315,13 @@ export default function ReceivePaymentForm({
                           <div className="flex items-center gap-3">
                             <CurrencyFlag currency={c.currency} />
                             <div>
-                              <div className="font-medium text-sm">
-                                {c.currency}
+                              <div className="font-semibold text-sm flex items-center gap-2 text-slate-800">
+                                <span>{c.currency} ({CURRENCY_SYMBOLS[c.currency] || ""})</span>
+                                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-100/50 font-bold">
+                                  Rate: ₦{parseFloat(c.buy_rate).toLocaleString()}
+                                </span>
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-400">
                                 {CURRENCY_NAMES[c.currency] || "Currency"}
                               </div>
                             </div>
@@ -322,6 +333,18 @@ export default function ReceivePaymentForm({
                       ))}
                     </div>
                   )}
+
+                  {/* Selected Rate Info Box */}
+                  {currency && (() => {
+                    const selectedC = currencies.find((c: any) => c.currency === currency);
+                    if (!selectedC) return null;
+                    return (
+                      <div className="mt-2 text-[13px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100/50 rounded-xl px-3.5 py-2.5 animate-in fade-in slide-in-from-top-1 duration-200 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Exchange Rate: 1 {currency} = ₦{parseFloat(selectedC.buy_rate).toLocaleString()} NGN</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -416,7 +439,7 @@ export default function ReceivePaymentForm({
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-xl">{option.icon}</span>
+                          <User className="w-4 h-4 text-slate-400" />
                           <span className="text-sm font-medium">
                             {option.label}
                           </span>
@@ -447,7 +470,7 @@ export default function ReceivePaymentForm({
                         setAmount(value);
                         setCustomAmount(value.toString());
                       }}
-                      className={`h-[44px] rounded-xl border text-sm font-medium transition-all cursor-pointer
+                      className={`h-[44px] rounded-xl border text-xs font-semibold transition-all cursor-pointer truncate px-1
                         ${
                           isSelected
                             ? "border-[#22C55E] bg-[#F0FDF4] text-[#16A34A] shadow-sm"
@@ -455,28 +478,36 @@ export default function ReceivePaymentForm({
                         }
                       `}
                     >
-                      {value.toLocaleString()}
+                      {CURRENCY_SYMBOLS[currency] || currency || ""}{value.toLocaleString()}
                     </button>
                   );
                 })}
               </div>
 
-              <input
-                type="number"
-                placeholder="Enter amount"
-                value={customAmount}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setCustomAmount(v);
-                  setAmount(v ? Number(v) : null);
-                }}
-                className="w-full h-[56px] rounded-xl px-4 bg-[#F8F8F8] text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition"
-              />
+              <div className="relative">
+                {currency && (
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                    {CURRENCY_SYMBOLS[currency] || currency}
+                  </span>
+                )}
+                <input
+                  type="number"
+                  placeholder="Enter amount"
+                  value={customAmount}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setCustomAmount(v);
+                    setAmount(v ? Number(v) : null);
+                  }}
+                  className={`w-full h-[56px] rounded-xl bg-[#F8F8F8] text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition ${currency ? "pl-9 pr-4" : "px-4"}`}
+                />
+              </div>
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm text-center bg-red-50 py-3 rounded-xl border border-red-100">
-                ⚠️ {error}
+              <div className="text-red-600 text-sm flex items-center justify-center gap-1.5 bg-red-50 py-3 rounded-xl border border-red-100 px-4">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 

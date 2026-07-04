@@ -1,14 +1,23 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import React from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import Coin from "../icons/coin";
 
 export const WhyChooseUs = () => {
   return (
     <Section background="white" className="py-0  md:py-0 px-4">
-      <div className="max-w-7xl mx-auto bg-primary-dark rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 lg:p-20 relative overflow-hidden mb-6 md:mb-12">
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.15 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="max-w-7xl mx-auto bg-primary-dark rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 lg:p-20 relative overflow-hidden mb-6 md:mb-12"
+      >
         {/* Background Decoratives */}
         <div className="absolute top-1/2 left-[35%] -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none scale-150 opacity-40">
           <img
@@ -17,14 +26,6 @@ export const WhyChooseUs = () => {
             className="w-[400px] h-auto opacity-20"
           />
         </div>
-
-        {/* Blurred Coin - Right side on mobile, centered on desktop
-        <div className="absolute top-[15%] right-4 md:top-[60%] md:left-[35%] md:-translate-x-1/2 md:-translate-y-1/2 w-24 h-24 md:w-64 md:h-64 pointer-events-none z-10 md:z-0">
-          <div className="relative w-full h-full">
-            <div className="absolute inset-0 rounded-full bg-yellow-400 blur-[30px] md:blur-[60px] opacity-40 animate-pulse"></div>
-            <Coin className="w-full h-full opacity-80 md:opacity-60" />
-          </div>
-        </div> */}
 
         <div className="flex flex-col relative z-10">
           {/* Header */}
@@ -108,7 +109,7 @@ export const WhyChooseUs = () => {
             cash connect
           </p>
         </div>
-      </div>
+      </motion.div>
     </Section>
   );
 };

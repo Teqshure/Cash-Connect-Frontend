@@ -27,8 +27,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-[20px] w-full max-w-md p-6 shadow-xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-[20px] w-full max-w-md p-8 shadow-xl overflow-y-auto max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[18px] font-semibold text-slate-900">Edit Profile</h2>
           <button 

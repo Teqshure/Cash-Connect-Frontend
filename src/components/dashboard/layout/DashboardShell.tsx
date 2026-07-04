@@ -6,6 +6,7 @@ import Sidebar from "@/components/dashboard/leftSideBar/Sidebar";
 import SidebarContent from "@/components/dashboard/leftSideBar/SidebarContent";
 import Topbar from "@/components/dashboard/Topbar";
 import RightSidebarSection from "@/components/dashboard/right-rail/RightSidebarSection";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 
 export default function DashboardShell({
   children,
@@ -74,7 +75,8 @@ export default function DashboardShell({
       {/* Mobile */}
       <div className="lg:hidden">
         <Topbar onOpenSidebar={() => setOpen(true)} />
-        <div className="px-4 pt-6 pb-8">{children}</div>
+        <div className="px-4 pt-6 pb-24">{children}</div>
+        <MobileBottomNav />
       </div>
     </div>
   );

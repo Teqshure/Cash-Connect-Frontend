@@ -5,9 +5,7 @@ import { CallToAction } from "@/components/sections/CallToAction";
 import { ProductHero } from "@/components/sections/ProductHero";
 import { ProductFeature } from "@/components/sections/ProductFeature";
 import { Services } from "@/components/sections/Services";
-import Coin from "@/components/icons/coin";
 import Arrow from "@/components/icons/arrowsmile";
-import Btc from "@/components/icons/btc";
 import Image from "next/image";
 import Globe from "@/components/icons/globe";
 
@@ -19,10 +17,33 @@ export default function ProductsPage() {
       <main className="grow">
         <ProductHero />
 
-        <CallToAction />
-
+        {/* FEATURE 1: Receive Global Payments */}
         <ProductFeature
-          label="Cash Connect"
+          label="Cash Connect Global"
+          title="Receive Global Payments Worldwide"
+          description="Accept money globally from clients or senders via Zelle, PayPal, Cash App, Venmo, Revolut/Wise, and international Bank Wires. We convert it instantly at premium rates and update your local Naira wallet balance directly."
+          imageContent={
+            <div className="relative w-full mx-auto">
+              <div className="relative flex items-center justify-center">
+                <Image
+                  src="/images/young-woman.png"
+                  alt="Receive Global Payments"
+                  width={500}
+                  height={500}
+                  className="w-full relative z-10 rounded-[3rem] object-cover"
+                />
+              </div>
+              <Globe className="absolute -bottom-20 -left-35 lg:block hidden " />
+            </div>
+          }
+          imagePosition="right"
+          buttonText="Get Paid Globally"
+          buttonLink="/signup"
+        />
+
+        {/* FEATURE 2: Gift Card Love */}
+        <ProductFeature
+          label="Cash Connect Love"
           title="Spread love with giftcard"
           description="Put a smile on your loved one faces with Spread love whilst transaction hostees clear rating of giftcard gift through our platform."
           imageContent={
@@ -43,24 +64,19 @@ export default function ProductsPage() {
               <Globe className="absolute bottom-[-20%] -left-35 lg:block hidden " />
             </div>
           }
-          imagePosition="right"
+          imagePosition="left"
           buttonText="Gift a Card"
+          buttonLink="/signup"
+          backgroundColor="white"
         />
 
+        {/* FEATURE 3: Gift Card Sell */}
         <ProductFeature
-          label="Cash Connect"
+          label="Cash Connect Exchange"
           title="Exchange your unused Giftcard for value"
           description="Don't wait for that Giftcard to expire in your hands, exchange them for value the seamless and better way Mouthwatering Rates"
           imageContent={
             <div className="relative w-full mx-auto">
-              {/* Floating Icons */}
-              {/* <div className="absolute -top-10 -right-10  delay-500 z-10">
-                <Btc className="w-16 h-16 drop-shadow-xl rotate-12" />
-              </div> */}
-              {/* <div className="absolute -bottom-8 -left-8 animate-pulse delay-300 z-10">
-                <Coin className="w-14 h-14 drop-shadow-lg -rotate-12" />
-              </div> */}
-
               <div className="relative flex items-center justify-center">
                 <Image
                   src="/images/p3.png"
@@ -73,12 +89,14 @@ export default function ProductsPage() {
               <Globe className="absolute -bottom-20 -right-130 lg:block hidden " />
             </div>
           }
-          imagePosition="left"
+          imagePosition="right"
           backgroundColor="white"
-          buttonText="Gift a Card"
+          buttonText="Sell Gift Card"
+          buttonLink="/signup"
         />
 
         <Services showProductsHeader={true} />
+        <CallToAction />
       </main>
 
       <Footer />

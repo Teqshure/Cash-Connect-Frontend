@@ -150,16 +150,26 @@ export default function ReceivePaymentMethodGrid({ onSelect, onBack }: Props) {
                 />
               </div>
 
-              <div className="text-center">
+              <div className="text-center w-full flex flex-col items-center">
                 <p className="text-[13px] font-semibold text-slate-800 group-hover:text-emerald-600 transition">
                   {staticMethod.name}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
                   ETA: {staticMethod.eta}
                 </p>
-                <p className="text-[11px] text-emerald-600 font-medium">
-                  {staticMethod.feeNote}
-                </p>
+                {apiMethod?.currencies && apiMethod.currencies.length > 0 ? (
+                  <div className="flex flex-col gap-0.5 mt-2 border-t border-slate-100 pt-1.5 w-full items-center">
+                    {apiMethod.currencies.map((c: any) => (
+                      <p key={c.id} className="text-[10px] font-bold text-emerald-600 bg-emerald-50/50 px-2 py-0.5 rounded border border-emerald-100/30">
+                        {c.currency}: ₦{parseFloat(c.buy_rate).toLocaleString()}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-emerald-600 font-medium mt-1">
+                    {staticMethod.feeNote}
+                  </p>
+                )}
               </div>
             </button>
           );

@@ -63,7 +63,7 @@ export default function PaymentMethodGrid({ onSelect }: Props) {
     },
     {
       id: "cashapp",
-      name: "CashApp",
+      name: "Cash App",
       logo: "/images/payments/cashapp.png",
       eta: "Instant",
       feeNote: "2%",

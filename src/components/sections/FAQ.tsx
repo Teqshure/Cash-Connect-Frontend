@@ -2,45 +2,45 @@
 
 import { Section } from "@/components/ui/Section";
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 const faqData = [
   {
     id: 1,
-    question: "What is a Payment Gateway?",
+    question: "What is Cash Connect?",
     answer:
-      "A payment gateway is an ecommerce service that processes online payments for online as well as offline businesses. Payment gateways help accept payments by transferring key information from their merchant websites to issuing banks, card associations and online wallet players.\n\nPayment gateways play a vital role in the online transaction process, which is the realisation of value, and hence are seen as an important pillar of ecommerce.",
+      "Cash Connect is a premium digital asset exchange platform that allows you to securely trade cryptocurrencies, sell gift cards, and receive global payments from abroad (such as PayPal, Zelle, Cash App, Venmo, Revolut/Wise, and Bank Wires) directly into your local Naira wallet at high rates.",
   },
   {
     id: 2,
     question:
-      "Do I need to pay to Instapay even when there is no transaction going on in my business?",
+      "Do I need to pay any setup or maintenance fees to Cash Connect?",
     answer:
-      "No, you do not need to pay any maintenance fees if there are no transactions. We only charge a small fee per successful transaction.",
+      "No, there are absolutely no setup fees, account maintenance fees, or annual charges. We only charge a small transparent fee per successful transaction or conversion.",
   },
   {
     id: 3,
-    question: "What platforms does Instapay payment gateway support?",
+    question: "How do I receive global payments using Cash Connect?",
     answer:
-      "We support a wide range of platforms including Web, iOS, Android, and major e-commerce CMS like WooCommerce, Shopify, and Magento.",
+      "Simply navigate to 'Receive Global Payment' in your dashboard, choose an active payment method, fill out your transaction details, and we will display the verified bank or payment account details. Once your sender pays into the account, notify the admin and your Naira wallet will be automatically credited.",
   },
   {
     id: 4,
-    question: "Does Instapay provide international payments support?",
+    question: "What payout methods do you support for international transfers?",
     answer:
-      "Yes, we support international payments in over 135 currencies, allowing you to accept payments from customers globally.",
+      "We support premium global transfer channels including PayPal, Zelle, Venmo, Cash App, Revolut / Wise, and international Bank Wire Transfers.",
   },
   {
     id: 5,
-    question:
-      "Is there any setup fee or annual maintenance fee that I need to pay regularly?",
+    question: "How fast are the transactions processed and credited?",
     answer:
-      "There are no setup fees or annual maintenance fees. You only pay for the transactions you process.",
+      "Most transactions are verified and paid out within minutes of approval by the administrator. Cryptocurrencies are processed automatically upon network confirmations, and gift cards are credited immediately once validated.",
   },
   {
     id: 6,
     question: "How do you ensure the security of my transactions?",
     answer:
-      "We take security extremely seriously. All transactions are protected by industry-standard 256-bit SSL encryption. Furthermore, we employ advanced fraud detection algorithms and real-time monitoring to identify and prevent suspicious activities. Our platform is fully compliant with PCI-DSS standards, ensuring that your financial data is handled with the highest level of care. We also offer multi-factor authentication for all user accounts and provide detailed transaction logs so you can monitor your account activity closely. Our dedicated security team performs regular audits and penetration testing to stay ahead of potential threats and maintain a robust defense against cyberattacks. In addition to these technical measures, we also provide comprehensive educational resources to help our users understand best practices for maintaining their own security online.",
+      "Security is our top priority. All transactions, financial accounts, and personal data are encrypted end-to-end using 256-bit SSL technology. Our platform utilizes advanced real-time monitoring and strict admin validation protocols to keep your funds safe and secure.",
   },
 ];
 
@@ -50,15 +50,27 @@ export const FAQ = () => {
   return (
     <Section background="white" className="pb-24">
       <div className="container mx-auto px-4 max-w-6xl">
-        <div className="mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12"
+        >
           <h2 className="lg:text-3xl text-2xl font-bold text-primary-dark tracking-tight text-center lg:text-left">
             Frequently Asked Questions
           </h2>
-        </div>
+        </motion.div>
 
         <div className="relative flex flex-col lg:flex-row items-center">
-          {/* Left: Questions List - Overlapping on Desktop */}
-          <div className="w-full lg:w-[58%] bg-white rounded-2xl shadow-2xl shadow-emerald-900/10 p-2 z-20 relative lg:-mr-16">
+          {/* Left: Questions List */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.15 }}
+            transition={{ duration: 0.6 }}
+            className="w-full lg:w-[58%] bg-white rounded-2xl shadow-2xl shadow-emerald-900/10 p-2 z-20 relative lg:-mr-16"
+          >
             {faqData.map((faq) => (
               <div
                 key={faq.id}
@@ -125,10 +137,16 @@ export const FAQ = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </motion.div>
 
-          {/* Right: Answer Card - Bottom Layer on Desktop */}
-          <div className="w-full lg:w-[65%] hidden lg:block lg:translate-x-12">
+          {/* Right: Answer Card */}
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.15 }}
+            transition={{ duration: 0.6 }}
+            className="w-full lg:w-[65%] hidden lg:block lg:translate-x-12"
+          >
             <div className="bg-[#F9FAFB] rounded-[2.5rem] p-12 pl-24 min-h-125 border border-zinc-100 flex flex-col justify-center transition-all duration-500">
               {faqData.map((faq) => {
                 if (faq.id !== activeId) return null;
@@ -147,7 +165,7 @@ export const FAQ = () => {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </Section>

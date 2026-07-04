@@ -13,7 +13,6 @@ import {
   Settings,
   HelpCircle,
   LucideIcon,
-  BadgeDollarSign,
 } from "lucide-react";
 
 import SidebarBrand from "@/components/dashboard/leftSideBar/SidebarBrand";
@@ -25,18 +24,17 @@ type NavItem = {
 };
 
 const topNav: NavItem[] = [
-  { label: "Home", href: "/dashboard", Icon: Home },
-  { label: "Wallet", href: "/wallet", Icon: Wallet },
-  { label: "History", href: "/history", Icon: History },
-  { label: "Products", href: "/product", Icon: Box },
-  { label: "Orders", href: "/orders", Icon: ShoppingCart },
-  { label: "Earnings", href: "/earnings", Icon: BadgeDollarSign },
+  { label: "Home",     href: "/dashboard", Icon: Home },
+  { label: "Wallet",   href: "/wallet",    Icon: Wallet },
+  { label: "Products", href: "/product",   Icon: Box },
+  { label: "History",  href: "/history",   Icon: History },
+  { label: "Orders",   href: "/orders",    Icon: ShoppingCart },
 ];
 
 const bottomNav: NavItem[] = [
-  { label: "Profile", href: "/profile", Icon: User },
+  { label: "Profile",  href: "/profile",  Icon: User },
   { label: "Settings", href: "/settings", Icon: Settings },
-  { label: "Help", href: "/help", Icon: HelpCircle },
+  { label: "Help",     href: "/help",     Icon: HelpCircle },
 ];
 
 export default function Sidebar() {
@@ -58,22 +56,6 @@ export default function Sidebar() {
   const renderNav = (items: NavItem[]) =>
     items.map((item) => {
       const active = isActive(item.href);
-      const isEarnings = item.label === "Earnings";
-
-      if (isEarnings) {
-        return (
-          <li key={item.href}>
-            <div
-              className={[baseRow, "text-slate-300 cursor-not-allowed"].join(" ")}
-            >
-              <item.Icon
-                className="h-[20px] w-[20px] shrink-0 text-slate-300"
-              />
-              <span className="text-[15px]">{item.label}</span>
-            </div>
-          </li>
-        );
-      }
 
       return (
         <li key={item.href}>
@@ -88,9 +70,7 @@ export default function Sidebar() {
                 active ? "text-white" : "text-slate-400",
               ].join(" ")}
             />
-
             <span className="text-[15px]">{item.label}</span>
-
             {active && (
               <span className="ml-auto h-2.5 w-2.5 rounded-full bg-white/90" />
             )}
@@ -109,7 +89,7 @@ export default function Sidebar() {
       <div className="h-full flex flex-col">
         <SidebarBrand />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-y-auto">
           {/* Top Nav */}
           <nav className="px-5 pt-4">
             <ul className="space-y-2">{renderNav(topNav)}</ul>

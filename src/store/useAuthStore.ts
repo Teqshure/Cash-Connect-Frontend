@@ -53,6 +53,8 @@ interface AuthState {
     fullname: string,
     email: string,
     password: string,
+    phone?: string,
+    country?: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -123,7 +125,7 @@ export const useAuthStore = create<AuthState>()(
           }));
 
           // Try common endpoints for profile update
-          const response = await fetch(`${API_URL}/v1/user/update`, {
+          const response = await fetch(`${API_URL}/v1/update-profile`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -227,7 +229,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (fullname: string, email: string, password: string) => {
+      register: async (fullname: string, email: string, password: string, phone?: string, country?: string) => {
         set({ isLoading: true, error: null });
 
         try {
@@ -237,7 +239,7 @@ export const useAuthStore = create<AuthState>()(
               "Content-Type": "application/json",
               Accept: "application/json",
             },
-            body: JSON.stringify({ fullname, email, password }),
+            body: JSON.stringify({ fullname, email, password, ...(phone && { phone }), ...(country && { country }) }),
           });
 
           const data: AuthResponse = await response.json();

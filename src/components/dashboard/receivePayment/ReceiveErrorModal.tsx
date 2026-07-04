@@ -16,8 +16,8 @@ export default function ReceiveErrorModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-md w-full mx-4 p-6 shadow-xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-xl overflow-y-auto max-h-[85vh]">
         <div className="flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <XCircle className="w-8 h-8 text-red-600" />

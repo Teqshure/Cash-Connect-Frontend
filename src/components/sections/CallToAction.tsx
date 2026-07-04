@@ -1,13 +1,22 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export const CallToAction = () => {
   return (
     <Section containerClassName="max-w-7xl mx-auto px-4" className=" md:pb-4">
-      <div className="relative overflow-hidden rounded-4xl md:rounded-[3rem] bg-primary-dark px-4 py-10 md:px-16 md:py-20 text-white min-h-fit md:min-h-87.5 flex items-center ">
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.15 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="relative overflow-hidden rounded-4xl md:rounded-[3rem] bg-primary-dark px-4 py-10 md:px-16 md:py-20 text-white min-h-fit md:min-h-87.5 flex items-center "
+      >
         {/* Background Texture */}
         <div className="absolute inset-0 -translate-x-40 lg:-translate-x-180 pointer-events-none opacity-40 mix-blend-overlay">
           <Image
@@ -42,9 +51,11 @@ export const CallToAction = () => {
                 Create Account
               </Button>
             </Link>
-            <Button className="bg-transparent border border-primary hover:bg-white/10 text-white rounded-full px-0 lg:px-6 py-4  font-semibold text-[8px] lg:text-[20px] transition-all hover:-translate-y-0.5 whitespace-nowrap h-auto">
-              Start Trade
-            </Button>
+            <Link href="/login">
+              <Button className="bg-transparent border border-primary hover:bg-white/10 text-white rounded-full px-0 lg:px-6 py-4  font-semibold text-[8px] lg:text-[20px] transition-all hover:-translate-y-0.5 whitespace-nowrap h-auto">
+                Start Trade
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -57,7 +68,7 @@ export const CallToAction = () => {
             fill
           />
         </div>
-      </div>
+      </motion.div>
     </Section>
   );
 };

@@ -65,7 +65,7 @@ export const Navbar = () => {
                 Sign In
               </button>
             </Link>
-            <Link href="/select-country">
+            <Link href="/signup">
               <Button size="md" className="rounded-full px-7 shadow-none">
                 Get Started
               </Button>

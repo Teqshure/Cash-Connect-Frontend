@@ -22,6 +22,22 @@ export type Transaction = {
   amountSecondary?: string;
   status: TransactionStatus;
   icon: TransactionIcon;
+  isInternational?: boolean;
+  intlId?: number;
+  receipt?: string;
+  foreignAmount?: string;    // e.g. "$500.00" — original requested currency
+  foreignCurrency?: string;  // e.g. "USD"
+  exchangeRate?: string;     // e.g. "₦1,600/$" — only populated after approval
+  ngnAmount?: string;        // e.g. "₦800,000.00" — only populated after approval
+  isGiftCard?: boolean;
+  tradeType?: string;
+  cardName?: string;
+  cardAmount?: string;
+  cardCurrency?: string;
+  quantity?: number;
+  cardCode?: string | null;
+  cardPin?: string | null;
+  cardImages?: string[];
 };
 
 type Props = {

@@ -7,8 +7,8 @@ import QuickActionTile from "@/components/dashboard/overview/QuickActionTile";
 import { ArrowDownLeft, Gift, Bitcoin, MoreHorizontal } from "lucide-react";
 import MobileTradeBanner from "./MobileTradeBanner";
 import MobileRecentTransactions from "./MobileRecentTransactions";
-import MobileEarningOpportunities from "./MobileEarningOpportunities";
 import { useAuthStore, User } from "@/store/useAuthStore";
+import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 
 function getFirstName(fullname?: string | null) {
   if (!fullname) return "User";
@@ -65,6 +65,11 @@ export default function MobileDashboard() {
         >
           {getGreeting()}, {name}! 👋
         </p>
+      </div>
+
+      {/* Onboarding Checklist */}
+      <div className="mt-4">
+        <OnboardingChecklist />
       </div>
 
       {/* Wallet Balance Card */}
@@ -125,10 +130,7 @@ export default function MobileDashboard() {
         <MobileRecentTransactions />
       </div>
 
-      {/* Earning Opportunities */}
-      <div className="mt-5">
-        <MobileEarningOpportunities />
-      </div>
+
     </div>
   );
 }

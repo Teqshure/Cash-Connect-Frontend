@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import DashboardOverviewSection from "@/components/dashboard/overview/DashboardOverviewSection";
 import MobileDashboard from "@/components/dashboard/mobileDashbord/MobileDashboard";
 import { useAuthStore, User } from "@/store/useAuthStore";
+import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 
 export default function DashboardPage() {
   const user = useAuthStore((s: { user: User | null }) => s.user);
@@ -23,6 +24,7 @@ export default function DashboardPage() {
       {/* Desktop */}
       <div className="hidden lg:flex w-full min-w-0 gap-6 overflow-x-hidden">
         <div className="flex-1 min-w-0">
+          <OnboardingChecklist />
           <DashboardOverviewSection
             totalBalance={balance}
             transactionLimit={transactionLimit}

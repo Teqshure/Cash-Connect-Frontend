@@ -7,6 +7,7 @@ import ReceiveAccountsList from "./ReceiveAccountsList";
 import ReceiveErrorModal from "./ReceiveErrorModal";
 import ReceiveSuccessModal from "./ReceiveSuccessModal";
 import { UIPaymentMethod, useGlobalPaymentStore } from "@/store/globalPayment";
+import { AlertTriangle } from "lucide-react";
 
 type Step = "choose" | "form" | "accounts" | "error";
 
@@ -223,12 +224,11 @@ export default function ReceivePaymentFlow({ onBack }: any) {
         }}
       />
 
-      {/* UNAVAILABLE MODAL */}
       {unavailableMethodName && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white rounded-[24px] shadow-2xl p-8 max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 border border-slate-100">
-            <div className="w-16 h-16 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center mb-5 text-amber-500 text-2xl animate-bounce">
-              ⚠️
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[24px] shadow-2xl p-8 max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 border border-slate-100 max-h-[85vh] overflow-y-auto">
+            <div className="w-16 h-16 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center mb-5 animate-bounce">
+              <AlertTriangle className="w-8 h-8 text-amber-500" />
             </div>
             <h3 className="text-[17px] font-bold text-slate-800 mb-2">
               Payment method not available

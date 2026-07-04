@@ -6,9 +6,8 @@ import {
   Home,
   Wallet,
   History,
+  Box,
   ShoppingCart,
-  Package,
-  Coins,
   User,
   Settings,
   HelpCircle,
@@ -20,15 +19,14 @@ type Props = {
 };
 
 const nav = [
-  { label: "Home", href: "/dashboard", icon: Home },
-  { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "History", href: "/history", icon: History },
-  { label: "My Orders", href: "/orders", icon: ShoppingCart },
-  { label: "Product", href: "/product", icon: Package },
-  { label: "Earnings", href: "/earnings", icon: Coins },
-  { label: "Profile", href: "/profile", icon: User },
-  { label: "Setting", href: "/settings", icon: Settings },
-  { label: "Help", href: "/help", icon: HelpCircle },
+  { label: "Home",     href: "/dashboard", icon: Home },
+  { label: "Wallet",   href: "/wallet",    icon: Wallet },
+  { label: "Products", href: "/product",   icon: Box },
+  { label: "History",  href: "/history",   icon: History },
+  { label: "Orders",   href: "/orders",    icon: ShoppingCart },
+  { label: "Profile",  href: "/profile",   icon: User },
+  { label: "Settings", href: "/settings",  icon: Settings },
+  { label: "Help",     href: "/help",      icon: HelpCircle },
 ];
 
 export default function SidebarContent({ onNavigate }: Props) {
@@ -53,19 +51,6 @@ export default function SidebarContent({ onNavigate }: Props) {
       <div className="px-3 py-2 space-y-1">
         {nav.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
-          const isEarnings = label === "Earnings";
-
-          if (isEarnings) {
-            return (
-              <div
-                key={href}
-                className="flex items-center gap-3 rounded-[12px] px-3 py-3 text-[14px] text-slate-350 cursor-not-allowed font-medium"
-              >
-                <Icon className="h-5 w-5 text-slate-300" />
-                <span>{label}</span>
-              </div>
-            );
-          }
 
           return (
             <Link

@@ -166,6 +166,7 @@ interface GlobalPaymentState {
   fetchTransactions: () => Promise<void>;
   fetchTransaction: (id: string) => Promise<void>;
   cancelTransaction: (id: string) => Promise<void>;
+  uploadReceipt: (id: string | number, file: File) => Promise<any>;
   fetchPaypalEmail: () => Promise<void>;
   sendPayment: (data: SendPaymentPayload) => Promise<any>;
   receivePayment: (data: ReceivePaymentPayload) => Promise<any>;
@@ -571,6 +572,44 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
 
         set({ submitting: false });
 
+        return data;
+      } catch (err: any) {
+        set({ error: err.message, submitting: false });
+        throw err;
+      }
+    },
+
+    uploadReceipt: async (id: string | number, file: File) => {
+      set({ submitting: true, error: null });
+
+      try {
+        const formData = new FormData();
+        formData.append("receipt", file);
+
+        const token = useAuthStore.getState().token;
+
+        const res = await fetch(
+          `${BASE_URL}/international/transactions/${id}/notify-payment`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to upload receipt");
+        }
+
+        // Fetch user transactions list to update status
+        await get().fetchTransactions();
+
+        set({ submitting: false });
         return data;
       } catch (err: any) {
         set({ error: err.message, submitting: false });
