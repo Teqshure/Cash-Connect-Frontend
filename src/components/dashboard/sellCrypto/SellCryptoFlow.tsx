@@ -44,11 +44,15 @@ export default function SellCryptoFlow({ onBack }: Props) {
     return crypto?.wallet_address || "";
   };
 
-  const handleFormContinue = (t: CryptoToken, n: CryptoNetwork, a: number) => {
+  const handleFormContinue = (
+    t: CryptoToken,
+    n: CryptoNetwork,
+    a: number,
+  ) => {
     setToken(t);
     setNetwork(n);
     setAmount(a);
-    setShowPaymentModal(true);
+    setStep("confirm");
   };
 
   const handlePaymentContinue = (account: PaymentAccountOption) => {
@@ -83,25 +87,16 @@ export default function SellCryptoFlow({ onBack }: Props) {
         <SellCryptoForm onBack={onBack} onContinue={handleFormContinue} />
       )}
 
-      {/* Step 2: Payment Account Modal */}
-      <PaymentAccountModal
-        open={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        onContinue={handlePaymentContinue}
-      />
-
       {/* Step 3: Wallet Confirmation */}
-      {step === "confirm" && token && network && paymentAccount && (
+      {step === "confirm" && token && network && (
         <WalletConfirmation
           amount={amount}
           tokenSymbol={token.symbol}
           tokenId={tokenId}
           network={network.label}
           walletAddress={getWalletAddress()}
-          paymentAccount={paymentAccount}
           onBack={() => {
             setStep("form");
-            setShowPaymentModal(true);
           }}
           onCancelTrade={() => setShowCancelModal(true)}
           onDeposited={handleDeposited}
@@ -109,12 +104,11 @@ export default function SellCryptoFlow({ onBack }: Props) {
       )}
 
       {/* Step 4: Transfer Processing */}
-      {step === "processing" && token && paymentAccount && (
+      {step === "processing" && token && (
         <TransferProcessing
           amountSent={amount}
           tokenSymbol={token.symbol}
           amountReceived={youGet}
-          recipientAccount={paymentAccount.label}
           onReturnHome={handleReturnHome}
         />
       )}

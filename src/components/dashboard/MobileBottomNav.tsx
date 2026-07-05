@@ -12,7 +12,7 @@ const bottomTabs = [
   { label: "Settings", href: "/settings",  Icon: Settings },
 ];
 
-export default function MobileBottomNav() {
+export default function MobileBottomNav({ onClick }: { onClick?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -26,6 +26,7 @@ export default function MobileBottomNav() {
             <Link
               key={href}
               href={href}
+              onClick={onClick}
               className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-[18px] transition-all duration-200 relative group"
             >
               {active ? (

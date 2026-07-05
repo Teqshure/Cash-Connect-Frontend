@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronDown, Copy, Check, Loader2 } from "lucide-react";
-import { BUY_AMOUNT_PRESETS } from "./buyCryptoData";
+import { BUY_AMOUNT_PRESETS, PaymentAccountOption } from "./buyCryptoData";
 import { useCryptoStore } from "@/store/cryptoStore";
 import { useLoadRates, useRateForItem } from "@/store/rateStore";
+import BuyPaymentAccountModal from "./BuyPaymentAccountModal";
 
 type CryptoToken = {
   id: string;
@@ -20,6 +21,7 @@ type Props = {
     token: CryptoToken,
     walletAddress: string,
     amount: number,
+    account: PaymentAccountOption,
   ) => void;
 };
 
@@ -29,6 +31,10 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState<number>(0);
   const [isCopied, setIsCopied] = useState(false);
+
+  // Payment method selector state
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentAccountOption | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const { cryptos, fetchCryptos, cryptoWithRate, fetchCryptoByTokenNetwork } =
     useCryptoStore();
@@ -51,13 +57,6 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
       fetchCryptoByTokenNetwork(selectedToken.symbol, selectedToken.network);
     }
   }, [selectedToken, fetchCryptoByTokenNetwork]);
-
-  // Auto-fill wallet from API
-  useEffect(() => {
-    if (cryptoWithRate?.crypto?.wallet_address) {
-      setWalletAddress(cryptoWithRate.crypto.wallet_address);
-    }
-  }, [cryptoWithRate]);
 
   // Memoized tokens list
   const tokens = useMemo(
@@ -83,9 +82,10 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
       walletAddress?.trim() &&
       amount > 0 &&
       amount >= minAmount &&
-      amount <= maxAmount
+      amount <= maxAmount &&
+      selectedPaymentMethod
     );
-  }, [selectedToken, walletAddress, amount, minAmount, maxAmount]);
+  }, [selectedToken, walletAddress, amount, minAmount, maxAmount, selectedPaymentMethod]);
 
   // Handlers
   const handleTokenSelect = useCallback((token: CryptoToken) => {
@@ -116,10 +116,10 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
   }, [walletAddress]);
 
   const handleSubmit = useCallback(() => {
-    if (isValid && selectedToken) {
-      onContinue(selectedToken, walletAddress, amount);
+    if (isValid && selectedToken && selectedPaymentMethod) {
+      onContinue(selectedToken, walletAddress, amount, selectedPaymentMethod);
     }
-  }, [isValid, selectedToken, walletAddress, amount, onContinue]);
+  }, [isValid, selectedToken, walletAddress, amount, selectedPaymentMethod, onContinue]);
 
   // Loading state
   if (!tokens.length && cryptos.length === 0) {
@@ -199,38 +199,96 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
           </div>
         </div>
 
-        {/* Wallet Address */}
+        {/* Payment Method Selector */}
         {selectedToken && (
           <div className="animate-in fade-in duration-300">
             <label className="text-sm font-medium text-slate-700 mb-1.5 block">
-              Wallet Address
+              Payment Method
+            </label>
+            {selectedPaymentMethod ? (
+              <div className="flex items-center justify-between border border-emerald-400 bg-white rounded-xl px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-full ${selectedPaymentMethod.logoColor} flex items-center justify-center text-white text-[12px] font-bold`}>
+                    {selectedPaymentMethod.logoText}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-slate-800">{selectedPaymentMethod.label}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{selectedPaymentMethod.sublabel}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(true)}
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(true)}
+                className="w-full h-[52px] rounded-xl border border-slate-200 bg-white px-4 flex items-center justify-between text-sm text-slate-400 hover:border-emerald-400 transition"
+              >
+                Select Payment Method
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Admin's Payment Wallet Address (Read-only, only for Pay via crypto) */}
+        {selectedToken && selectedPaymentMethod?.type === "crypto" && (
+          <div className="animate-in fade-in duration-300 bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <label className="text-xs font-medium text-slate-500 mb-1 block">
+              Admin's Payment Wallet Address ({selectedToken.network})
+            </label>
+            <div className="flex items-center justify-between gap-2">
+              <code className="text-xs font-mono text-slate-700 break-all select-all flex-1">
+                {cryptoWithRate?.crypto?.wallet_address || "Loading admin address..."}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  const addr = cryptoWithRate?.crypto?.wallet_address || "";
+                  if (addr) {
+                    navigator.clipboard.writeText(addr);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  }
+                }}
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 flex-shrink-0"
+              >
+                {isCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                {isCopied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">
+              Please transfer your crypto payment to the address above.
+            </p>
+          </div>
+        )}
+
+        {/* User's Payout Wallet Address (Where they receive the bought crypto) */}
+        {selectedToken && selectedPaymentMethod && (
+          <div className="animate-in fade-in duration-300">
+            <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+              Your Payout Wallet Address
             </label>
             <div className="relative">
               <input
                 type="text"
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
-                placeholder={`Enter ${selectedToken.symbol} wallet address`}
-                className="w-full h-[52px] rounded-xl border border-slate-200 bg-white px-4 pr-12 text-sm outline-none focus:border-emerald-500 transition"
+                placeholder={`Enter your destination ${selectedToken.symbol} wallet address`}
+                className="w-full h-[52px] rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-emerald-500 transition"
               />
-              {walletAddress && (
-                <button
-                  onClick={copyAddress}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
-                >
-                  {isCopied ? (
-                    <Check className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </button>
-              )}
             </div>
           </div>
         )}
 
         {/* Amount Input */}
-        {selectedToken && walletAddress && (
+        {selectedToken && selectedPaymentMethod && walletAddress && (
           <div className="animate-in fade-in duration-300">
             <label className="text-sm font-bold text-slate-800 mb-3 block">
               How much are you buying?
@@ -327,6 +385,16 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
           `Buy ${selectedToken?.symbol || "Crypto"}`
         )}
       </button>
+
+      {/* BuyPaymentAccountModal */}
+      <BuyPaymentAccountModal
+        open={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onContinue={(acc) => {
+          setSelectedPaymentMethod(acc);
+          setShowPaymentModal(false);
+        }}
+      />
     </div>
   );
 }

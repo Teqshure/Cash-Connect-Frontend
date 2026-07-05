@@ -9,7 +9,7 @@ type Props = {
   amountSent: number;
   tokenSymbol: string;
   amountReceived: number;
-  recipientAccount: string;
+  recipientAccount?: string;
   onReturnHome: () => void;
 };
 
@@ -34,37 +34,19 @@ export default function TransferProcessing({
   amountSent,
   tokenSymbol,
   amountReceived,
-  recipientAccount,
+  recipientAccount = "Cash Connect Wallet",
   onReturnHome,
 }: Props) {
   // 0 = Waiting, 1 = Processing, 2 = Done
   const [currentStep, setCurrentStep] = useState(0);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(true);
 
   // Get wallet address from API
   const { cryptos } = useCryptoStore();
   const walletAddress =
     cryptos.find((c: any) => c.symbol === tokenSymbol)?.wallet_address || "";
 
-  // Auto-advance steps
-  useEffect(() => {
-    if (currentStep >= STEPS.length - 1) return;
-
-    const t = setTimeout(() => {
-      setCurrentStep((s) => s + 1);
-    }, STEP_DURATION);
-
-    return () => clearTimeout(t);
-  }, [currentStep]);
-
-  // Show success modal when Done step is reached
-  useEffect(() => {
-    if (currentStep === STEPS.length - 1) {
-      const t = setTimeout(() => setShowSuccess(true), 800);
-      return () => clearTimeout(t);
-    }
-  }, [currentStep]);
-
+  // Auto-advance disabled: remains in "Waiting to confirm deposit" state until admin approves
   const getStepState = (index: number): StepState => {
     if (index < currentStep) return "done";
     if (index === currentStep) return "active";
@@ -89,7 +71,7 @@ export default function TransferProcessing({
       <div className="rounded-[16px] border border-slate-100 bg-white shadow-sm px-6 py-5 mb-3 text-center">
         <p className="text-[13px] text-slate-500 mb-1">You receive</p>
         <p className="text-[22px] font-bold text-emerald-600">
-          ₦{amountReceived.toLocaleString()}.00
+          ₦{amountReceived.toLocaleString()}
         </p>
         <p className="text-[12px] text-slate-400 mt-1">to:</p>
         <p className="text-[12px] text-slate-600">{recipientAccount}</p>
@@ -151,10 +133,7 @@ export default function TransferProcessing({
 
         {/* Status text */}
         <p className="text-[12px] text-emerald-600 text-center mt-5 font-medium">
-          {currentStep === 0 &&
-            "Waiting to confirm deposit in wallet. Usually 3-5 minutes."}
-          {currentStep === 1 && "Processing your transaction..."}
-          {currentStep === 2 && "Transaction complete! ✓"}
+          Waiting to confirm deposit in wallet. Usually 3-5 minutes.
         </p>
       </div>
 
@@ -168,7 +147,7 @@ export default function TransferProcessing({
       </button>
 
       {/* Success modal — auto-shown when Done step completes */}
-      <SellSuccessModal open={showSuccess} onOk={onReturnHome} />
+      <SellSuccessModal open={showSuccess} onOk={() => setShowSuccess(false)} />
     </div>
   );
 }

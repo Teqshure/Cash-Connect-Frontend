@@ -8,7 +8,16 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 
 const heroImage = require("../../../public/images/gift-card-right.png");
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
+const getApiUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      return "http://localhost:8000/api/v1";
+    }
+  }
+  return "https://api.cashconnectworld.com/api/v1";
+};
+const API_URL = getApiUrl();
 
 export const Contact = () => {
   const [name, setName] = useState("");

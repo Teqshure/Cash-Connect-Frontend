@@ -24,7 +24,7 @@ export type Transaction = {
   icon: TransactionIcon;
   isInternational?: boolean;
   intlId?: number;
-  receipt?: string;
+  receipt?: string | null;
   foreignAmount?: string;    // e.g. "$500.00" — original requested currency
   foreignCurrency?: string;  // e.g. "USD"
   exchangeRate?: string;     // e.g. "₦1,600/$" — only populated after approval
@@ -38,6 +38,8 @@ export type Transaction = {
   cardCode?: string | null;
   cardPin?: string | null;
   cardImages?: string[];
+  brandImage?: string | null;
+  isCrypto?: boolean;
 };
 
 type Props = {

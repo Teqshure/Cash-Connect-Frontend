@@ -36,7 +36,15 @@ export default function MobileRecentTransactions() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const recent = transactions.slice(0, 5);
+  const recent = transactions
+    .filter((tx: any) => {
+      // Exclude expected payouts with no receipt
+      if (tx.type === "international" && !tx.receipt && (!tx.international || !tx.international.receipt)) {
+        return false;
+      }
+      return true;
+    })
+    .slice(0, 5);
 
   return (
     <div className="mt-6 mb-2">

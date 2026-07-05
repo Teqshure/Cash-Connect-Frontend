@@ -19,6 +19,7 @@ export default function TransactionDetailModal({
   tx,
 }: TransactionDetailModalProps) {
   const { uploadReceipt } = useGlobalPaymentStore();
+  const uploadTransactionReceipt = useTransactionStore((s: any) => s.uploadTransactionReceipt);
   const fetchUserTransactions = useTransactionStore((s: any) => s.fetchTransactions);
 
   const [currentTx, setCurrentTx] = useState<any>(null);
@@ -52,24 +53,29 @@ export default function TransactionDetailModal({
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !currentTx.intlId) return;
+    if (!selectedFile) return;
     setUploading(true);
     setUploadError(null);
     setUploadSuccess(false);
 
     try {
-      const response = await uploadReceipt(currentTx.intlId, selectedFile);
+      let response;
+      if (currentTx.isInternational && currentTx.intlId) {
+        response = await uploadReceipt(currentTx.intlId, selectedFile);
+      } else {
+        response = await uploadTransactionReceipt(currentTx.id, selectedFile);
+      }
       
       setUploadSuccess(true);
       setSelectedFile(null);
       
       setCurrentTx((prev: any) => ({
         ...prev,
-        receipt: response.data?.receipt || "uploaded",
+        receipt: response.data?.receipt || response.receipt || "uploaded",
         status: "pending"
       }));
 
-      fetchUserTransactions();
+      fetchUserTransactions(true);
     } catch (err: any) {
       setUploadError(err.message || "Failed to upload receipt. Please try again.");
     } finally {
@@ -153,7 +159,21 @@ export default function TransactionDetailModal({
     }
   };
 
-  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1").replace("/api/v1", "");
+  const getBaseUrl = () => {
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host.includes("localhost") || host.includes("127.0.0.1")) {
+        return "http://localhost:8000";
+      }
+    }
+    return "https://api.cashconnectworld.com";
+  };
+  const apiBaseUrl = getBaseUrl();
+  const getBrandImageUrl = (imagePath: string | null | undefined) => {
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
+    return `${apiBaseUrl}/storage/${imagePath}`;
+  };
   const receiptUrl = currentTx.receipt ? `${apiBaseUrl}/storage/${currentTx.receipt}` : null;
   const isPending = currentTx.status === "pending";
 
@@ -175,7 +195,15 @@ export default function TransactionDetailModal({
         {/* Amount hero */}
         <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
           <div className="mb-3">
-            {isCredit ? (
+            {currentTx.isGiftCard && currentTx.brandImage ? (
+              <div className="h-16 w-16 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center relative p-1">
+                <img
+                  src={getBrandImageUrl(currentTx.brandImage)}
+                  alt={currentTx.cardName || "Gift Card"}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+            ) : isCredit ? (
               <ArrowUpCircle className="h-14 w-14 text-emerald-500" strokeWidth={1.5} />
             ) : (
               <ArrowDownCircle className="h-14 w-14 text-rose-500" strokeWidth={1.5} />
@@ -328,8 +356,8 @@ export default function TransactionDetailModal({
             </div>
           )}
 
-          {/* Proof of Payment upload area for global payout */}
-          {currentTx.isInternational && (
+          {/* Proof of Payment upload area */}
+          {(currentTx.isInternational || currentTx.isCrypto || (currentTx.isGiftCard && currentTx.tradeType === "sell")) && (
             <div className="mt-2 pt-4 border-t border-slate-100 flex flex-col gap-2">
               {receiptUrl ? (
                 <div className="flex flex-col gap-2">
@@ -370,7 +398,7 @@ export default function TransactionDetailModal({
                     <Upload className="h-4 w-4 text-emerald-600" />
                     <p className="text-xs font-bold">Upload Proof of Payment (Receipt)</p>
                   </div>
-                  <p className="text-[10px] text-slate-500">Please upload the transaction receipt from the sender so we can verify and credit your wallet.</p>
+                  <p className="text-[10px] text-slate-500">Please upload the transaction screenshot or receipt so we can verify the transaction and credit your wallet.</p>
                   <input type="file" accept="image/*,application/pdf" onChange={handleFileChange} id="upload-receipt-input" className="hidden" />
                   <div className="flex gap-2">
                     <label htmlFor="upload-receipt-input" className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 font-semibold cursor-pointer truncate text-center hover:bg-slate-50 transition">

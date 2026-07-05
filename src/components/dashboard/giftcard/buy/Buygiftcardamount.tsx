@@ -21,12 +21,13 @@ type Props = {
 export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
   const { products, isLoading, fetchProducts } = useGiftCardStore();
   const { fetchRates, getGiftCardBuyRate } = useRateStore();
+  const rates = useRateStore((state: any) => state.rates);
 
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [cardProducts, setCardProducts] = useState<GiftCardProduct[]>([]);
 
   /* ------------------------------------------------------ */
-  /* FETCH DATA */
+  /* FETCH PRODUCTS & RATES */
   /* ------------------------------------------------------ */
 
   useEffect(() => {
@@ -40,7 +41,9 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
 
   useEffect(() => {
     const filtered = products.filter(
-      (p: GiftCardProduct) => p.gift_card_id === card.id && p.is_active === 1,
+      (p: GiftCardProduct) =>
+        Number(p.gift_card_id) === Number(card.id) &&
+        Number(p.is_active) === 1,
     );
 
     setCardProducts(filtered);
@@ -54,14 +57,35 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
   }, [products, card.id]);
 
   /* ------------------------------------------------------ */
+  /* IMAGE PATH RESOLVER */
+  /* ------------------------------------------------------ */
+
+  const getFullImageUrl = (imagePath: string | null | undefined) => {
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    const apiBase = (host.includes("localhost") || host.includes("127.0.0.1"))
+      ? "http://localhost:8000"
+      : "https://api.cashconnectworld.com";
+    return `${apiBase}/storage/${imagePath}`;
+  };
+
+  /* ------------------------------------------------------ */
   /* UPDATE QUANTITY */
   /* ------------------------------------------------------ */
 
   const updateQty = (productId: number, delta: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productId]: Math.max(0, (prev[productId] ?? 0) + delta),
-    }));
+    const prod = cardProducts.find((p) => p.id === productId);
+    if (!prod || prod.quantity <= 0) return;
+
+    setQuantities((prev) => {
+      const current = prev[productId] ?? 0;
+      const next = current + delta;
+      return {
+        ...prev,
+        [productId]: Math.max(0, Math.min(prod.quantity, next)),
+      };
+    });
   };
 
   /* ------------------------------------------------------ */
@@ -76,11 +100,10 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
     }, 0);
   }, [cardProducts, quantities]);
 
-  // ✅ FIXED: Using getGiftCardBuyRate which only needs the ID
-  // and has built-in fallback logic
+  // ✅ FIXED: Using getGiftCardBuyRate with rates dependency for hot reload
   const rate = useMemo(
     () => getGiftCardBuyRate(card.id) || 0,
-    [getGiftCardBuyRate, card.id],
+    [getGiftCardBuyRate, card.id, rates],
   );
 
   const totalNGN = useMemo(() => totalUSD * rate, [totalUSD, rate]);
@@ -132,62 +155,92 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* PRODUCTS GRID */}
-        <div className="grid grid-cols-2 gap-4 flex-1">
-          {cardProducts.map((product) => {
-            const qty = quantities[product.id] ?? 0;
-            const amount = Number(product.amount) || 0;
+        <div className="flex-1">
+          {cardProducts.length === 0 ? (
+            <div className="bg-white rounded-[14px] border border-slate-100 p-8 text-center shadow-sm">
+              <p className="text-sm text-slate-400">No stock or denominations available for this brand.</p>
+              <p className="text-xs text-slate-300 mt-1">Please contact admin or check back later.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {cardProducts.map((product) => {
+                const qty = quantities[product.id] ?? 0;
+                const amount = Number(product.amount) || 0;
+                const isOutOfStock = product.quantity <= 0;
 
-            return (
-              <div
-                key={product.id}
-                className="rounded-[14px] border border-slate-100 bg-white p-4 flex flex-col gap-3 shadow-sm"
-              >
-                <div className="h-20 rounded-[10px] bg-slate-100 flex items-center justify-center overflow-hidden relative">
-                  {card.image && card.image.startsWith("http") ? (
-                    <Image
-                      src={card.image}
-                      alt={card.name}
-                      fill
-                      sizes="100px"
-                      className="object-contain p-1"
-                    />
-                  ) : (
-                    <span className="text-xl font-bold text-slate-400">
-                      {card.name.charAt(0)}
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-[13px] font-semibold text-emerald-600 text-center">
-                  ${amount} {card.name}
-                </p>
-
-                <p className="text-[11px] text-center text-slate-500">
-                  Quantity
-                </p>
-
-                <div className="flex items-center justify-center gap-3">
-                  <button
-                    onClick={() => updateQty(product.id, -1)}
-                    className="h-7 w-7 rounded-full border border-slate-200 grid place-items-center"
+                return (
+                  <div
+                    key={product.id}
+                    className="rounded-[14px] border border-slate-100 bg-white p-4 flex flex-col gap-3 shadow-sm"
                   >
-                    <Minus className="h-3 w-3 text-slate-600" />
-                  </button>
+                    <div className="h-20 rounded-[10px] bg-slate-100 flex items-center justify-center overflow-hidden relative">
+                      {card.image ? (
+                        <Image
+                          src={getFullImageUrl(card.image)}
+                          alt={card.name}
+                          fill
+                          sizes="100px"
+                          className="object-contain p-1"
+                        />
+                      ) : (
+                        <span className="text-xl font-bold text-slate-400">
+                          {card.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
 
-                  <span className="w-5 text-center font-semibold text-slate-800">
-                    {qty}
-                  </span>
+                    <p className="text-[13px] font-semibold text-emerald-600 text-center">
+                      ${amount} {card.name}
+                    </p>
 
-                  <button
-                    onClick={() => updateQty(product.id, 1)}
-                    className="h-7 w-7 rounded-full border border-slate-200 grid place-items-center"
-                  >
-                    <Plus className="h-3 w-3 text-slate-600" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                    {isOutOfStock ? (
+                      <div className="flex items-center justify-center gap-1.5 py-2 text-red-500">
+                        <span className="text-[12px] font-bold tracking-tight bg-red-50 px-3 py-1 rounded-full">Out of Stock</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-[11px] text-center text-slate-500">
+                          Quantity
+                        </p>
+
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => updateQty(product.id, -1)}
+                            disabled={qty <= 0}
+                            className={`h-7 w-7 rounded-full border grid place-items-center transition ${
+                              qty <= 0
+                                ? "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
+                                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                            }`}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+
+                          <span className="w-5 text-center font-semibold text-slate-800">
+                            {qty}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => updateQty(product.id, 1)}
+                            disabled={qty >= product.quantity}
+                            className={`h-7 w-7 rounded-full border grid place-items-center transition ${
+                              qty >= product.quantity
+                                ? "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
+                                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                            }`}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* RATE PANEL */}

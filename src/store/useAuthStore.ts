@@ -72,7 +72,16 @@ interface AuthState {
 
 // ------------------------------------------------------------------
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/v1', '') : "https://api.cashconnectworld.com/api";
+const getApiUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      return "http://localhost:8000/api";
+    }
+  }
+  return "https://api.cashconnectworld.com/api";
+};
+const API_URL = getApiUrl();
 
 // ------------------------------------------------------------------
 

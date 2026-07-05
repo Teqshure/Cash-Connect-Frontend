@@ -169,10 +169,19 @@ export default function RecentTransactionsSection() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    fetchTransactions();
+    fetchTransactions(true);
   }, [fetchTransactions]);
 
-  const rows = transactions.map(mapTransaction).slice(0, 6);
+  const rows = transactions
+    .filter((tx: any) => {
+      // Exclude expected payouts with no receipt
+      if (tx.type === "international" && !tx.receipt && (!tx.international || !tx.international.receipt)) {
+        return false;
+      }
+      return true;
+    })
+    .map(mapTransaction)
+    .slice(0, 6);
 
   return (
     <section className="w-full">

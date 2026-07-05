@@ -6,7 +6,16 @@ import { useEffect, useMemo, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 // ✅ Correct base URL
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
+const getApiUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      return "http://localhost:8000/api/v1";
+    }
+  }
+  return "https://api.cashconnectworld.com/api/v1";
+};
+const BASE_URL = getApiUrl();
 
 // ------------------------------------------------------
 // TYPES
@@ -163,9 +172,10 @@ interface GlobalPaymentState {
     payload: FindAccountPayload,
   ) => Promise<InternationalAccount[]>;
   submitTransaction: (payload: SubmitTransactionPayload) => Promise<any>;
-  fetchTransactions: () => Promise<void>;
+  fetchTransactions: (isBackground?: boolean) => Promise<void>;
   fetchTransaction: (id: string) => Promise<void>;
   cancelTransaction: (id: string) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   uploadReceipt: (id: string | number, file: File) => Promise<any>;
   fetchPaypalEmail: () => Promise<void>;
   sendPayment: (data: SendPaymentPayload) => Promise<any>;
@@ -510,9 +520,12 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
         throw err;
       }
     },
-    fetchTransactions: async () => {
-      set({ loading: true, error: null });
-
+    fetchTransactions: async (isBackground = false) => {
+      if (!isBackground) {
+        set({ loading: true, error: null });
+      } else {
+        set({ error: null });
+      }
       try {
         const res = await fetch(`${BASE_URL}/international/transactions`, {
           headers: authHeaders(),
@@ -567,6 +580,34 @@ export const useGlobalPaymentStore = create<GlobalPaymentState>(
 
         if (!res.ok)
           throw new Error(data.message || "Failed to cancel transaction");
+
+        await get().fetchTransactions();
+
+        set({ submitting: false });
+
+        return data;
+      } catch (err: any) {
+        set({ error: err.message, submitting: false });
+        throw err;
+      }
+    },
+
+    deleteTransaction: async (id: string) => {
+      set({ submitting: true, error: null });
+
+      try {
+        const res = await fetch(
+          `${BASE_URL}/international/transactions/${id}`,
+          {
+            method: "DELETE",
+            headers: authHeaders(),
+          },
+        );
+
+        const data = await res.json();
+
+        if (!res.ok)
+          throw new Error(data.message || "Failed to delete transaction");
 
         await get().fetchTransactions();
 

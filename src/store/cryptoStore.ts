@@ -5,7 +5,16 @@ import { useAuthStore } from "./useAuthStore";
 import { useEffect } from "react";
 import { useRateStore } from "./rateStore";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
+const getApiUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      return "http://localhost:8000/api/v1";
+    }
+  }
+  return "https://api.cashconnectworld.com/api/v1";
+};
+const BASE_URL = getApiUrl();
 
 // ------------------------------------------------------
 // TYPES
@@ -56,7 +65,8 @@ export interface BuyCryptoPayload {
   network: string;
   wallet_address: string;
   crypto_amount: number;
-  selling_rate: number; // ✅ required by backend
+  selling_rate: number;
+  payment_method?: string;
 }
 
 export interface SellCryptoPayload {
@@ -212,7 +222,8 @@ export const useCryptoStore = create<CryptoState>((set: any, get: any) => ({
         network: payload.network,
         wallet_address: payload.wallet_address,
         crypto_amount: payload.crypto_amount,
-        sell_rate: payload.selling_rate, // ✅ try "sell_rate" instead of "selling_rate"
+        sell_rate: payload.selling_rate,
+        payment_method: payload.payment_method || "wallet",
       };
 
       console.log("📤 buyCrypto payload:", JSON.stringify(requestPayload));

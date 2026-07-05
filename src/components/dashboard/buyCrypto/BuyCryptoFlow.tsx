@@ -92,11 +92,22 @@ export default function BuyCryptoFlow({ onBack }: Props) {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  const handleFormContinue = (t: CryptoToken, wallet: string, a: number) => {
+  const handleFormContinue = (
+    t: CryptoToken,
+    wallet: string,
+    a: number,
+    account: PaymentAccountOption,
+  ) => {
     setToken(t);
     setWalletAddress(wallet);
     setAmount(a);
-    setShowPaymentModal(true);
+    setPaymentAccount(account);
+
+    if (account.type === "wallet") {
+      setShowWarningModal(true);
+    } else {
+      setStep("confirm");
+    }
   };
 
   const handlePaymentContinue = (account: PaymentAccountOption) => {
@@ -160,6 +171,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
         wallet_address: walletAddress,
         crypto_amount: amount,
         selling_rate: rateToUse,
+        payment_method: paymentAccount?.type,
       });
 
       await buyCrypto({
@@ -168,6 +180,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
         wallet_address: walletAddress,
         crypto_amount: amount,
         selling_rate: rateToUse,
+        payment_method: paymentAccount?.type,
       });
 
       setStep("processing");

@@ -11,6 +11,7 @@ import {
   GiftCard,
   GiftCardProduct,
 } from "@/store/giftCardStore";
+import { useTransactionStore } from "@/store/Transactionstore";
 
 type Step = "grid" | "amount" | "receipt" | "success";
 
@@ -73,6 +74,9 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
       console.log("BUY ORDER PAYLOAD:", payload);
 
       await createOrder(payload);
+
+      // Force refresh transactions to update history and overview immediately
+      useTransactionStore.getState().fetchTransactions(true);
 
       setStep("success");
     } catch (err) {

@@ -6,6 +6,7 @@ import { Copy, Check, Loader2 } from "lucide-react";
 import { useSellCrypto } from "@/store/cryptoStore";
 import { useCryptoRate } from "@/store/cryptoStore";
 import { PaymentAccountOption } from "./sellCryptoData";
+import { useTransactionStore } from "@/store/Transactionstore";
 
 type Props = {
   amount: number;
@@ -13,7 +14,7 @@ type Props = {
   tokenId?: number;
   network: string;
   walletAddress: string;
-  paymentAccount: PaymentAccountOption;
+  paymentAccount?: PaymentAccountOption;
   onBack: () => void;
   onCancelTrade: () => void;
   onDeposited: () => void;
@@ -28,6 +29,11 @@ function formatTime(secs: number) {
     minutes: String(m).padStart(2, "0"),
     seconds: String(s).padStart(2, "0"),
   };
+}
+
+function formatCurrencySymbol(curr: string) {
+  if (curr === "NGN" || !curr) return "₦";
+  return curr;
 }
 
 export default function WalletConfirmation({
@@ -122,7 +128,7 @@ export default function WalletConfirmation({
       };
 
       // Only include bank_account_id for bank accounts
-      if (paymentAccount.type === "bank" && paymentAccount.bankAccountId) {
+      if (paymentAccount && paymentAccount.type === "bank" && paymentAccount.bankAccountId) {
         payload.bank_account_id = paymentAccount.bankAccountId;
         console.log(
           "🏦 [WalletConfirmation] Adding bank_account_id:",
@@ -146,6 +152,9 @@ export default function WalletConfirmation({
 
       const result = await sellCrypto(payload);
       console.log("✅ [WalletConfirmation] sellCrypto successful:", result);
+
+      // Force refresh transactions to update history immediately
+      useTransactionStore.getState().fetchTransactions(true);
 
       console.log("🎯 [WalletConfirmation] Calling onDeposited...");
       onDeposited();
@@ -224,10 +233,10 @@ export default function WalletConfirmation({
           Funds will be sent to:
         </p>
         <p className="text-[13px] font-semibold text-emerald-800">
-          {paymentAccount.label}
+          {paymentAccount?.label || "Cash Connect Wallet"}
         </p>
         <p className="text-[11px] text-emerald-600 mt-0.5">
-          {paymentAccount.sublabel}
+          {paymentAccount?.sublabel || "Internal Wallet Balance"}
         </p>
       </div>
 
@@ -235,7 +244,7 @@ export default function WalletConfirmation({
       <div className="bg-white rounded-[16px] border-2 border-emerald-500 p-5 mb-4">
         <p className="text-[12px] text-slate-500 mb-1">You will receive</p>
         <p className="text-[28px] font-bold text-emerald-600">
-          {currency} {youGet.toLocaleString()}
+          {formatCurrencySymbol(currency)}{youGet.toLocaleString()}
         </p>
         <div className="mt-3 pt-3 border-t border-emerald-100">
           <div className="flex justify-between text-[12px]">
@@ -247,7 +256,7 @@ export default function WalletConfirmation({
           <div className="flex justify-between text-[12px] mt-1">
             <span className="text-slate-600">Rate:</span>
             <span className="font-medium text-emerald-600">
-              {currency} {currentRate.toLocaleString()} per {tokenSymbol}
+              {formatCurrencySymbol(currency)}{currentRate.toLocaleString()} per {tokenSymbol}
             </span>
           </div>
         </div>
@@ -280,7 +289,7 @@ export default function WalletConfirmation({
             Deposits sent via other networks may result in loss of funds.
           </li>
           <li className="text-[12px] text-amber-700">
-            Funds will be credited to your selected account after confirmation.
+            Funds will be credited to your Cash Connect wallet balance after admin approval.
           </li>
         </ul>
       </div>

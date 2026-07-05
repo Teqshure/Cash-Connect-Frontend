@@ -42,13 +42,27 @@ export default function GiftCardGrid({
 
   const filteredCards = useMemo(() => {
     const keyword = search.toLowerCase().trim();
+    let cards = [...giftCards];
 
-    if (!keyword) return giftCards;
+    if (title.toLowerCase().includes("sell")) {
+      if (!cards.some(c => String(c.id) === "other" || c.name.toLowerCase() === "other")) {
+        cards.push({
+          id: "other" as any,
+          name: "Other / Brand not listed",
+          image: "",
+          created_at: "",
+          updated_at: "",
+          country: "Global"
+        });
+      }
+    }
 
-    return giftCards.filter((card) =>
+    if (!keyword) return cards;
+
+    return cards.filter((card) =>
       card.name.toLowerCase().includes(keyword),
     );
-  }, [giftCards, search]);
+  }, [giftCards, search, title]);
 
   /* ---------------------------------------------------- */
   /* RENDER */

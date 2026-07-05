@@ -114,14 +114,24 @@ const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?
   const menuRef = useRef<HTMLDivElement>(null);
   const transactions = useTransactionStore((s: any) => s.transactions);
   const fetchTransactions = useTransactionStore((s: any) => s.fetchTransactions);
-  const [readIds, setReadIds] = useState<number[]>([]);
+  const [readStatuses, setReadStatuses] = useState<Record<number, string>>({});
 
   useEffect(() => {
     fetchTransactions();
     try {
-      const stored = localStorage.getItem("cc_read_notifications");
+      const stored = localStorage.getItem("cc_read_notifications_map");
       if (stored) {
-        setReadIds(JSON.parse(stored));
+        setReadStatuses(JSON.parse(stored));
+      } else {
+        const oldStored = localStorage.getItem("cc_read_notifications");
+        if (oldStored) {
+          const oldIds: number[] = JSON.parse(oldStored);
+          const initialMap: Record<number, string> = {};
+          oldIds.forEach((id) => {
+            initialMap[id] = "read";
+          });
+          setReadStatuses(initialMap);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -139,22 +149,38 @@ const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?
   }, []);
 
   const recentTx = transactions.slice(0, 5);
-  const unreadCount = recentTx.filter((tx: any) => !readIds.includes(tx.id)).length;
+  
+  const isUnread = (tx: any) => {
+    if (!(tx.id in readStatuses)) return true;
+    return readStatuses[tx.id] !== tx.status;
+  };
+
+  const unreadCount = recentTx.filter((tx: any) => isUnread(tx)).length;
 
   const markAllAsRead = () => {
-    const newReadIds = Array.from(new Set([...readIds, ...recentTx.map((tx: any) => tx.id)]));
-    setReadIds(newReadIds);
+    const newMap = { ...readStatuses };
+    recentTx.forEach((tx: any) => {
+      newMap[tx.id] = tx.status;
+    });
+    setReadStatuses(newMap);
     try {
-      localStorage.setItem("cc_read_notifications", JSON.stringify(newReadIds));
+      localStorage.setItem("cc_read_notifications_map", JSON.stringify(newMap));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const markSingleAsRead = (txId: number, status: string) => {
+    const newMap = { ...readStatuses, [txId]: status };
+    setReadStatuses(newMap);
+    try {
+      localStorage.setItem("cc_read_notifications_map", JSON.stringify(newMap));
     } catch (e) {
       console.error(e);
     }
   };
 
   const toggleOpen = () => {
-    if (!isOpen) {
-      markAllAsRead();
-    }
     setIsOpen(!isOpen);
   };
 
@@ -172,7 +198,9 @@ const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?
       >
         <Bell className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
         {unreadCount > 0 && (
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+          <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1.5 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border border-white animate-pulse">
+            {unreadCount}
+          </span>
         )}
       </button>
 
@@ -185,10 +213,15 @@ const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?
         >
           <div className="px-4 pb-2 border-b border-slate-50 flex items-center justify-between">
             <span className="text-[14px] font-semibold text-slate-800">Notifications</span>
-            {unreadCount > 0 && (
-              <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                {unreadCount} new
-              </span>
+            {unreadCount > 0 ? (
+              <button 
+                onClick={markAllAsRead}
+                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 transition cursor-pointer"
+              >
+                Mark all as read
+              </button>
+            ) : (
+              <span className="text-[11px] text-slate-400">All read</span>
             )}
           </div>
 
@@ -199,7 +232,7 @@ const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?
               </div>
             ) : (
               recentTx.map((tx: any) => {
-                const isUnread = !readIds.includes(tx.id);
+                const txUnread = isUnread(tx);
                 const isCredit = tx.direction === "credit";
                 const amountSign = isCredit ? "+" : "-";
                 const amountColor = isCredit ? "text-emerald-600" : "text-slate-800";
@@ -222,18 +255,19 @@ const NotificationMenu = ({ router, isMobile = false }: { router: any; isMobile?
                   <div 
                     key={tx.id} 
                     className={[
-                      "p-3.5 flex items-start gap-3 hover:bg-slate-50/50 transition cursor-pointer relative",
-                      isUnread ? "bg-emerald-50/10" : ""
+                      "p-3.5 flex items-start gap-3 hover:bg-slate-50 transition cursor-pointer relative",
+                      txUnread ? "bg-emerald-50/20 hover:bg-emerald-50/40" : ""
                     ].join(" ")}
                     onClick={() => {
+                      markSingleAsRead(tx.id, tx.status);
                       setIsOpen(false);
-                      router.push("/history");
+                      router.push(`/history?txId=${tx.id}`);
                     }}
                   >
-                    {isUnread && (
-                      <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    {txUnread && (
+                      <span className="absolute left-2.5 top-[18px] h-2 w-2 rounded-full bg-emerald-500" />
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pl-2">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[12px] font-semibold text-slate-800 truncate">{title}</p>
                         <p className={["text-[12px] font-bold shrink-0", amountColor].join(" ")}>

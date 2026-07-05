@@ -12,6 +12,7 @@ import {
   Settings,
   HelpCircle,
   X,
+  Globe,
 } from "lucide-react";
 
 type Props = {
@@ -19,14 +20,15 @@ type Props = {
 };
 
 const nav = [
-  { label: "Home",     href: "/dashboard", icon: Home },
-  { label: "Wallet",   href: "/wallet",    icon: Wallet },
-  { label: "Products", href: "/product",   icon: Box },
-  { label: "History",  href: "/history",   icon: History },
-  { label: "Orders",   href: "/orders",    icon: ShoppingCart },
-  { label: "Profile",  href: "/profile",   icon: User },
-  { label: "Settings", href: "/settings",  icon: Settings },
-  { label: "Help",     href: "/help",      icon: HelpCircle },
+  { label: "Home",           href: "/dashboard",      icon: Home },
+  { label: "Wallet",         href: "/wallet",         icon: Wallet },
+  { label: "Products",       href: "/product",        icon: Box },
+  { label: "Global Payouts", href: "/global-payouts", icon: Globe },
+  { label: "History",        href: "/history",        icon: History },
+  { label: "Orders",         href: "/orders",         icon: ShoppingCart },
+  { label: "Profile",        href: "/profile",        icon: User },
+  { label: "Settings",       href: "/settings",       icon: Settings },
+  { label: "Help",           href: "/help",           icon: HelpCircle },
 ];
 
 export default function SidebarContent({ onNavigate }: Props) {

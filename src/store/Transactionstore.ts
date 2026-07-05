@@ -3,7 +3,16 @@
 import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
+const getApiUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      return "http://localhost:8000/api/v1";
+    }
+  }
+  return "https://api.cashconnectworld.com/api/v1";
+};
+const BASE_URL = getApiUrl();
 
 /* -------------------------------------------------- */
 /* TYPES */
@@ -34,18 +43,19 @@ export interface ApiTransaction {
   giftcard: any | null;
   crypto: any | null;
   international: any | null;
+  gift_card_order?: any | null;
+  receipt?: string | null;
 }
 
 interface TransactionState {
   transactions: ApiTransaction[];
   isLoading: boolean;
   error: string | null;
-
-  // ✅ NEW
   searchQuery: string;
+  lastFetched: number | null;
   setSearchQuery: (q: string) => void;
-
-  fetchTransactions: (force?: boolean) => Promise<void>;
+  fetchTransactions: (force?: boolean, isBackground?: boolean) => Promise<void>;
+  uploadTransactionReceipt: (txId: string | number, file: File) => Promise<any>;
 }
 
 /* -------------------------------------------------- */
@@ -92,6 +102,7 @@ function normalizeTransaction(tx: any): ApiTransaction {
       giftcard: tx,
       crypto: null,
       international: null,
+      gift_card_order: null,
     };
   }
 
@@ -119,6 +130,7 @@ function normalizeTransaction(tx: any): ApiTransaction {
     giftcard: tx.giftcard ?? null,
     crypto: tx.crypto ?? null,
     international: tx.international ?? null,
+    gift_card_order: tx.gift_card_order ?? tx.giftCardOrder ?? null,
   };
 }
 
@@ -131,15 +143,22 @@ export const useTransactionStore = create<TransactionState>()(
     transactions: [],
     isLoading: false,
     error: null,
-
-    // ✅ NEW
     searchQuery: "",
+    lastFetched: null,
     setSearchQuery: (q: string) => set({ searchQuery: q }),
 
-    fetchTransactions: async (force = false) => {
-      if (!force && get().transactions.length > 0) return;
+    fetchTransactions: async (force = false, isBackground = false) => {
+      const lastFetched = get().lastFetched;
+      if (!force && lastFetched && Date.now() - lastFetched < 5000) {
+        console.log("⏭️ Skipping transaction fetch - fetched less than 5s ago");
+        return;
+      }
 
-      set({ isLoading: true, error: null });
+      if (!isBackground) {
+        set({ isLoading: true, error: null });
+      } else {
+        set({ error: null });
+      }
 
       try {
         const res = await fetch(`${BASE_URL}/transactions`, {
@@ -166,12 +185,48 @@ export const useTransactionStore = create<TransactionState>()(
         set({
           transactions,
           isLoading: false,
+          lastFetched: Date.now(),
         });
       } catch (error: any) {
         set({
           error: error.message || "Something went wrong",
           isLoading: false,
         });
+      }
+    },
+
+    uploadTransactionReceipt: async (txId: string | number, file: File) => {
+      set({ isLoading: true, error: null });
+
+      try {
+        const formData = new FormData();
+        formData.append("receipt", file);
+
+        const token = useAuthStore.getState().token;
+
+        const res = await fetch(
+          `${BASE_URL}/transactions/${txId}/notify-payment`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to upload receipt");
+        }
+
+        await get().fetchTransactions(true);
+        return data;
+      } catch (error: any) {
+        set({ error: error.message, isLoading: false });
+        throw error;
       }
     },
   }),

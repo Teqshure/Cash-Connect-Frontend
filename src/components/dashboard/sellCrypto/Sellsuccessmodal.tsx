@@ -31,10 +31,10 @@ function SellSuccessModal({ open, onOk }: Props) {
           </svg>
         </div>
         <h3 className="mt-5 text-[22px] font-semibold text-emerald-600">
-          Thanks
+          Request Submitted!
         </h3>
         <p className="mt-2 text-[13px] text-slate-500 leading-6">
-          Your new account was added successfully
+          Your trade request was submitted successfully. The admin will verify your deposit and credit your wallet.
         </p>
         <button
           type="button"

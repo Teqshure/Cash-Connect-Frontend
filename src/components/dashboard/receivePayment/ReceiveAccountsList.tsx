@@ -60,8 +60,6 @@ ${(account as any).extra_information ? `Info: ${(account as any).extra_informati
     setLoadingIds((prev) => [...prev, account.id]);
     try {
       await onSelect(account);
-      setSuccessIds((prev) => [...prev, account.id]);
-      setShowSuccessModal(true);
     } catch (err) {
       console.error("Failed to notify admin", err);
     } finally {
@@ -158,34 +156,19 @@ ${(account as any).extra_information ? `Info: ${(account as any).extra_informati
                 <Row label="Country" value={account.country} />
 
                 {/* ACTION BUTTON */}
-                <div className="pt-4 space-y-2">
-                  {successIds.includes(account.id) ? (
-                    <>
-                      <button
-                        disabled
-                        className="w-full py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-2 transition duration-300"
-                      >
-                        <Check size={18} />
-                        Details Copied & Admin Notified!
-                      </button>
-                      <p className="text-[12px] text-emerald-600 font-semibold text-center mt-2 animate-in fade-in duration-300">
-                        Admin is now monitoring the account for your incoming payment.
-                      </p>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleCopyAndNotify(account)}
-                      disabled={loadingIds.includes(account.id) || successIds.length > 0}
-                      className="w-full py-3.5 rounded-xl bg-[#007042] text-white text-sm font-semibold hover:bg-[#005a35] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
-                    >
-                      {loadingIds.includes(account.id) ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Copy size={16} />
-                      )}
-                      Copy Details & Notify Admin
-                    </button>
-                  )}
+                <div className="pt-4">
+                  <button
+                    onClick={() => handleCopyAndNotify(account)}
+                    disabled={loadingIds.includes(account.id)}
+                    className="w-full py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                  >
+                    {loadingIds.includes(account.id) ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Copy size={16} />
+                    )}
+                    Copy Details & Continue
+                  </button>
                 </div>
               </div>
             </div>

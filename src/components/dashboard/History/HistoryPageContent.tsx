@@ -13,6 +13,7 @@ import { Transaction } from "../overview/TransactionsTable";
 import TransactionsTable from "../overview/TransactionsTable";
 import { useAuthStore, User } from "@/store/useAuthStore";
 import { useTransactionStore, ApiTransaction } from "@/store/Transactionstore";
+import { useSearchParams } from "next/navigation";
 
 // ----------------------------------------------------------------
 // Mapping helpers
@@ -112,7 +113,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
       icon,
       isInternational: true,
       intlId: intl.id,
-      receipt: intl.receipt,
+      receipt: tx.receipt || intl.receipt || null,
       foreignAmount: `${currency} ${foreignFormatted}`,
       foreignCurrency: currency,
       // Only expose rate & NGN once approved
@@ -147,6 +148,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
         icon: "gift",
         isGiftCard: true,
         tradeType: "buy",
+        receipt: tx.receipt || null,
         cardName: brand,
         cardAmount: faceVal,
         cardCurrency: product?.currency ?? "USD",
@@ -154,6 +156,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
         cardCode: product?.card_code,
         cardPin: product?.card_pin,
         cardImages: product?.card_images,
+        brandImage: product?.gift_card?.image || null,
       };
     } else {
       // Sell Order (GiftCardTransaction)
@@ -171,12 +174,14 @@ function mapTransaction(tx: ApiTransaction): Transaction {
         icon: "gift",
         isGiftCard: true,
         tradeType: "sell",
+        receipt: tx.receipt || null,
         cardName: brand,
         cardAmount: faceVal,
         cardCurrency: stx?.currency ?? "USD",
         cardCode: stx?.card_code,
         cardPin: stx?.card_pin,
         cardImages: stx?.card_images,
+        brandImage: stx?.giftcard_brand_image || stx?.image || null,
       };
     }
   }
@@ -195,6 +200,8 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     amountPrimary: `${tx.currency === "NGN" ? "₦" : tx.currency} ${amount}`,
     status,
     icon,
+    receipt: tx.receipt || null,
+    isCrypto: tx.type === "crypto",
   };
 }
 
@@ -281,11 +288,31 @@ export default function HistoryPageContent() {
   const { transactions, isLoading, error, fetchTransactions } =
     useTransactionStore();
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+  const searchParams = useSearchParams();
+  const txId = searchParams.get("txId");
 
-  const allItems = transactions.map(mapTransaction);
+  useEffect(() => {
+    fetchTransactions(true); // Force load newest list
+  }, [fetchTransactions]);
+
+  useEffect(() => {
+    if (txId && transactions.length > 0) {
+      const rawTx = transactions.find((t: any) => String(t.id) === String(txId));
+      if (rawTx) {
+        setSelectedTx(mapTransaction(rawTx));
+      }
+    }
+  }, [txId, transactions]);
+
+  const allItems = transactions
+    .filter((tx: any) => {
+      // Exclude expected payouts with no receipt
+      if (tx.type === "international" && !tx.receipt && (!tx.international || !tx.international.receipt)) {
+        return false;
+      }
+      return true;
+    })
+    .map(mapTransaction);
 
   const filteredItems = allItems.filter((item: Transaction) => {
     const matchesStatus = filter === "all" || item.status === filter;
@@ -477,7 +504,14 @@ export default function HistoryPageContent() {
 
       <TransactionDetailModal
         isOpen={selectedTx !== null}
-        onClose={() => setSelectedTx(null)}
+        onClose={() => {
+          setSelectedTx(null);
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("txId");
+            window.history.replaceState({}, "", url.toString());
+          }
+        }}
         tx={selectedTx}
       />
     </>

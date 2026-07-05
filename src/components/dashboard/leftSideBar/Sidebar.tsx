@@ -13,6 +13,7 @@ import {
   Settings,
   HelpCircle,
   LucideIcon,
+  Globe,
 } from "lucide-react";
 
 import SidebarBrand from "@/components/dashboard/leftSideBar/SidebarBrand";
@@ -24,11 +25,12 @@ type NavItem = {
 };
 
 const topNav: NavItem[] = [
-  { label: "Home",     href: "/dashboard", Icon: Home },
-  { label: "Wallet",   href: "/wallet",    Icon: Wallet },
-  { label: "Products", href: "/product",   Icon: Box },
-  { label: "History",  href: "/history",   Icon: History },
-  { label: "Orders",   href: "/orders",    Icon: ShoppingCart },
+  { label: "Home",           href: "/dashboard",      Icon: Home },
+  { label: "Wallet",         href: "/wallet",         Icon: Wallet },
+  { label: "Products",       href: "/product",        Icon: Box },
+  { label: "Global Payouts", href: "/global-payouts", Icon: Globe },
+  { label: "History",        href: "/history",        Icon: History },
+  { label: "Orders",         href: "/orders",         Icon: ShoppingCart },
 ];
 
 const bottomNav: NavItem[] = [

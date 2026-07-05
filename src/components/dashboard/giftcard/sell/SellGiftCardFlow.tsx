@@ -14,6 +14,7 @@ import {
 } from "@/store/giftCardStore";
 
 import { useRateStore } from "@/store/rateStore";
+import { useTransactionStore } from "@/store/Transactionstore";
 
 type Step = "grid" | "form" | "receipt" | "success";
 
@@ -26,6 +27,8 @@ type SellFormData = {
   amount: string;
   quantity: number;
   imageFiles: File[];
+  customBrandName?: string;
+  currency?: string;
 };
 
 export default function SellGiftCardFlow({ onBack }: Props) {
@@ -103,6 +106,13 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       payload.append("card_code", formData.cardNumber);
       payload.append("card_pin", formData.cardNumber);
 
+      if (formData.customBrandName) {
+        payload.append("custom_brand_name", formData.customBrandName);
+      }
+      if (formData.currency) {
+        payload.append("currency", formData.currency);
+      }
+
       /* ---------------- IMAGE UPLOAD ---------------- */
 
       if (formData.imageFiles.length > 0) {
@@ -122,6 +132,9 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       console.log("===== BACKEND RESPONSE =====");
       console.log(response);
       console.log("============================");
+
+      // Force refresh transactions to update history and overview immediately
+      useTransactionStore.getState().fetchTransactions(true);
 
       setStep("success");
     } catch (err) {

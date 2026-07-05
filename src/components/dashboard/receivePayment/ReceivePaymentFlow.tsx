@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import ReceivePaymentMethodGrid from "./ReceivePaymentMethodGrid";
 import ReceivePaymentForm from "./ReceivePaymentForm";
 import ReceiveAccountsList from "./ReceiveAccountsList";
 import ReceiveErrorModal from "./ReceiveErrorModal";
 import ReceiveSuccessModal from "./ReceiveSuccessModal";
+import ReceiveP2PTradeScreen from "./ReceiveP2PTradeScreen";
 import { UIPaymentMethod, useGlobalPaymentStore } from "@/store/globalPayment";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 
-type Step = "choose" | "form" | "accounts" | "error";
+type Step = "choose" | "form" | "accounts" | "error" | "p2p_trade";
 
 type FormDataType = {
   amount: number;
@@ -19,6 +21,7 @@ type FormDataType = {
 };
 
 export default function ReceivePaymentFlow({ onBack }: any) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("choose");
   const [selectedMethod, setSelectedMethod] = useState<UIPaymentMethod | null>(
     null,
@@ -30,6 +33,8 @@ export default function ReceivePaymentFlow({ onBack }: any) {
   const [unavailableMethodName, setUnavailableMethodName] = useState<string | null>(null);
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const [activeTx, setActiveTx] = useState<any>(null);
 
   const {
     findAccounts,
@@ -134,7 +139,7 @@ export default function ReceivePaymentFlow({ onBack }: any) {
 
   // ---------------- ACCOUNT SELECT ----------------
   const handleAccountSelect = async (account: any) => {
-    console.log("📢 [NOTIFY ADMIN CLICKED]");
+    console.log("📢 [ACCOUNT SELECTED / CREATING SESSION]");
     console.log("📢 ACCOUNT:", account);
     console.log("📢 FORM DATA:", formData);
 
@@ -147,13 +152,20 @@ export default function ReceivePaymentFlow({ onBack }: any) {
       console.log("🚀 [CALLING submitTransaction WITH]:", payload);
 
       const res = await submitTransaction(payload);
+      const txData = res?.data || res;
 
-      console.log("✅ [TRANSACTION CREATED]:", res);
+      console.log("✅ [TRANSACTION CREATED]:", txData);
+      setActiveTx(txData);
+      setStep("p2p_trade");
       return res;
     } catch (err: any) {
       console.error("❌ TRANSACTION ERROR:", err);
-      setErrorMessage(err.message);
-      setStep("error");
+      if (err.status === 409 || err.message?.toLowerCase().includes("duplicate") || err.message?.toLowerCase().includes("active expected payment")) {
+        setIsDuplicate(true);
+      } else {
+        setErrorMessage(err.message);
+        setStep("error");
+      }
       throw err;
     }
   };
@@ -185,12 +197,16 @@ export default function ReceivePaymentFlow({ onBack }: any) {
           currency={formData?.currency || ""}
           onBack={() => setStep("form")}
           onSelect={handleAccountSelect}
-          onCopy={(account: any) => {
-            console.log("📋 COPY TRIGGERED");
-            submitTransaction({
-              account_id: account.id,
-              expected_amount: formData?.amount || 0,
-            }).catch(console.error);
+          onCopy={() => {}}
+        />
+      )}
+
+      {step === "p2p_trade" && activeTx && (
+        <ReceiveP2PTradeScreen
+          tx={activeTx}
+          onCancel={() => setStep("choose")}
+          onComplete={() => {
+            setShowSuccess(true);
           }}
         />
       )}
@@ -223,6 +239,42 @@ export default function ReceivePaymentFlow({ onBack }: any) {
           setStep("choose");
         }}
       />
+
+      {isDuplicate && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[24px] shadow-2xl p-8 max-w-sm w-full text-center flex flex-col items-center animate-in zoom-in-95 duration-200 border border-slate-100 max-h-[85vh] overflow-y-auto">
+            <div className="w-16 h-16 bg-amber-50 border border-amber-100 rounded-full flex items-center justify-center mb-5 animate-pulse">
+              <Clock className="w-8 h-8 text-amber-500 animate-spin" style={{ animationDuration: '4s' }} />
+            </div>
+            <h3 className="text-[17px] font-bold text-slate-800 mb-2">
+              Active Session Found
+            </h3>
+            <p className="text-[13px] text-slate-500 mb-6 px-3 leading-relaxed">
+              You already have an active expected payment request matching this amount and payment method option. Please copy the account details from your Global Payouts screen to complete the payment.
+            </p>
+            <div className="flex flex-col gap-2 w-full">
+              <button
+                onClick={() => {
+                  setIsDuplicate(false);
+                  router.push("/global-payouts");
+                }}
+                className="w-full py-3 bg-[#00B86B] hover:bg-[#009b5a] text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
+              >
+                Go to Global Payouts
+              </button>
+              <button
+                onClick={() => {
+                  setIsDuplicate(false);
+                  setStep("choose");
+                }}
+                className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {unavailableMethodName && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md animate-in fade-in duration-300">

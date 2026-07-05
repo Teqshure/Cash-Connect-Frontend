@@ -64,17 +64,9 @@ export const WALLET_ADDRESS = "TJaBucewys2MkKcqCastDLvWvndYGQbgwg";
 // ⚠️ Can stay OR come from API (user accounts)
 export const PAYMENT_ACCOUNTS: PaymentAccountOption[] = [
   {
-    id: "uba",
-    type: "bank",
-    label: "2141536385 — Emmanuel Nwaezeoma Chijioke",
-    sublabel: "United Bank of Africa",
-    logoText: "BA",
-    logoColor: "bg-red-600",
-  },
-  {
     id: "crypto",
     type: "crypto",
-    label: "Pay with Crypto",
+    label: "Pay via crypto",
     sublabel: "Unlimited transfer",
     logoText: "₿",
     logoColor: "bg-orange-500",

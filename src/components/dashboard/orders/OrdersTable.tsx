@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow";
 import { Order } from "./orders.types";
 import { useGiftCardStore } from "@/store/giftCardStore";
 import { Loader2 } from "lucide-react";
+import OrderDetailModal from "./OrderDetailModal";
 
 type Props = {
   search: string;
@@ -14,6 +15,7 @@ export default function OrdersTable({ search }: Props) {
   const orders = useGiftCardStore((s: any) => s.orders);
   const fetchUserOrders = useGiftCardStore((s: any) => s.fetchUserOrders);
   const isLoading = useGiftCardStore((s: any) => s.isLoading);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     fetchUserOrders();
@@ -35,10 +37,21 @@ export default function OrdersTable({ search }: Props) {
       card: o.product ? `${o.product.currency} ${parseFloat(o.product.amount).toLocaleString()}` : "N/A",
       date: formattedDate,
       amount: `₦${parseFloat(o.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+      cardCode: o.product?.card_code,
+      cardPin: o.product?.card_pin,
+      quantity: o.quantity,
+      status: o.status,
+      brandImage: o.product?.gift_card?.image || null,
+      createdAt: o.created_at || "",
     };
   });
 
-  const filteredOrders = mappedOrders.filter((order) => {
+  // Sort descending by createdAt (latest order at the top)
+  const sortedOrders = [...mappedOrders].sort((a, b) => {
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+
+  const filteredOrders = sortedOrders.filter((order) => {
     const value = search.toLowerCase();
 
     return (
@@ -73,7 +86,7 @@ export default function OrdersTable({ search }: Props) {
               </div>
             ) : filteredOrders.length > 0 ? (
               filteredOrders.map((order, index) => (
-                <OrderRow key={index} order={order} />
+                <OrderRow key={index} order={order} onSelect={setSelectedOrder} />
               ))
             ) : (
               <p className="text-center text-slate-400 text-sm py-8">
@@ -83,6 +96,12 @@ export default function OrdersTable({ search }: Props) {
           </div>
         </div>
       </div>
+
+      <OrderDetailModal
+        isOpen={selectedOrder !== null}
+        onClose={() => setSelectedOrder(null)}
+        order={selectedOrder}
+      />
     </div>
   );
 }

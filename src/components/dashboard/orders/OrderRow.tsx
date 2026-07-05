@@ -2,9 +2,10 @@
 
 import { Order } from "./orders.types";
 
-export default function OrderRow({ order }: { order: Order }) {
+export default function OrderRow({ order, onSelect }: { order: Order; onSelect: (order: Order) => void }) {
   return (
     <div
+      onClick={() => onSelect(order)}
       className="
         grid
         grid-cols-[130px_1.6fr_110px_140px_110px_110px]
@@ -17,6 +18,7 @@ export default function OrderRow({ order }: { order: Order }) {
         hover:bg-slate-50
         transition
         whitespace-nowrap
+        cursor-pointer
       "
     >
       {/* ID */}
@@ -36,6 +38,10 @@ export default function OrderRow({ order }: { order: Order }) {
 
       {/* RECEIPT */}
       <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(order);
+        }}
         className="
           h-[28px]
           px-3
@@ -46,9 +52,10 @@ export default function OrderRow({ order }: { order: Order }) {
           font-medium
           hover:bg-emerald-50
           transition
+          cursor-pointer
         "
       >
-        Download
+        View
       </button>
     </div>
   );

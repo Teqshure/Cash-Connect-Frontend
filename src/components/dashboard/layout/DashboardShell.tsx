@@ -76,7 +76,7 @@ export default function DashboardShell({
       <div className="lg:hidden">
         <Topbar onOpenSidebar={() => setOpen(true)} />
         <div className="px-4 pt-6 pb-24">{children}</div>
-        <MobileBottomNav />
+        <MobileBottomNav onClick={() => setOpen(false)} />
       </div>
     </div>
   );

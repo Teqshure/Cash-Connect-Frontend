@@ -1,7 +1,16 @@
 import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.cashconnectworld.com/api/v1";
+const getApiUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      return "http://localhost:8000/api/v1";
+    }
+  }
+  return "https://api.cashconnectworld.com/api/v1";
+};
+const BASE_URL = getApiUrl();
 
 export interface BankAccount {
   id: number;
