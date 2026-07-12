@@ -35,6 +35,7 @@ export default function GiftCardGrid({
   onBack,
 }: Props) {
   const [search, setSearch] = useState("");
+  const [failedImages, setFailedImages] = useState<Record<string | number, boolean>>({});
 
   /* ---------------------------------------------------- */
   /* FILTER CARDS */
@@ -116,14 +117,14 @@ export default function GiftCardGrid({
                   card.name,
                 )} flex items-center justify-center overflow-hidden`}
               >
-                {card.image ? (
+                {card.image && !failedImages[card.id] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={card.image}
                     alt={card.name}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
+                    onError={() => {
+                      setFailedImages(prev => ({ ...prev, [card.id]: true }));
                     }}
                   />
                 ) : (

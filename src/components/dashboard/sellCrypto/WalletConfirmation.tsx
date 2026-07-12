@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, Check, Loader2 } from "lucide-react";
-import { useSellCrypto } from "@/store/cryptoStore";
+import { Copy, Check, Loader2, Upload, ShieldAlert } from "lucide-react";
 import { useCryptoRate } from "@/store/cryptoStore";
 import { PaymentAccountOption } from "./sellCryptoData";
 import { useTransactionStore } from "@/store/Transactionstore";
@@ -15,9 +14,10 @@ type Props = {
   network: string;
   walletAddress: string;
   paymentAccount?: PaymentAccountOption;
+  transactionId?: number | null;
   onBack: () => void;
   onCancelTrade: () => void;
-  onDeposited: () => void;
+  onDeposited: (file: File | null) => void;
 };
 
 function formatTime(secs: number) {
@@ -43,6 +43,7 @@ export default function WalletConfirmation({
   network,
   walletAddress,
   paymentAccount,
+  transactionId,
   onBack,
   onCancelTrade,
   onDeposited,
@@ -50,8 +51,7 @@ export default function WalletConfirmation({
   const [copied, setCopied] = useState(false);
   const [seconds, setSeconds] = useState(60 * 48 + 30);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { sellCrypto, submitting } = useSellCrypto();
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   // ✅ IMPORTANT: Use SELL_RATE for selling crypto (what platform pays you)
   const { sellRate, currency } = useCryptoRate(tokenId);
@@ -96,78 +96,24 @@ export default function WalletConfirmation({
   };
 
   const handleDepositedClick = async () => {
-    console.log("🚀 [WalletConfirmation] handleDepositedClick started");
-    console.log("📊 [WalletConfirmation] Current state:", {
-      tokenId,
-      tokenSymbol,
-      network,
-      amount,
-      paymentAccount,
-      sellRate, // ✅ Log sell rate instead of buy rate
-    });
-
-    if (!tokenId) {
-      console.error("❌ [WalletConfirmation] Invalid tokenId:", tokenId);
-      alert("Invalid token. Please try again.");
-      return;
-    }
-
-    // ✅ Validate sell rate exists
-    if (!sellRate || sellRate <= 0) {
-      console.error("❌ [WalletConfirmation] Invalid sell rate:", sellRate);
-      alert("Selling rate not available. Please try again later.");
+    if (!receiptFile) {
+      alert("Please upload your payment receipt to confirm deposit.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const payload: any = {
-        token: tokenSymbol,
-        network: network,
-        crypto_amount: amount,
-      };
-
-      // Only include bank_account_id for bank accounts
-      if (paymentAccount && paymentAccount.type === "bank" && paymentAccount.bankAccountId) {
-        payload.bank_account_id = paymentAccount.bankAccountId;
-        console.log(
-          "🏦 [WalletConfirmation] Adding bank_account_id:",
-          paymentAccount.bankAccountId,
-        );
-      } else {
-        console.log(
-          "👛 [WalletConfirmation] No bank_account_id (wallet transaction)",
-        );
+      if (transactionId) {
+        await useTransactionStore.getState().uploadTransactionReceipt(transactionId, receiptFile);
       }
-
-      console.log(
-        "📤 [WalletConfirmation] Selling crypto with payload:",
-        JSON.stringify(payload, null, 2),
-      );
-      console.log("💵 [WalletConfirmation] Using sell rate:", sellRate);
-      console.log(
-        "💰 [WalletConfirmation] Expected amount:",
-        amount * sellRate,
-      );
-
-      const result = await sellCrypto(payload);
-      console.log("✅ [WalletConfirmation] sellCrypto successful:", result);
-
       // Force refresh transactions to update history immediately
       useTransactionStore.getState().fetchTransactions(true);
-
-      console.log("🎯 [WalletConfirmation] Calling onDeposited...");
-      onDeposited();
+      onDeposited(receiptFile);
     } catch (err: any) {
-      console.error("❌ [WalletConfirmation] Sell crypto failed:", {
-        error: err,
-        message: err.message,
-        stack: err.stack,
-      });
-      alert(err.message || "Transaction failed. Please try again.");
+      console.error("Failed to upload transaction receipt:", err);
+      alert(err.message || "Upload failed. Please try again.");
     } finally {
       setIsSubmitting(false);
-      console.log("🏁 [WalletConfirmation] handleDepositedClick finished");
     }
   };
 
@@ -181,7 +127,6 @@ export default function WalletConfirmation({
     youGet,
     currency,
     isSubmitting,
-    submitting,
   });
 
   return (
@@ -262,6 +207,32 @@ export default function WalletConfirmation({
         </div>
       </div>
 
+      {/* Upload Payment Receipt */}
+      <div className="mb-6 bg-slate-50 border border-slate-100 rounded-[16px] p-4 flex flex-col gap-3 shadow-sm">
+        <div className="flex items-center gap-2 text-slate-800">
+          <Upload className="h-4 w-4 text-emerald-600 shrink-0" />
+          <p className="text-xs font-bold">Upload Payment Receipt</p>
+        </div>
+        <p className="text-[10px] text-slate-400 leading-relaxed">
+          Please upload the transaction receipt or screenshot of your crypto transfer to notify the admin for verification.
+        </p>
+        <input 
+          type="file" 
+          accept="image/*,application/pdf" 
+          onChange={(e) => {
+            if (e.target.files?.[0]) setReceiptFile(e.target.files[0]);
+          }} 
+          id="confirm-receipt-file"
+          className="hidden"
+        />
+        <label 
+          htmlFor="confirm-receipt-file"
+          className="w-full h-[46px] border border-dashed border-slate-350 rounded-xl bg-white flex items-center justify-center gap-2 text-xs font-bold text-slate-650 hover:bg-slate-50 cursor-pointer transition"
+        >
+          <span>{receiptFile ? receiptFile.name : "Select Receipt JPG, PNG or PDF"}</span>
+        </label>
+      </div>
+
       {/* Countdown */}
       <div className="mb-4 text-center">
         <p className="text-[13px] text-slate-500">
@@ -299,7 +270,7 @@ export default function WalletConfirmation({
         <button
           type="button"
           onClick={onCancelTrade}
-          disabled={isSubmitting || submitting}
+          disabled={isSubmitting}
           className="flex-1 h-[48px] rounded-[12px] border border-slate-300 text-slate-700 text-[14px] font-semibold hover:bg-slate-50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel Trade
@@ -307,10 +278,10 @@ export default function WalletConfirmation({
         <button
           type="button"
           onClick={handleDepositedClick}
-          disabled={isSubmitting || submitting || !currentRate}
+          disabled={isSubmitting || !currentRate}
           className="flex-1 h-[48px] rounded-[12px] bg-emerald-600 text-white text-[14px] font-semibold hover:brightness-110 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isSubmitting || submitting ? (
+          {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               Processing...

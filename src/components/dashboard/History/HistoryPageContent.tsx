@@ -123,7 +123,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
   }
 
   // ── Gift Card Transaction Mapping ──────────────────────────────────────
-  if ((tx.type as any) === "giftcard") {
+  if ((tx.type as any) === "gift" || (tx.type as any) === "giftcard") {
     const isDebit = tx.direction === "debit"; // Buy
     const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
       minimumFractionDigits: 2,
@@ -186,6 +186,35 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     }
   }
 
+  // ── Crypto Transaction Mapping ────────────────────────────────────────
+  if (tx.type === "crypto") {
+    const isDebit = tx.direction === "debit"; // Buy
+    const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const ctx = (tx as any).crypto;
+    const tokenSymbol = ctx?.crypto_type ?? tx.currency ?? "USDT";
+    const cryptoAmt = ctx?.crypto_amount ? parseFloat(ctx.crypto_amount).toFixed(6) : "0.00";
+
+    return {
+      id: String(tx.id),
+      date,
+      time,
+      type: isDebit ? `Buy ${tokenSymbol}` : `Sell ${tokenSymbol}`,
+      amountPrimary: `₦${amount}`,
+      status,
+      icon: "crypto",
+      isCrypto: true,
+      tradeType: isDebit ? "buy" : "sell",
+      receipt: tx.receipt || null,
+      tokenSymbol,
+      cryptoAmount: cryptoAmt,
+      walletAddress: ctx?.wallet_address,
+      description: tx.description,
+    };
+  }
+
   // ── All other transaction types ────────────────────────────────────────
   const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
     minimumFractionDigits: 2,
@@ -201,7 +230,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     status,
     icon,
     receipt: tx.receipt || null,
-    isCrypto: tx.type === "crypto",
+    isCrypto: (tx.type as any) === "crypto",
   };
 }
 

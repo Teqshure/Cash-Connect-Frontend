@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 type CoinRow = {
   name: string;
   symbol: string;
@@ -59,6 +61,59 @@ function Badge({ kind }: { kind: CoinRow["badge"] }) {
 }
 
 export default function CryptoMarketWidget() {
+  const [marketData, setMarketData] = useState<CoinRow[]>(coins);
+
+  useEffect(() => {
+    let active = true;
+    const fetchPrices = async () => {
+      try {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=ngn&include_24hr_change=true"
+        );
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+        if (active && data.bitcoin && data.ethereum && data.solana) {
+          const updatedCoins: CoinRow[] = [
+            {
+              name: "Bitcoin",
+              symbol: "BTC",
+              price: `₦${Math.round(data.bitcoin.ngn).toLocaleString()}`,
+              change: `${data.bitcoin.ngn_24h_change >= 0 ? "+" : ""}${data.bitcoin.ngn_24h_change.toFixed(1)}%`,
+              tone: data.bitcoin.ngn_24h_change >= 0 ? "up" : "down",
+              badge: "btc",
+            },
+            {
+              name: "Ethereum",
+              symbol: "ETH",
+              price: `₦${Math.round(data.ethereum.ngn).toLocaleString()}`,
+              change: `${data.ethereum.ngn_24h_change >= 0 ? "+" : ""}${data.ethereum.ngn_24h_change.toFixed(1)}%`,
+              tone: data.ethereum.ngn_24h_change >= 0 ? "up" : "down",
+              badge: "eth",
+            },
+            {
+              name: "Solana",
+              symbol: "SOL",
+              price: `₦${Math.round(data.solana.ngn).toLocaleString()}`,
+              change: `${data.solana.ngn_24h_change >= 0 ? "+" : ""}${data.solana.ngn_24h_change.toFixed(1)}%`,
+              tone: data.solana.ngn_24h_change >= 0 ? "up" : "down",
+              badge: "sol",
+            },
+          ];
+          setMarketData(updatedCoins);
+        }
+      } catch (err) {
+        console.warn("Using fallback crypto market data:", err);
+      }
+    };
+
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 30000); // refresh every 30s
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <section
       className="rounded-[18px] w-[227px] h-[313px] flex flex-col shadow-[0_18px_50px_rgba(15,23,42,0.06)]"
@@ -84,7 +139,7 @@ export default function CryptoMarketWidget() {
 
       {/* Coin list with gap-15 */}
       <div className="flex-1 px-4 pb-4 flex flex-col gap-[15px]">
-        {coins.map((c) => (
+        {marketData.map((c) => (
           <div
             key={c.symbol}
             className="flex items-center justify-between w-full h-16 pl-3 pr-0 cursor-pointer hover:bg-slate-50/50 transition-colors duration-150 rounded-lg"

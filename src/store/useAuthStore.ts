@@ -66,6 +66,12 @@ interface AuthState {
     password_confirmation: string,
   ) => Promise<string>;
   updateProfile: (data: { fullname?: string; phone?: string; country?: string; profile_image?: string | null }) => Promise<void>;
+  requestPasswordChangeOtp: () => Promise<string>;
+  changePassword: (
+    otp: string,
+    password: string,
+    password_confirmation: string,
+  ) => Promise<string>;
   setError: (error: string | null) => void;
   setHydrated: (state: boolean) => void;
 }
@@ -113,7 +119,10 @@ export const useAuthStore = create<AuthState>()(
 
           if (response.ok && data.status && data.user) {
             const overrides = get().localProfileOverrides || {};
-            set({ user: { ...data.user, ...overrides } });
+            const cleanOverrides = Object.fromEntries(
+              Object.entries(overrides).filter(([_, v]) => v !== null && v !== undefined && v !== "")
+            );
+            set({ user: { ...data.user, ...cleanOverrides } });
           }
         } catch { }
       },
@@ -146,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
 
           const data = await response.json();
           if (response.ok && data.status && data.user) {
-            set({ user: data.user, isLoading: false });
+            set({ user: data.user, localProfileOverrides: null, isLoading: false });
           } else {
             // Even if API fails, we keep local state for presentation if desired, or we could revert.
             // For now, we assume it's functional in UI.
@@ -273,19 +282,33 @@ export const useAuthStore = create<AuthState>()(
       },
 
       forgotPassword: async (email: string) => {
-        const response = await fetch(`${API_URL}/v1/forgot-password`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch(`${API_URL}/v1/forgot-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
 
-        const data: AuthResponse = await response.json();
+          let data: any;
+          const text = await response.text();
+          try {
+            data = JSON.parse(text);
+          } catch {
+            throw new Error("Server error or mail server configuration issue. Please contact support.");
+          }
 
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to send reset link");
+          if (!response.ok) {
+            throw new Error(data.message || data.errors?.email?.[0] || "Failed to send reset link");
+          }
+
+          set({ isLoading: false });
+          return data.message;
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : "Failed to send reset link";
+          set({ error: message, isLoading: false });
+          throw error;
         }
-
-        return data.message;
       },
 
       resetPassword: async (
@@ -294,23 +317,74 @@ export const useAuthStore = create<AuthState>()(
         password: string,
         password_confirmation: string,
       ) => {
-        const response = await fetch(`${API_URL}/v1/reset-password`, {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch(`${API_URL}/v1/reset-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token,
+              email,
+              password,
+              password_confirmation,
+            }),
+          });
+
+          let data: any;
+          const text = await response.text();
+          try {
+            data = JSON.parse(text);
+          } catch {
+            throw new Error("Server error occurred during password reset. Please try again.");
+          }
+
+          if (!response.ok) {
+            throw new Error(data.message || data.errors?.password?.[0] || "Reset password failed");
+          }
+
+          set({ isLoading: false });
+          return data.message;
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : "Reset password failed";
+          set({ error: message, isLoading: false });
+          throw error;
+        }
+      },
+
+      requestPasswordChangeOtp: async () => {
+        const token = get().token;
+        const response = await fetch(`${API_URL}/v1/change-password/request-otp`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to request verification code");
+        }
+        return data.message;
+      },
+
+      changePassword: async (otp: string, password: string, password_confirmation: string) => {
+        const token = get().token;
+        const response = await fetch(`${API_URL}/v1/change-password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
-            token,
-            email,
-            password,
-            password_confirmation,
+            otp,
+            new_password: password,
+            new_password_confirmation: password_confirmation,
           }),
         });
-
-        const data: AuthResponse = await response.json();
-
+        const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.message || "Reset password failed");
+          throw new Error(data.message || "Failed to update password");
         }
-
         return data.message;
       },
 

@@ -34,7 +34,7 @@ export default function OrderRow({ order, onSelect }: { order: Order; onSelect: 
       <p className="text-slate-500">{order.date}</p>
 
       {/* AMOUNT */}
-      <p className="text-rose-500 font-semibold">{order.amount}</p>
+      <p className={`font-semibold ${order.type.toLowerCase().startsWith('sell') ? 'text-emerald-600' : 'text-slate-800'}`}>{order.amount}</p>
 
       {/* RECEIPT */}
       <button

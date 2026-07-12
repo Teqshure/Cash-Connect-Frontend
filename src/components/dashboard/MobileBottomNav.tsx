@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Wallet, Box, History, Settings } from "lucide-react";
+import { Home, Wallet, Box, History, Globe } from "lucide-react";
 
 const bottomTabs = [
   { label: "Home",     href: "/dashboard", Icon: Home },
   { label: "Wallet",   href: "/wallet",    Icon: Wallet },
   { label: "Products", href: "/product",   Icon: Box },
+  { label: "Payouts",  href: "/payouts",   Icon: Globe },
   { label: "History",  href: "/history",   Icon: History },
-  { label: "Settings", href: "/settings",  Icon: Settings },
 ];
 
 export default function MobileBottomNav({ onClick }: { onClick?: () => void }) {

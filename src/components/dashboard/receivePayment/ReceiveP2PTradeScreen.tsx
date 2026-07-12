@@ -333,16 +333,16 @@ export default function ReceiveP2PTradeScreen({ tx, onCancel, onComplete }: Prop
               Session Bookmarked!
             </h3>
             <p className="text-[13px] text-slate-500 mb-6 px-3 leading-relaxed">
-              Your expected payment session is active for 48 hours. You can resume this session and upload your receipt anytime under the <span className="font-bold text-slate-800">Global Payouts</span> tab.
+              Your expected payment session is active for 48 hours. You can resume this session and upload your receipt anytime under the <span className="font-bold text-slate-800">Payouts</span> tab.
             </p>
             <button
               onClick={() => {
                 setShowSavedModal(false);
-                router.push("/global-payouts");
+                router.push("/payouts");
               }}
               className="w-full py-3 bg-[#00B86B] hover:bg-[#009b5a] text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-sm"
             >
-              Go to Global Payouts
+              Go to Payouts
             </button>
           </div>
         </div>

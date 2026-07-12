@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow";
 import { Order } from "./orders.types";
-import { useGiftCardStore } from "@/store/giftCardStore";
+import { useTransactionStore } from "@/store/Transactionstore";
 import { Loader2 } from "lucide-react";
 import OrderDetailModal from "./OrderDetailModal";
 
@@ -12,17 +12,21 @@ type Props = {
 };
 
 export default function OrdersTable({ search }: Props) {
-  const orders = useGiftCardStore((s: any) => s.orders);
-  const fetchUserOrders = useGiftCardStore((s: any) => s.fetchUserOrders);
-  const isLoading = useGiftCardStore((s: any) => s.isLoading);
+  const transactions = useTransactionStore((s: any) => s.transactions);
+  const fetchTransactions = useTransactionStore((s: any) => s.fetchTransactions);
+  const isLoading = useTransactionStore((s: any) => s.isLoading);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    fetchUserOrders();
-  }, [fetchUserOrders]);
+    fetchTransactions();
+  }, [fetchTransactions]);
 
-  const mappedOrders: Order[] = orders.map((o: any) => {
-    const d = new Date(o.created_at || Date.now());
+  const giftTransactions = transactions.filter(
+    (tx: any) => tx.type === "gift"
+  );
+
+  const mappedOrders: Order[] = giftTransactions.map((tx: any) => {
+    const d = new Date(tx.created_at || Date.now());
     const formattedDate = d.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "2-digit",
@@ -31,19 +35,39 @@ export default function OrdersTable({ search }: Props) {
       minute: "2-digit",
     });
 
-    return {
-      id: `ORD-${String(o.id).padStart(5, "0")}`,
-      type: o.product?.gift_card?.name ? `Buy ${o.product.gift_card.name}` : "Buy Giftcard",
-      card: o.product ? `${o.product.currency} ${parseFloat(o.product.amount).toLocaleString()}` : "N/A",
-      date: formattedDate,
-      amount: `₦${parseFloat(o.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-      cardCode: o.product?.card_code,
-      cardPin: o.product?.card_pin,
-      quantity: o.quantity,
-      status: o.status,
-      brandImage: o.product?.gift_card?.image || null,
-      createdAt: o.created_at || "",
-    };
+    const isBuy = tx.direction === "debit";
+
+    if (isBuy) {
+      const order = tx.gift_card_order;
+      return {
+        id: `ORD-${String(order?.id || tx.id).padStart(5, "0")}`,
+        type: order?.product?.gift_card?.name ? `Buy ${order.product.gift_card.name}` : "Buy Giftcard",
+        card: order?.product ? `${order.product.currency} ${parseFloat(order.product.amount).toLocaleString()}` : "N/A",
+        date: formattedDate,
+        amount: `₦${parseFloat(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+        cardCode: order?.product?.card_code,
+        cardPin: order?.product?.card_pin,
+        quantity: order?.quantity || 1,
+        status: tx.status,
+        brandImage: order?.product?.gift_card?.image || null,
+        createdAt: tx.created_at || "",
+      };
+    } else {
+      const sellObj = tx.giftcard;
+      return {
+        id: `TX-${String(tx.id).padStart(5, "0")}`,
+        type: sellObj?.card_brand ? `Sell ${sellObj.card_brand}` : "Sell Giftcard",
+        card: sellObj ? `${sellObj.currency} ${parseFloat(sellObj.card_value).toLocaleString()}` : "N/A",
+        date: formattedDate,
+        amount: `₦${parseFloat(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+        cardCode: sellObj?.card_code,
+        cardPin: sellObj?.card_pin,
+        quantity: 1,
+        status: tx.status,
+        brandImage: null,
+        createdAt: tx.created_at || "",
+      };
+    }
   });
 
   // Sort descending by createdAt (latest order at the top)

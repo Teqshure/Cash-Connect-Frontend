@@ -27,6 +27,20 @@ export default function ProfileCard() {
     reader.readAsDataURL(file);
   };
 
+  const getImageUrl = (url: string | null) => {
+    if (!url) return avatar;
+    if (url.startsWith("data:image/") || url.startsWith("blob:")) return url;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (url.startsWith("/storage/")) {
+      const host = typeof window !== "undefined" ? window.location.hostname : "";
+      if (host.includes("localhost") || host.includes("127.0.0.1")) {
+        return `http://localhost:8000${url}`;
+      }
+      return `https://api.cashconnectworld.com${url}`;
+    }
+    return url;
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* Hidden File Input */}
@@ -52,9 +66,10 @@ export default function ProfileCard() {
         {/* Avatar */}
         <div className="relative h-[90px] w-[90px] rounded-full overflow-hidden border-[4px] border-emerald-100 bg-slate-100">
           <Image 
-            src={user?.profile_image || avatar} 
+            src={getImageUrl(user?.profile_image || null)} 
             alt="Profile" 
             fill 
+            unoptimized
             className="object-cover"
             priority
           />

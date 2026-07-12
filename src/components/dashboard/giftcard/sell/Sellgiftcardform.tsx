@@ -42,32 +42,23 @@ export default function SellGiftCardForm({
   /* ---------------- FETCH RATES ---------------- */
 
   useEffect(() => {
-    if (card?.id) {
-      fetchRateByTypeAndId("gift_card", isCustomCard ? ("other" as any) : card.id);
-    }
-  }, [card?.id, isCustomCard]);
+    fetchRateByTypeAndId("gift_card", "other");
+  }, [fetchRateByTypeAndId]);
 
-  // ✅ FIXED: Using getGiftCardSellRate with rates dependency for hot reload
+  // ✅ All cards are bought at the same rate (the "Other" card's rate)
   const rate = useMemo(() => {
-    if (isCustomCard) {
-      // Find "Other" rate
-      const otherRateObj = rates.find(
-        (r: any) =>
-          r.rateable_type.toLowerCase().includes("gift") &&
-          (String(r.rateable_id) === "other" ||
-            rates.find((ot: any) => ot.id === r.id)?.rateable_id === "other")
-      );
-      if (otherRateObj) return Number(otherRateObj.sell_rate) || 500;
-      
-      // Fallback lookup by checking if we have any rate associated with "Other" brand
-      const fallbackRate = rates.find((r: any) => {
-        const typeStr = (r.rateable_type || "").toLowerCase();
-        return typeStr.includes("gift");
-      });
-      return fallbackRate ? Number(fallbackRate.sell_rate) || 500 : 500;
-    }
-    return getGiftCardSellRate(card.id) || 0;
-  }, [getGiftCardSellRate, card.id, rates, isCustomCard]);
+    const otherRateObj = rates.find(
+      (r: any) =>
+        (r.rateable_type || "").toLowerCase().includes("gift") &&
+        (String(r.rateable_id) === "other" ||
+          r.rateable?.name === "Other")
+    );
+    if (otherRateObj) return Number(otherRateObj.sell_rate) || 500;
+    
+    // Fallback to first available giftcard rate in store
+    const fallbackRate = rates.find((r: any) => (r.rateable_type || "").toLowerCase().includes("gift"));
+    return fallbackRate ? Number(fallbackRate.sell_rate) || 500 : 500;
+  }, [rates]);
 
   /* ---------------- AMOUNT CHANGE ---------------- */
 

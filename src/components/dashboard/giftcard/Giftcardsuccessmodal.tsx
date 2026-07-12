@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 type Props = {
   open: boolean;
   mode: "buy" | "sell";
@@ -13,6 +15,8 @@ export default function GiftCardSuccessModal({
   onOk,
   message,
 }: Props) {
+  const router = useRouter();
+
   if (!open) return null;
 
   const defaultMessages = {
@@ -21,6 +25,14 @@ export default function GiftCardSuccessModal({
   };
 
   const displayMessage = message ?? defaultMessages[mode];
+
+  const handleButtonClick = () => {
+    if (mode === "sell") {
+      router.push("/orders");
+    } else {
+      onOk();
+    }
+  };
 
   return (
     <div
@@ -65,7 +77,7 @@ export default function GiftCardSuccessModal({
         {/* BUTTON */}
         <button
           type="button"
-          onClick={onOk}
+          onClick={handleButtonClick}
           className="mt-6 h-[40px] px-8 rounded-[12px] bg-emerald-600 text-white font-semibold text-[14px] hover:brightness-110 transition"
         >
           {mode === "sell" ? "View Orders" : "Ok"}

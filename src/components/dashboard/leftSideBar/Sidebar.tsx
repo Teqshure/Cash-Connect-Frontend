@@ -28,7 +28,7 @@ const topNav: NavItem[] = [
   { label: "Home",           href: "/dashboard",      Icon: Home },
   { label: "Wallet",         href: "/wallet",         Icon: Wallet },
   { label: "Products",       href: "/product",        Icon: Box },
-  { label: "Global Payouts", href: "/global-payouts", Icon: Globe },
+  { label: "Payouts", href: "/payouts", Icon: Globe },
   { label: "History",        href: "/history",        Icon: History },
   { label: "Orders",         href: "/orders",         Icon: ShoppingCart },
 ];

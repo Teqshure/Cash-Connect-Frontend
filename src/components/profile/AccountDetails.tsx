@@ -1,15 +1,17 @@
 "use client";
 
-import { User, Mail, Phone, Globe, ChevronRight, Edit3 } from "lucide-react";
+import { User, Mail, Phone, Globe, ChevronRight, Edit3, Lock } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, useState } from "react";
 import LogoutButton from "./LogoutButton";
 import EditProfileModal from "./EditProfileModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 export default function AccountDetails() {
   const user = useAuthStore((s: any) => s.user);
   const refreshUser = useAuthStore((s: any) => s.refreshUser);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
   // ✅ Ensure latest user data from API
   useEffect(() => {
@@ -97,11 +99,33 @@ export default function AccountDetails() {
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </div>
+
+        {/* CHANGE PASSWORD */}
+        <div 
+          onClick={() => setIsChangePasswordModalOpen(true)}
+          className="flex items-center justify-between py-4 cursor-pointer hover:bg-slate-50/40 rounded-lg px-2 -mx-2 transition"
+        >
+          <div className="flex items-center gap-3">
+            <Lock className="h-5 w-5 text-slate-400" />
+            <div>
+              <p className="text-[13px] text-slate-500">Security</p>
+              <p className="text-[14px] font-medium text-slate-800">
+                Change Password
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-slate-400" />
+        </div>
       </div>
 
       <EditProfileModal 
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
+      />
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
       />
     </div>
   );

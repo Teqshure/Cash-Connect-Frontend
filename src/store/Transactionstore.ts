@@ -110,7 +110,7 @@ function normalizeTransaction(tx: any): ApiTransaction {
     id: tx.id,
     user_id: tx.user_id ?? 0,
 
-    type: tx.type ?? "deposit",
+    type: (tx.type === "giftcard" || tx.type === "gift") ? "gift" : (tx.type ?? "deposit"),
     direction: tx.direction ?? "credit",
 
     amount: tx.amount ?? "0",
@@ -131,6 +131,7 @@ function normalizeTransaction(tx: any): ApiTransaction {
     crypto: tx.crypto ?? null,
     international: tx.international ?? null,
     gift_card_order: tx.gift_card_order ?? tx.giftCardOrder ?? null,
+    receipt: tx.receipt ?? null,
   };
 }
 

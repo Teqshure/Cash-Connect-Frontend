@@ -28,17 +28,25 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
 
   const {
     giftCards,
+    products,
     isLoading,
     error,
     isSubmitting,
     fetchGiftCards,
+    fetchProducts,
     createOrder,
     clearError,
   } = useGiftCardStore();
 
   useEffect(() => {
     fetchGiftCards();
-  }, [fetchGiftCards]);
+    fetchProducts();
+  }, [fetchGiftCards, fetchProducts]);
+
+  // Only display gift cards that have active products in stock
+  const activeBuyCards = giftCards.filter((card) =>
+    products.some((prod) => prod.gift_card_id === card.id && prod.quantity > 0)
+  );
 
   /* SELECT CARD */
 
@@ -114,7 +122,7 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
       {step === "grid" && (
         <GiftCardGrid
           title="Buy Gift Cards"
-          giftCards={giftCards}
+          giftCards={activeBuyCards}
           isLoading={isLoading}
           onSelect={handleCardSelect}
           onBack={onBack}

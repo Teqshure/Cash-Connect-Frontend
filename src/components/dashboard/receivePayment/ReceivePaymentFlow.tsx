@@ -250,17 +250,17 @@ export default function ReceivePaymentFlow({ onBack }: any) {
               Active Session Found
             </h3>
             <p className="text-[13px] text-slate-500 mb-6 px-3 leading-relaxed">
-              You already have an active expected payment request matching this amount and payment method option. Please copy the account details from your Global Payouts screen to complete the payment.
+              You already have an active expected payment request matching this amount and payment method option. Please copy the account details from your Payouts screen to complete the payment.
             </p>
             <div className="flex flex-col gap-2 w-full">
               <button
                 onClick={() => {
                   setIsDuplicate(false);
-                  router.push("/global-payouts");
+                  router.push("/payouts");
                 }}
                 className="w-full py-3 bg-[#00B86B] hover:bg-[#009b5a] text-white font-bold rounded-xl text-sm transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
               >
-                Go to Global Payouts
+                Go to Payouts
               </button>
               <button
                 onClick={() => {

@@ -32,6 +32,15 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  const handleResend = async () => {
+    try {
+      const message = await forgotPassword(email);
+      setSuccessMessage(message);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (isAuthenticated) {
     return null;
   }
@@ -49,9 +58,22 @@ export default function ForgotPasswordPage() {
       </div>
 
       {successMessage && (
-        <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-emerald-100">
-          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-          <p>{successMessage}</p>
+        <div className="space-y-3">
+          <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-emerald-100">
+            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+            <p>{successMessage}</p>
+          </div>
+          <p className="text-xs text-zinc-500 font-medium">
+            Didn't receive the email?{" "}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={isLoading}
+              className="text-emerald-600 hover:text-emerald-700 underline font-semibold cursor-pointer disabled:opacity-50"
+            >
+              {isLoading ? "Sending..." : "Resend link"}
+            </button>
+          </p>
         </div>
       )}
 

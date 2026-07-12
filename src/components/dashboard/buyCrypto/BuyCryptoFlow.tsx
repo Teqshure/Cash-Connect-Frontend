@@ -14,6 +14,7 @@ import {
 
 import { useBuyCrypto, useCryptoStore } from "@/store/cryptoStore";
 import { useLoadRates, useRateForItem, useRateStore } from "@/store/rateStore";
+import { useTransactionStore } from "@/store/Transactionstore";
 
 type Step = "form" | "confirm" | "processing";
 
@@ -31,6 +32,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
   const [paymentAccount, setPaymentAccount] =
     useState<PaymentAccountOption | null>(null);
   const [currentRate, setCurrentRate] = useState(RATE_PER_USDT);
+  const [transactionId, setTransactionId] = useState<number | null>(null);
 
   // Modals
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -53,46 +55,37 @@ export default function BuyCryptoFlow({ onBack }: Props) {
   useEffect(() => {
     const fetchRate = async () => {
       if (token?.symbol && token?.network) {
-        try {
-          const result = await fetchCryptoByTokenNetwork(
-            token.symbol,
-            token.network,
-          );
-
-          if (result?.rate?.sell_rate) {
-            const rate = parseFloat(result.rate.sell_rate);
-            if (!isNaN(rate) && rate > 0) {
-              setCurrentRate(rate);
-              console.log(
-                "✅ Rate updated from fetchCryptoByTokenNetwork:",
-                rate,
-              );
-            }
-          }
-        } catch (err) {
-          console.error("❌ Failed to fetch rate:", err);
-        }
+        await fetchCryptoByTokenNetwork(token.symbol, token.network);
       }
     };
-
     fetchRate();
   }, [token, fetchCryptoByTokenNetwork]);
 
-  // ── Resolve best available rate ─────────────────────────────────────────────
-
-  const resolveRate = (): number => {
-    if (sellRate > 0) return sellRate;
-    if (cryptoWithRate?.rate?.sell_rate) {
-      const r = parseFloat(cryptoWithRate.rate.sell_rate);
-      if (!isNaN(r) && r > 0) return r;
+  useEffect(() => {
+    const rateStr = String(sellRate || "0");
+    const parsedRate = parseFloat(rateStr);
+    if (sellRate && parsedRate > 0) {
+      setCurrentRate(parsedRate);
     }
-    if (currentRate > 0) return currentRate;
-    return RATE_PER_USDT;
+  }, [sellRate]);
+
+  // Helper to get fallback/configured rate
+  const resolveRate = () => {
+    const rateStr = String(sellRate || "0");
+    const parsedRate = parseFloat(rateStr);
+    if (sellRate && parsedRate > 0) {
+      return parsedRate;
+    }
+    if (cryptoWithRate?.rate?.sell_rate) {
+      const parsed = parseFloat(cryptoWithRate.rate.sell_rate);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    return currentRate;
   };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  const handleFormContinue = (
+  const handleFormContinue = async (
     t: CryptoToken,
     wallet: string,
     a: number,
@@ -106,87 +99,160 @@ export default function BuyCryptoFlow({ onBack }: Props) {
     if (account.type === "wallet") {
       setShowWarningModal(true);
     } else {
-      setStep("confirm");
+      // Crypto payment method: create pending transaction immediately so it is tracked in Payouts
+      try {
+        let rateToUse = 0;
+        const tokenIdInt = parseInt(t.id);
+        if (tokenIdInt > 0) {
+          const freshRate = await useRateStore
+            .getState()
+            .fetchRateByTypeAndId("crypto", tokenIdInt);
+
+          if (freshRate?.sell_rate) {
+            const parsed = parseFloat(freshRate.sell_rate);
+            if (!isNaN(parsed) && parsed > 0) {
+              rateToUse = parsed;
+            }
+          }
+        }
+
+        if (!rateToUse || rateToUse <= 0) {
+          rateToUse = resolveRate();
+        }
+
+        if (!rateToUse || rateToUse <= 0) {
+          alert("Rate not available. Please try again.");
+          return;
+        }
+
+        const res: any = await buyCrypto({
+          token: t.symbol,
+          network: t.network || "TRC20",
+          wallet_address: wallet,
+          crypto_amount: a,
+          selling_rate: rateToUse,
+          payment_method: account.type,
+        });
+
+        if (res && res.transaction_id) {
+          setTransactionId(res.transaction_id);
+        } else if (res && res.id) {
+          setTransactionId(res.id);
+        }
+
+        setStep("confirm");
+      } catch (err: any) {
+        console.error("Failed to initiate crypto session:", err);
+        alert(err.message || "Failed to initiate session. Please try again.");
+      }
     }
   };
 
-  const handlePaymentContinue = (account: PaymentAccountOption) => {
+  const handlePaymentContinue = async (account: PaymentAccountOption) => {
     setPaymentAccount(account);
     setShowPaymentModal(false);
 
     if (account.type === "wallet") {
       setShowWarningModal(true);
     } else {
+      if (token) {
+        try {
+          let rateToUse = 0;
+          if (tokenId > 0) {
+            const freshRate = await useRateStore
+              .getState()
+              .fetchRateByTypeAndId("crypto", tokenId);
+            if (freshRate?.sell_rate) {
+              const parsed = parseFloat(freshRate.sell_rate);
+              if (!isNaN(parsed) && parsed > 0) rateToUse = parsed;
+            }
+          }
+          if (!rateToUse || rateToUse <= 0) rateToUse = resolveRate();
+
+          const res: any = await buyCrypto({
+            token: token.symbol,
+            network: token.network || "TRC20",
+            wallet_address: walletAddress,
+            crypto_amount: amount,
+            selling_rate: rateToUse,
+            payment_method: account.type,
+          });
+
+          if (res && res.transaction_id) {
+            setTransactionId(res.transaction_id);
+          } else if (res && res.id) {
+            setTransactionId(res.id);
+          }
+        } catch (err: any) {
+          console.error("Failed to initiate session on payment update:", err);
+        }
+      }
       setStep("confirm");
     }
   };
 
   const handleWarningContinue = () => {
     setShowWarningModal(false);
-    setStep("confirm");
+    if (paymentAccount?.type === "wallet") {
+      handleDeposited(null);
+    } else {
+      setStep("confirm");
+    }
   };
 
   // ✅ FIXED: fetches fresh rate directly from /rates/crypto/{id} before submitting
-  const handleDeposited = async () => {
+  const handleDeposited = async (file: File | null) => {
     if (!token) return;
 
     try {
-      // Step 1: Fetch fresh rate directly from the dedicated endpoint
-      let rateToUse = 0;
+      // Step 1: Wallet transactions must call buyCrypto to deduct wallet balance
+      if (paymentAccount?.type === "wallet") {
+        let rateToUse = 0;
+        if (tokenId > 0) {
+          const freshRate = await useRateStore
+            .getState()
+            .fetchRateByTypeAndId("crypto", tokenId);
 
-      if (tokenId > 0) {
-        const freshRate = await useRateStore
-          .getState()
-          .fetchRateByTypeAndId("crypto", tokenId);
-
-        if (freshRate?.sell_rate) {
-          const parsed = parseFloat(freshRate.sell_rate);
-          if (!isNaN(parsed) && parsed > 0) {
-            rateToUse = parsed;
-            console.log(
-              "✅ Got fresh rate from /rates/crypto/",
-              tokenId,
-              ":",
-              rateToUse,
-            );
+          if (freshRate?.sell_rate) {
+            const parsed = parseFloat(freshRate.sell_rate);
+            if (!isNaN(parsed) && parsed > 0) {
+              rateToUse = parsed;
+            }
           }
+        }
+
+        if (!rateToUse || rateToUse <= 0) {
+          rateToUse = resolveRate();
+        }
+
+        if (!rateToUse || rateToUse <= 0) {
+          alert("Rate not available. Please go back and try again.");
+          return;
+        }
+
+        const res: any = await buyCrypto({
+          token: token.symbol,
+          network: token.network || "TRC20",
+          wallet_address: walletAddress,
+          crypto_amount: amount,
+          selling_rate: rateToUse,
+          payment_method: "wallet",
+        });
+
+        if (res && res.transaction_id) {
+          setTransactionId(res.transaction_id);
+        }
+      } else {
+        // Step 2: Crypto transactions are pre-created, just upload receipt
+        if (file && transactionId) {
+          await useTransactionStore.getState().uploadTransactionReceipt(transactionId, file);
         }
       }
 
-      // Step 2: Fall back to already-resolved rate if fresh fetch failed
-      if (!rateToUse || rateToUse <= 0) {
-        rateToUse = resolveRate();
-        console.log("⚠️ Using fallback rate:", rateToUse);
-      }
-
-      // Step 3: Guard — don't submit with zero rate
-      if (!rateToUse || rateToUse <= 0) {
-        alert("Rate not available. Please go back and try again.");
-        return;
-      }
-
-      console.log("📤 Submitting buy crypto:", {
-        token: token.symbol,
-        network: token.network || "TRC20",
-        wallet_address: walletAddress,
-        crypto_amount: amount,
-        selling_rate: rateToUse,
-        payment_method: paymentAccount?.type,
-      });
-
-      await buyCrypto({
-        token: token.symbol,
-        network: token.network || "TRC20",
-        wallet_address: walletAddress,
-        crypto_amount: amount,
-        selling_rate: rateToUse,
-        payment_method: paymentAccount?.type,
-      });
-
       setStep("processing");
     } catch (err: any) {
-      console.error("Buy crypto failed:", err);
-      alert(err.message || "Transaction failed. Please try again.");
+      console.error("Buy crypto validation/upload failed:", err);
+      alert(err.message || "Confirmation failed. Please try again.");
     }
   };
 
@@ -196,6 +262,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
     setWalletAddress("");
     setAmount(0);
     setPaymentAccount(null);
+    setTransactionId(null);
     onBack();
   };
 
@@ -221,7 +288,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
     <div className="w-full">
       {/* Step 1: Form */}
       {step === "form" && (
-        <BuyCryptoForm onBack={onBack} onContinue={handleFormContinue} />
+        <BuyCryptoForm onBack={onBack} onContinue={handleFormContinue} isSubmitting={submitting} />
       )}
 
       {/* Step 2 (modal): Payment Account */}
@@ -236,7 +303,10 @@ export default function BuyCryptoFlow({ onBack }: Props) {
         <BuyWalletConfirmation
           amount={amount}
           tokenSymbol={token.symbol}
-          walletAddress={walletAddress}
+          networkName={token.network || "TRC20"}
+          adminWalletAddress={cryptoWithRate?.crypto?.wallet_address || "TJaBucewys2MkKcqCastDLvWvndYGQbgwg"}
+          adminQrCode={cryptoWithRate?.crypto?.qr_code || null}
+          userWalletAddress={walletAddress}
           onBack={() => {
             setStep("form");
             setShowPaymentModal(true);
@@ -249,9 +319,10 @@ export default function BuyCryptoFlow({ onBack }: Props) {
       {/* Step 4: Transfer processing */}
       {step === "processing" && token && (
         <BuyTransferProcessing
-          amountSent={amount}
-          tokenSymbol={token.symbol}
+          amountSent={youSend}
+          sentSymbol="NGN"
           amountReceived={amount}
+          receivedSymbol={token.symbol}
           recipientWallet={walletAddress}
           onReturnHome={handleReturnHome}
         />
@@ -270,6 +341,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
         amount={youSend}
         onBack={() => setShowWarningModal(false)}
         onContinue={handleWarningContinue}
+        loading={submitting}
       />
 
       {error && (

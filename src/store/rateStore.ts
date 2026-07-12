@@ -35,7 +35,7 @@ interface RateState {
   error: string | null;
   lastFetched: number | null;
   fetchRates: () => Promise<void>;
-  fetchRateByTypeAndId: (type: string, id: number) => Promise<Rate | null>;
+  fetchRateByTypeAndId: (type: string, id: number | string) => Promise<Rate | null>;
   getRateForItem: (itemId: number, type: string) => Rate | null;
   getBuyRate: (itemId: number, type: string) => number;
   getSellRate: (itemId: number, type: string) => number;
@@ -64,7 +64,10 @@ function authHeaders() {
 }
 
 // Matches a rate from the store regardless of how rateable_type is cased/formatted
-function rateMatchesItem(rate: Rate, itemId: number, type: string): boolean {
+function rateMatchesItem(rate: Rate, itemId: number | string, type: string): boolean {
+  if (typeof itemId === 'string' && itemId.toLowerCase() === 'other') {
+    return (rate as any).rateable?.name === 'Other';
+  }
   if (rate.rateable_id !== itemId) return false;
 
   const rateType = (rate.rateable_type || "").toLowerCase();
@@ -149,7 +152,7 @@ export const useRateStore = create<RateState>((set: any, get: any) => ({
   },
 
   // ✅ Uses the dedicated endpoint: GET /api/v1/rates/{type}/{id}
-  fetchRateByTypeAndId: async (type: string, id: number) => {
+  fetchRateByTypeAndId: async (type: string, id: number | string) => {
     try {
       console.log(`🔍 Fetching rate via /rates/${type}/${id}`);
 

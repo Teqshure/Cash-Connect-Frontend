@@ -7,8 +7,9 @@ import { useCryptoStore } from "@/store/cryptoStore";
 
 type Props = {
   amountSent: number;
-  tokenSymbol: string;
+  sentSymbol: string;
   amountReceived: number;
+  receivedSymbol: string;
   recipientWallet: string;
   onReturnHome: () => void;
   transactionId?: number;
@@ -27,8 +28,9 @@ const STEP_DURATION = 3000;
 
 export default function BuyTransferProcessing({
   amountSent,
-  tokenSymbol,
+  sentSymbol,
   amountReceived,
+  receivedSymbol,
   recipientWallet,
   onReturnHome,
   transactionId,
@@ -96,7 +98,7 @@ export default function BuyTransferProcessing({
       <div className="rounded-[16px] border border-slate-100 bg-white shadow-sm px-6 py-5 mb-3 text-center">
         <p className="text-[13px] text-slate-500 mb-1">You sent</p>
         <p className="text-[22px] font-bold text-slate-900">
-          {amountSent.toLocaleString()} {tokenSymbol}
+          {sentSymbol === "NGN" ? "₦" : ""}{amountSent.toLocaleString()} {sentSymbol}
         </p>
         <p className="text-[12px] text-slate-400 mt-1">to:</p>
         <p className="text-[12px] text-slate-600 truncate px-4">
@@ -108,7 +110,7 @@ export default function BuyTransferProcessing({
       <div className="rounded-[16px] border border-slate-100 bg-white shadow-sm px-6 py-5 mb-3 text-center">
         <p className="text-[13px] text-slate-500 mb-1">You receive</p>
         <p className="text-[22px] font-bold text-emerald-600">
-          {amountReceived.toLocaleString()} {tokenSymbol}
+          {amountReceived.toLocaleString()} {receivedSymbol}
         </p>
         <p className="text-[12px] text-slate-400 mt-1">to:</p>
         <p className="text-[12px] text-slate-600 truncate px-4">Your Wallet</p>

@@ -21,16 +21,35 @@ type Props = {
     token: CryptoToken,
     walletAddress: string,
     amount: number,
-    account: PaymentAccountOption,
+    paymentMethod: PaymentAccountOption,
   ) => void;
+  isSubmitting?: boolean;
 };
 
-export default function BuyCryptoForm({ onBack, onContinue }: Props) {
+export default function BuyCryptoForm({ onBack, onContinue, isSubmitting = false }: Props) {
   const [isTokenOpen, setIsTokenOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<CryptoToken | null>(null);
   const [walletAddress, setWalletAddress] = useState("");
   const [amount, setAmount] = useState<number>(0);
   const [isCopied, setIsCopied] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+
+  const getCryptoIconUrl = (symbol: string): string => {
+    const sym = symbol.toUpperCase();
+    if (sym.includes("USDT")) return "https://cryptologos.cc/logos/tether-usdt-logo.png";
+    if (sym.includes("BTC") || sym.includes("BITCOIN")) return "https://cryptologos.cc/logos/bitcoin-btc-logo.png";
+    if (sym.includes("ETH") || sym.includes("ETHEREUM")) return "https://cryptologos.cc/logos/ethereum-eth-logo.png";
+    if (sym.includes("SOL")) return "https://cryptologos.cc/logos/solana-sol-logo.png";
+    if (sym.includes("BNB")) return "https://cryptologos.cc/logos/bnb-bnb-logo.png";
+    if (sym.includes("USDC")) return "https://cryptologos.cc/logos/usd-coin-usdc-logo.png";
+    if (sym.includes("XRP")) return "https://cryptologos.cc/logos/xrp-xrp-logo.png";
+    if (sym.includes("ADA")) return "https://cryptologos.cc/logos/cardano-ada-logo.png";
+    if (sym.includes("DOGE")) return "https://cryptologos.cc/logos/dogecoin-doge-logo.png";
+    if (sym.includes("TRX")) return "https://cryptologos.cc/logos/tron-trx-logo.png";
+    if (sym.includes("MATIC")) return "https://cryptologos.cc/logos/polygon-matic-logo.png";
+    if (sym.includes("LTC")) return "https://cryptologos.cc/logos/litecoin-ltc-logo.png";
+    return `https://images.placeholders.dev/?width=32&height=32&text=${sym}&bgColor=%2310b981&textColor=%23ffffff`;
+  };
 
   // Payment method selector state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentAccountOption | null>(null);
@@ -153,9 +172,20 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
             >
               {selectedToken ? (
                 <div className="flex items-center gap-3">
-                  <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white">
-                    {selectedToken.symbol[0]}
-                  </div>
+                  {!failedImages[selectedToken.symbol] ? (
+                    <img
+                      src={getCryptoIconUrl(selectedToken.symbol)}
+                      alt={selectedToken.symbol}
+                      className="h-7 w-7 rounded-full object-contain shrink-0"
+                      onError={() => {
+                        setFailedImages(prev => ({ ...prev, [selectedToken.symbol]: true }));
+                      }}
+                    />
+                  ) : (
+                    <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white">
+                      {selectedToken.symbol[0]}
+                    </div>
+                  )}
                   <span className="font-medium">{selectedToken.symbol}</span>
                   <span className="text-xs text-slate-400">
                     ({selectedToken.network})
@@ -182,9 +212,20 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
                       onClick={() => handleTokenSelect(token)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-sm transition"
                     >
-                      <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white">
-                        {token.symbol[0]}
-                      </div>
+                      {!failedImages[token.symbol] ? (
+                        <img
+                          src={getCryptoIconUrl(token.symbol)}
+                          alt={token.symbol}
+                          className="h-7 w-7 rounded-full object-contain shrink-0"
+                          onError={() => {
+                            setFailedImages(prev => ({ ...prev, [token.symbol]: true }));
+                          }}
+                        />
+                      ) : (
+                        <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white">
+                          {token.symbol[0]}
+                        </div>
+                      )}
                       <div className="flex-1 text-left">
                         <div className="font-medium">{token.symbol}</div>
                         <div className="text-xs text-slate-400">
@@ -372,14 +413,14 @@ export default function BuyCryptoForm({ onBack, onContinue }: Props) {
       {/* Submit Button */}
       <button
         onClick={handleSubmit}
-        disabled={!isValid || ratesLoading}
+        disabled={!isValid || ratesLoading || isSubmitting}
         className={`mt-6 h-[52px] w-full rounded-xl font-semibold text-sm transition ${
-          isValid && !ratesLoading
+          isValid && !ratesLoading && !isSubmitting
             ? "bg-emerald-600 text-white hover:brightness-110 cursor-pointer"
             : "bg-slate-200 text-slate-500 cursor-not-allowed"
         }`}
       >
-        {ratesLoading ? (
+        {ratesLoading || isSubmitting ? (
           <Loader2 className="h-4 w-4 animate-spin mx-auto" />
         ) : (
           `Buy ${selectedToken?.symbol || "Crypto"}`

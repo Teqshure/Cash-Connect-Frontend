@@ -12,6 +12,7 @@ import {
   PaymentAccountOption,
 } from "./sellCryptoData";
 import { useCryptoStore, useCryptoRate } from "@/store/cryptoStore";
+import { useTransactionStore } from "@/store/Transactionstore";
 
 type Step = "form" | "confirm" | "processing";
 
@@ -33,8 +34,11 @@ export default function SellCryptoFlow({ onBack }: Props) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
+  const [transactionId, setTransactionId] = useState<number | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+
   // API
-  const { cryptos } = useCryptoStore();
+  const { cryptos, sellCrypto } = useCryptoStore();
   const tokenId = token ? parseInt(token.id) : 0;
   const { sellRate } = useCryptoRate(tokenId);
 
@@ -44,7 +48,7 @@ export default function SellCryptoFlow({ onBack }: Props) {
     return crypto?.wallet_address || "";
   };
 
-  const handleFormContinue = (
+  const handleFormContinue = async (
     t: CryptoToken,
     n: CryptoNetwork,
     a: number,
@@ -52,7 +56,31 @@ export default function SellCryptoFlow({ onBack }: Props) {
     setToken(t);
     setNetwork(n);
     setAmount(a);
-    setStep("confirm");
+    
+    setIsCreatingSession(true);
+    try {
+      const payload: any = {
+        token: t.symbol,
+        network: n.label,
+        crypto_amount: a,
+      };
+
+      console.log("Pre-creating Sell Crypto session:", payload);
+      const res: any = await sellCrypto(payload);
+      
+      if (res && res.transaction_id) {
+        setTransactionId(res.transaction_id);
+      } else if (res && res.id) {
+        setTransactionId(res.id);
+      }
+      
+      setStep("confirm");
+    } catch (err: any) {
+      console.error("Failed to pre-create sell crypto session:", err);
+      alert(err.message || "Failed to initiate session. Please try again.");
+    } finally {
+      setIsCreatingSession(false);
+    }
   };
 
   const handlePaymentContinue = (account: PaymentAccountOption) => {
@@ -61,7 +89,17 @@ export default function SellCryptoFlow({ onBack }: Props) {
     setStep("confirm");
   };
 
-  const handleDeposited = () => setStep("processing");
+  const handleDeposited = async (file: File | null) => {
+    if (file && transactionId) {
+      try {
+        await useTransactionStore.getState().uploadTransactionReceipt(transactionId, file);
+      } catch (err: any) {
+        alert(err.message || "Failed to upload receipt.");
+        return;
+      }
+    }
+    setStep("processing");
+  };
 
   const handleReturnHome = () => {
     setStep("form");
@@ -69,6 +107,7 @@ export default function SellCryptoFlow({ onBack }: Props) {
     setNetwork(null);
     setAmount(0);
     setPaymentAccount(null);
+    setTransactionId(null);
     onBack();
   };
 
@@ -84,7 +123,7 @@ export default function SellCryptoFlow({ onBack }: Props) {
     <div className="w-full">
       {/* Step 1: Form */}
       {step === "form" && (
-        <SellCryptoForm onBack={onBack} onContinue={handleFormContinue} />
+        <SellCryptoForm onBack={onBack} onContinue={handleFormContinue} isSubmitting={isCreatingSession} />
       )}
 
       {/* Step 3: Wallet Confirmation */}
@@ -95,6 +134,7 @@ export default function SellCryptoFlow({ onBack }: Props) {
           tokenId={tokenId}
           network={network.label}
           walletAddress={getWalletAddress()}
+          transactionId={transactionId}
           onBack={() => {
             setStep("form");
           }}

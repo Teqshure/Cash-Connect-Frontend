@@ -40,6 +40,10 @@ export type Transaction = {
   cardImages?: string[];
   brandImage?: string | null;
   isCrypto?: boolean;
+  tokenSymbol?: string;
+  cryptoAmount?: string;
+  walletAddress?: string;
+  description?: string | null;
 };
 
 type Props = {

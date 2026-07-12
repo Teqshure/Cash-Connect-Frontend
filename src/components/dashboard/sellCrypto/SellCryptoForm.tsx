@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import {
   CryptoToken,
   CryptoNetwork,
@@ -17,9 +17,10 @@ type Props = {
     network: CryptoNetwork,
     amount: number,
   ) => void;
+  isSubmitting?: boolean;
 };
 
-export default function SellCryptoForm({ onBack, onContinue }: Props) {
+export default function SellCryptoForm({ onBack, onContinue, isSubmitting = false }: Props) {
   const [tokenOpen, setTokenOpen] = useState(false);
   const [networkOpen, setNetworkOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<CryptoToken | null>(null);
@@ -372,7 +373,7 @@ export default function SellCryptoForm({ onBack, onContinue }: Props) {
 
       <button
         type="button"
-        disabled={!isValid}
+        disabled={!isValid || isSubmitting}
         onClick={() => {
           if (isValid && selectedToken) {
             const finalToken = isCustomToken
@@ -385,13 +386,20 @@ export default function SellCryptoForm({ onBack, onContinue }: Props) {
           }
         }}
         className={[
-          "mt-6 h-[52px] w-full rounded-[12px] font-semibold text-[15px] transition",
-          isValid
+          "mt-6 h-[52px] w-full rounded-[12px] font-semibold text-[15px] transition flex items-center justify-center gap-2",
+          isValid && !isSubmitting
             ? "bg-emerald-600 text-white hover:brightness-110 cursor-pointer"
             : "bg-slate-200 text-slate-500 cursor-not-allowed",
         ].join(" ")}
       >
-        Sell
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Initiating Session...</span>
+          </>
+        ) : (
+          "Sell"
+        )}
       </button>
     </div>
   );

@@ -23,7 +23,7 @@ const nav = [
   { label: "Home",           href: "/dashboard",      icon: Home },
   { label: "Wallet",         href: "/wallet",         icon: Wallet },
   { label: "Products",       href: "/product",        icon: Box },
-  { label: "Global Payouts", href: "/global-payouts", icon: Globe },
+  { label: "Payouts", href: "/payouts", icon: Globe },
   { label: "History",        href: "/history",        icon: History },
   { label: "Orders",         href: "/orders",         icon: ShoppingCart },
   { label: "Profile",        href: "/profile",        icon: User },

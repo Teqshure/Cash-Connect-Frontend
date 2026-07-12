@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Loader2, Eye, EyeOff, TrendingUp } from "lucide-react";
 import { GiftCard, GiftCardProduct } from "@/store/giftCardStore";
 import { useAuthStore, User } from "@/store/useAuthStore";
@@ -39,9 +39,13 @@ export default function GiftCardReceipt({
   // ✅ Fetch the specific gift card rate on mount using the dedicated endpoint
   useEffect(() => {
     if (card?.id) {
-      fetchRateByTypeAndId("gift_card", card.id);
+      if (mode === "sell") {
+        fetchRateByTypeAndId("gift_card", "other");
+      } else {
+        fetchRateByTypeAndId("gift_card", card.id);
+      }
     }
-  }, [card?.id]);
+  }, [card?.id, mode, fetchRateByTypeAndId]);
 
   const wallet = user?.wallet;
   const balance = Number(wallet?.balance ?? 0);
@@ -53,7 +57,25 @@ export default function GiftCardReceipt({
 
   // ✅ FIXED: Using the correct typed getters — no hardcoded fallbacks
   const buyRate = getGiftCardBuyRate(card.id);
-  const sellRate = getGiftCardSellRate(card.id);
+  
+  const rates = useRateStore((state: any) => state.rates);
+
+  // All cards are bought at the same rate (the "Other" card's rate)
+  const sellRate = useMemo(() => {
+    if (mode === "sell") {
+      const otherRateObj = rates.find(
+        (r: any) =>
+          (r.rateable_type || "").toLowerCase().includes("gift") &&
+          (String(r.rateable_id) === "other" ||
+            r.rateable?.name === "Other")
+      );
+      if (otherRateObj) return Number(otherRateObj.sell_rate) || 500;
+      
+      const fallbackRate = rates.find((r: any) => (r.rateable_type || "").toLowerCase().includes("gift"));
+      return fallbackRate ? Number(fallbackRate.sell_rate) || 500 : 500;
+    }
+    return getGiftCardSellRate(card.id);
+  }, [getGiftCardSellRate, card.id, rates, mode]);
 
   const orderNGN = orderUSD * buyRate;
   const sellNGN = orderUSD * sellRate;
