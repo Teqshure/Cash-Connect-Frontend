@@ -32,7 +32,7 @@ interface WithdrawalState {
   addBankAccount: (
     bank_name: string,
     account_number: string,
-    bvn: string,
+    id?: number,
   ) => Promise<void>;
   createWithdrawal: (amount: number, bank_account_id: number) => Promise<void>;
   deleteBankAccount: (account_id: number) => Promise<void>;
@@ -88,20 +88,26 @@ export const useWithdrawalStore = create<WithdrawalState>(
     addBankAccount: async (
       bank_name: string,
       account_number: string,
-      bvn: string,
+      id?: number,
     ) => {
       set({ isAdding: true });
 
       try {
-        await fetch(`${BASE_URL}/add-bank-account`, {
+        const saveRes = await fetch(`${BASE_URL}/add-bank-account`, {
           method: "POST",
           headers: authHeaders(),
           body: JSON.stringify({
             bank_name,
             account_number,
-            bvn,
+            ...(id && { id }),
           }),
         });
+
+        const saveJson = await saveRes.json();
+
+        if (!saveRes.ok || (saveJson.status === false)) {
+          throw new Error(saveJson.message || "Failed to save bank account.");
+        }
 
         const res = await fetch(`${BASE_URL}/bank-accounts`, {
           headers: authHeaders(),
@@ -112,6 +118,7 @@ export const useWithdrawalStore = create<WithdrawalState>(
         set({
           bankAccounts: data.data || [],
           isAdding: false,
+          error: null,
         });
       } catch (error: unknown) {
         const message =

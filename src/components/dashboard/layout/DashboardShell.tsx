@@ -7,6 +7,7 @@ import SidebarContent from "@/components/dashboard/leftSideBar/SidebarContent";
 import Topbar from "@/components/dashboard/Topbar";
 import RightSidebarSection from "@/components/dashboard/right-rail/RightSidebarSection";
 import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
+import { EmailUnverifiedBanner } from "@/components/dashboard/EmailVerificationModal";
 
 export default function DashboardShell({
   children,
@@ -48,7 +49,7 @@ export default function DashboardShell({
         </div>
 
         {/* Content */}
-        <div className="pt-[110px] px-4 xl:px-6">
+        <div className="pt-[115px] px-4 xl:px-6 pb-12">
           <div
             className={[
               "grid gap-6 items-start w-full",
@@ -75,7 +76,9 @@ export default function DashboardShell({
       {/* Mobile */}
       <div className="lg:hidden">
         <Topbar onOpenSidebar={() => setOpen(true)} />
-        <div className="px-4 pt-6 pb-24">{children}</div>
+        <div className="px-4 pt-4 pb-24">
+          {children}
+        </div>
         <MobileBottomNav onClick={() => setOpen(false)} />
       </div>
     </div>

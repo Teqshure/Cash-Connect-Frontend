@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import { useWithdrawalStore } from "@/store/withdrawalStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -8,38 +8,49 @@ import { useAuthStore } from "@/store/useAuthStore";
 type AddBankAccountModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  accountToEdit?: any | null;
 };
 
-export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountModalProps) {
+export default function AddBankAccountModal({ isOpen, onClose, accountToEdit }: AddBankAccountModalProps) {
   const { addBankAccount, error: storeError, isAdding } = useWithdrawalStore();
   const refreshUser = useAuthStore((s: any) => s.refreshUser);
 
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [bvn, setBvn] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      if (accountToEdit) {
+        setBankName(accountToEdit.bank_name || "");
+        setAccountNumber(accountToEdit.account_number ? String(accountToEdit.account_number) : "");
+      } else {
+        setBankName("");
+        setAccountNumber("");
+      }
+      setLocalError(null);
+    }
+  }, [isOpen, accountToEdit]);
+
   if (!isOpen) return null;
+
+  const isEditing = !!accountToEdit;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
 
-    if (accountNumber.length < 10) {
-      setLocalError("Account number must be at least 10 digits.");
+    if (accountNumber.length !== 10) {
+      setLocalError("Account number must be exactly 10 digits.");
       return;
     }
 
     try {
-      await addBankAccount(bankName, accountNumber, bvn);
-      await refreshUser(); // Reload user in auth store to update checklist and UI
+      await addBankAccount(bankName, accountNumber, accountToEdit?.id);
+      await refreshUser();
       onClose();
-      // Clear inputs
-      setBankName("");
-      setAccountNumber("");
-      setBvn("");
     } catch (err: any) {
-      setLocalError(err.message || "Failed to add bank account.");
+      setLocalError(err.message || "Failed to save bank account.");
     }
   };
 
@@ -47,7 +58,9 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-[24px] w-full max-w-md p-8 shadow-xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[85vh]">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-[18px] font-semibold text-slate-900">Add Bank Account</h2>
+          <h2 className="text-[18px] font-semibold text-slate-900">
+            {isEditing ? "Edit Bank Account" : "Add New Bank Account"}
+          </h2>
           <button 
             onClick={onClose}
             className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 cursor-pointer transition"
@@ -67,10 +80,10 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
             <label className="text-[13px] font-medium text-slate-700">Bank Name</label>
             <input
               type="text"
-              placeholder="e.g. GTBank, Access Bank"
+              placeholder="e.g. GTBank, Access Bank, Kuda"
               value={bankName}
               onChange={(e) => setBankName(e.target.value)}
-              className="w-full h-[48px] px-4 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+              className="w-full h-[48px] px-4 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition font-medium text-slate-800"
               required
               disabled={isAdding}
             />
@@ -81,26 +94,11 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
             <input
               type="text"
               pattern="[0-9]*"
-              maxLength={20}
+              maxLength={10}
               placeholder="10-digit account number"
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
-              className="w-full h-[48px] px-4 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-              required
-              disabled={isAdding}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-medium text-slate-700">BVN (Bank Verification Number)</label>
-            <input
-              type="text"
-              pattern="[0-9]*"
-              maxLength={11}
-              placeholder="11-digit BVN"
-              value={bvn}
-              onChange={(e) => setBvn(e.target.value.replace(/\D/g, ""))}
-              className="w-full h-[48px] px-4 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+              className="w-full h-[48px] px-4 rounded-xl border border-slate-200 text-[14px] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition font-medium text-slate-800"
               required
               disabled={isAdding}
             />
@@ -114,8 +112,10 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
             {isAdding ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Adding Account...
+                Saving Account...
               </>
+            ) : isEditing ? (
+              "Update Bank Account"
             ) : (
               "Add Bank Account"
             )}

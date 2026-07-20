@@ -93,20 +93,6 @@ export default function WalletBalanceCard({
         </button>
       </div>
 
-      {/* TRANSACTION LIMIT */}
-      <div className="flex justify-between items-center mt-3">
-        <div className="flex items-center gap-2">
-          <span className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center text-[12px]">
-            i
-          </span>
-          <p className="text-[13px] text-white/90">Transaction Limit</p>
-        </div>
-
-        <p className="text-[13px] font-semibold">
-          {formatMoney(transactionLimit, currency)}
-        </p>
-      </div>
-
       {/* BUTTONS */}
       <div className="flex gap-3 mt-4">
         <button

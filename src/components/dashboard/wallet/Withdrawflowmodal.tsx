@@ -47,7 +47,6 @@ export default function WithdrawFlowModal({
   // Add account form state
   const [accountNumber, setAccountNumber] = useState("");
   const [bankName, setBankName] = useState("");
-  const [bvn, setBvn] = useState("");
 
   // Fetch bank accounts when modal opens
   useEffect(() => {
@@ -67,7 +66,6 @@ export default function WithdrawFlowModal({
     setDeleteConfirmId(null);
     setAccountNumber("");
     setBankName("");
-    setBvn("");
     onClose();
   }, [onClose]);
 
@@ -84,11 +82,8 @@ export default function WithdrawFlowModal({
 
   // Basic validation
   const canAdd =
-    accountNumber.length >= 10 &&
-    accountNumber.length <= 20 &&
-    bankName.trim().length > 0 &&
-    bvn.length >= 10 &&
-    bvn.length <= 20;
+    accountNumber.length === 10 &&
+    bankName.trim().length > 0;
 
   const handleWithdraw = async () => {
     if (!selectedId) return;
@@ -102,12 +97,11 @@ export default function WithdrawFlowModal({
 
   const handleAddAccount = async () => {
     try {
-      await addBankAccount(bankName, accountNumber, bvn);
+      await addBankAccount(bankName, accountNumber);
       setStep("addSuccess");
       // Reset form
       setAccountNumber("");
       setBankName("");
-      setBvn("");
     } catch {
       /* error shown from store */
     }
@@ -324,12 +318,12 @@ export default function WithdrawFlowModal({
                   <input
                     type="text"
                     inputMode="numeric"
-                    maxLength={20}
+                    maxLength={10}
                     value={accountNumber}
                     onChange={(e) =>
                       setAccountNumber(e.target.value.replace(/\D/g, ""))
                     }
-                    placeholder="Enter account number (10–20 digits)"
+                    placeholder="Enter 10-digit account number"
                     className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
                   />
                 </div>
@@ -343,21 +337,6 @@ export default function WithdrawFlowModal({
                     value={bankName}
                     onChange={(e) => setBankName(e.target.value)}
                     placeholder="Enter bank name"
-                    className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[13px] font-medium text-slate-700 mb-1.5 block">
-                    BVN (Bank verification number)
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={20}
-                    value={bvn}
-                    onChange={(e) => setBvn(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Enter BVN (10–20 digits)"
                     className="w-full h-[48px] rounded-[10px] border border-slate-200 bg-slate-50 px-4 text-[14px] outline-none focus:border-emerald-500 focus:bg-white transition"
                   />
                 </div>

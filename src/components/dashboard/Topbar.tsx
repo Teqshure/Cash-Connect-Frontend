@@ -8,6 +8,7 @@ import { Bell, Search, Menu, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTransactionStore } from "@/store/Transactionstore";
 import { usePathname, useRouter } from "next/navigation";
+import { EmailUnverifiedBanner } from "@/components/dashboard/EmailVerificationModal";
 
 function getFirstName(fullname?: string | null) {
   if (!fullname) return "User";
@@ -324,73 +325,70 @@ export default function Topbar({
   return (
     <>
       {/* MOBILE HEADER */}
-      <header className="lg:hidden h-[56px] bg-white flex items-center justify-between px-4 border-b border-slate-100 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onOpenSidebar}
-            className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5 text-slate-700" />
-          </button>
+      <header className="lg:hidden bg-white border-b border-slate-100 sticky top-0 z-50 shadow-2xs">
+        <div className="h-[56px] flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onOpenSidebar}
+              className="h-10 w-10 rounded-full grid place-items-center hover:bg-slate-50"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5 text-slate-700" />
+            </button>
 
-          <p className="text-[16px] font-semibold text-slate-800">
-            {pageTitle}
-          </p>
+            <p className="text-[16px] font-semibold text-slate-800">
+              {pageTitle}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <NotificationMenu router={router} isMobile />
+            <ProfileMenu router={router} withChevron />
+          </div>
         </div>
-
-        <div className="flex items-center gap-3">
-
-          {/* ✅ CLICK → NOTIFICATIONS */}
-          <NotificationMenu router={router} isMobile />
-
-          <ProfileMenu router={router} withChevron />
-        </div>
+        <EmailUnverifiedBanner />
       </header>
 
       {/* DESKTOP TOPBAR */}
       <header
         className="
-          hidden lg:flex
-          h-[104px]
+          hidden lg:block
           w-full
           bg-white
-          px-[28px]
-          items-center justify-between
-          gap-[13px]
           border-b border-slate-100
           sticky top-0 z-50
+          shadow-2xs
         "
       >
-        {/* LEFT */}
-        <div className="min-w-0 w-[390px] h-[91px] flex items-center">
-          <p className="text-[20px] leading-[28px] font-medium text-slate-900 whitespace-nowrap">
-            {getGreeting()}, {name}! <span className="ml-1">👋</span>
-          </p>
+        <div className="h-[104px] px-[28px] flex items-center justify-between gap-[13px]">
+          {/* LEFT */}
+          <div className="min-w-0 w-[390px] h-[91px] flex items-center">
+            <p className="text-[20px] leading-[28px] font-medium text-slate-900 whitespace-nowrap">
+              {getGreeting()}, {name}! <span className="ml-1">👋</span>
+            </p>
+          </div>
+
+          {/* RIGHT */}
+          <div className="w-[424px] h-[36px] flex items-center justify-end gap-[13px]">
+            {!isHistoryPage && (
+              <div className="flex-1 h-[36px] rounded-full border border-slate-200 bg-white flex items-center px-3 gap-2">
+                <Search className="h-4 w-4 text-slate-400" />
+
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent outline-none text-[12px] text-slate-700 placeholder:text-slate-400"
+                />
+              </div>
+            )}
+
+            <NotificationMenu router={router} />
+            <ProfileMenu router={router} />
+          </div>
         </div>
-
-        {/* RIGHT */}
-        <div className="w-[424px] h-[36px] flex items-center justify-end gap-[13px]">
-          {!isHistoryPage && (
-            <div className="flex-1 h-[36px] rounded-full border border-slate-200 bg-white flex items-center px-3 gap-2">
-              <Search className="h-4 w-4 text-slate-400" />
-
-              {/* ✅ SEARCH WORKING */}
-              <input
-                type="text"
-                placeholder="Search transactions..."
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent outline-none text-[12px] text-slate-700 placeholder:text-slate-400"
-              />
-            </div>
-          )}
-
-          {/* ✅ CLICK → NOTIFICATIONS */}
-          <NotificationMenu router={router} />
-
-          <ProfileMenu router={router} />
-        </div>
+        <EmailUnverifiedBanner />
       </header>
     </>
   );

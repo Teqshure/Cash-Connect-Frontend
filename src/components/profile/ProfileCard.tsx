@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
-import { CheckCircle, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import avatar from "../../../public/images/dashboard/avatar.png";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -84,12 +84,6 @@ export default function ProfileCard() {
         <p className="text-[13px] text-slate-500">
           {user?.email || "john@email.com"}
         </p>
-
-        {/* KYC */}
-        <div className="mt-3 flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[12px] font-medium">
-          <CheckCircle className="h-4 w-4" />
-          KYC Verified
-        </div>
 
         {/* Edit Photo */}
         <button 

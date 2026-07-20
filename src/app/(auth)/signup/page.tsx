@@ -227,22 +227,14 @@ export default function SignupPage() {
 
               {/* Desktop social login */}
               <div className="hidden lg:block space-y-5">
-                <div className="flex gap-6">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <div className="absolute inset-0 opacity-0 cursor-pointer z-10">
-                        <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => {}} width="100%" />
-                      </div>
-                      <div className="flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 pointer-events-none">
-                        <Google className="h-5 w-5" />
-                        <span className="text-sm">Sign Up with Google</span>
-                      </div>
-                    </div>
+                <div className="relative">
+                  <div className="absolute inset-0 opacity-0 cursor-pointer z-10">
+                    <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => {}} width="100%" />
                   </div>
-                  <button type="button" className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 cursor-pointer">
-                    <Apple className="h-5 w-5 text-black" />
-                    <span className="text-sm">Sign Up with Apple</span>
-                  </button>
+                  <div className="flex items-center justify-center gap-2 h-12 rounded-xl border border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold text-zinc-600 pointer-events-none">
+                    <Google className="h-5 w-5" />
+                    <span className="text-sm">Sign Up with Google</span>
+                  </div>
                 </div>
                 <div className="relative py-1">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200" /></div>
