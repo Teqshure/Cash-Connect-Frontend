@@ -270,8 +270,8 @@ export default function SignupPage() {
                       className="w-full flex items-center justify-between text-left text-sm text-zinc-800 outline-none bg-transparent"
                       disabled={isLoading}
                     >
-                      <span className={selectedCountry ? "text-zinc-800" : "text-zinc-400"}>
-                        {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.name}` : "Select your country"}
+                      <span className={selectedCountry ? "text-zinc-800 font-medium" : "text-zinc-400"}>
+                        {selectedCountry ? selectedCountry.name : "Select your country"}
                       </span>
                       <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform ${countryOpen ? "rotate-180" : ""}`} />
                     </button>
@@ -292,15 +292,14 @@ export default function SignupPage() {
                             <button
                               key={c.code}
                               type="button"
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 transition flex items-center gap-2"
+                              className="w-full text-left px-3.5 py-2.5 text-sm hover:bg-emerald-50 transition flex items-center"
                               onClick={() => {
                                 setFormData({ ...formData, country: c.name, dialCode: c.dial });
                                 setCountryOpen(false);
                                 setCountrySearch("");
                               }}
                             >
-                              <span>{c.flag}</span>
-                              <span className="flex-1 text-zinc-800">{c.name}</span>
+                              <span className="flex-1 text-zinc-800 font-medium">{c.name}</span>
                             </button>
                           ))}
                         </div>
