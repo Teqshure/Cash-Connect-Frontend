@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%">
+  <rect width="400" height="240" rx="16" fill="#111111"/>
+  <rect x="40" y="30" width="320" height="6" fill="#D8232A"/>
+  <text x="200" y="105" fill="#FFFFFF" font-family="'Impact', 'Arial Black', sans-serif" font-size="36" font-weight="900" text-anchor="middle" letter-spacing="2">FOOT LOCKER</text>
+  <rect x="40" y="130" width="320" height="6" fill="#D8232A"/>
+  <text x="200" y="175" fill="#D8232A" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="4">APPROVED</text>
+</svg>

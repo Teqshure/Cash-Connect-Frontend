@@ -23,6 +23,7 @@ type Props = {
 };
 
 type SellFormData = {
+  cardType: "physical" | "ecode";
   cardNumber: string;
   amount: string;
   quantity: number;
@@ -101,10 +102,12 @@ export default function SellGiftCardFlow({ onBack }: Props) {
       const payload = new FormData();
 
       payload.append("gift_card_id", selectedCard.id.toString());
-      payload.append("card_type", "physical");
+      payload.append("card_type", formData.cardType || "physical");
       payload.append("amount", formData.amount);
-      payload.append("card_code", formData.cardNumber);
-      payload.append("card_pin", formData.cardNumber);
+      
+      const codeValue = formData.cardNumber || (formData.cardType === "physical" ? "PHYSICAL" : "");
+      payload.append("card_code", codeValue);
+      payload.append("card_pin", codeValue);
 
       if (formData.customBrandName) {
         payload.append("custom_brand_name", formData.customBrandName);

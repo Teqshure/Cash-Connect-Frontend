@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%">
+  <rect width="400" height="240" rx="16" fill="#0071DC"/>
+  <g transform="translate(180, 45) scale(1.3)">
+    <path fill="#FFC220" d="M15,0 L15,12 A3,3 0 0,0 18,15 L30,15 A3,3 0 0,0 30,9 L18,9 A3,3 0 0,0 15,0 Z" transform="rotate(0, 15, 15)"/>
+    <path fill="#FFC220" d="M15,0 L15,12 A3,3 0 0,0 18,15 L30,15 A3,3 0 0,0 30,9 L18,9 A3,3 0 0,0 15,0 Z" transform="rotate(60, 15, 15)"/>
+    <path fill="#FFC220" d="M15,0 L15,12 A3,3 0 0,0 18,15 L30,15 A3,3 0 0,0 30,9 L18,9 A3,3 0 0,0 15,0 Z" transform="rotate(120, 15, 15)"/>
+    <path fill="#FFC220" d="M15,0 L15,12 A3,3 0 0,0 18,15 L30,15 A3,3 0 0,0 30,9 L18,9 A3,3 0 0,0 15,0 Z" transform="rotate(180, 15, 15)"/>
+    <path fill="#FFC220" d="M15,0 L15,12 A3,3 0 0,0 18,15 L30,15 A3,3 0 0,0 30,9 L18,9 A3,3 0 0,0 15,0 Z" transform="rotate(240, 15, 15)"/>
+    <path fill="#FFC220" d="M15,0 L15,12 A3,3 0 0,0 18,15 L30,15 A3,3 0 0,0 30,9 L18,9 A3,3 0 0,0 15,0 Z" transform="rotate(300, 15, 15)"/>
+  </g>
+  <text x="200" y="160" fill="#FFFFFF" font-family="'BlinkMacSystemFont', 'Segoe UI', sans-serif" font-size="34" font-weight="800" text-anchor="middle">Walmart</text>
+</svg>

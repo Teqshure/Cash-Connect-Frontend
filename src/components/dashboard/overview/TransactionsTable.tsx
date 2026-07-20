@@ -44,6 +44,7 @@ export type Transaction = {
   cryptoAmount?: string;
   walletAddress?: string;
   description?: string | null;
+  reference?: string;
 };
 
 type Props = {

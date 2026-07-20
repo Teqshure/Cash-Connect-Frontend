@@ -81,13 +81,18 @@ export const Footer = () => {
                 Legal
               </h4>
               <ul className="space-y-3 sm:space-y-4">
-                {["Terms & Conditions", "Privacy policy"].map((item) => (
-                  <li key={item}>
+                {[
+                  { name: "Terms & Conditions", href: "/terms" },
+                  { name: "Privacy policy", href: "/privacy" },
+                ].map((item) => (
+                  <li key={item.name}>
                     <Link
-                      href="#"
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-[10px] sm:text-xs font-semibold text-primary-dark hover:text-primary-light transition-colors"
                     >
-                      {item}
+                      {item.name}
                     </Link>
                   </li>
                 ))}

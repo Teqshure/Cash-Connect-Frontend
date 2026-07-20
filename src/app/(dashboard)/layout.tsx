@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useTransactionStore } from "@/store/Transactionstore";
 import { useGlobalPaymentStore } from "@/store/globalPayment";
 
+import EmailVerificationModal from "@/components/dashboard/EmailVerificationModal";
+
 const quicksand = Quicksand({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -18,7 +20,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isHydrated = useAuthStore((s: any) => s.isHydrated);
   const token = useAuthStore((s: any) => s.token);
 
-  // Background Auto-Refresh / Polling for user balance and transactions
+  // Refresh user balance and transactions on mount
   useEffect(() => {
     if (!token) return;
 
@@ -26,18 +28,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const fetchTransactions = useTransactionStore.getState().fetchTransactions;
     const fetchGlobalTransactions = useGlobalPaymentStore.getState().fetchTransactions;
 
-    // Refresh instantly on mount/token change (non-background first time, then background)
+    // Refresh instantly on mount/token change
     refreshUser();
     fetchTransactions(true, false);
     fetchGlobalTransactions(false);
-
-    const interval = setInterval(() => {
-      refreshUser().catch(() => {});
-      fetchTransactions(true, true).catch(() => {});
-      fetchGlobalTransactions(true).catch(() => {});
-    }, 10000); // Poll every 10 seconds
-
-    return () => clearInterval(interval);
   }, [token]);
 
   useEffect(() => {
@@ -54,6 +48,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         if (response.status === 401) {
           useAuthStore.getState().logout();
           router.push("/login");
+        } else if (response.status === 403) {
+          const clone = response.clone();
+          clone.json().then((data: any) => {
+            if (data?.email_unverified) {
+              window.dispatchEvent(new Event("cc_email_unverified"));
+            }
+          }).catch(() => {});
         }
         return response;
       };
@@ -78,6 +79,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className={quicksand.className}>
+      <EmailVerificationModal />
       <DashboardShell>{children}</DashboardShell>
     </div>
   );

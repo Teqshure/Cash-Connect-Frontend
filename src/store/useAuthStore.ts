@@ -25,6 +25,7 @@ export interface User {
   role?: string;
   status?: string;
   kyc_status?: string;
+  email_verified_at?: string | null;
   wallet?: Wallet;
   profile_image?: string | null;
 }
@@ -35,6 +36,7 @@ interface AuthResponse {
   token?: string;
   user?: User | null;
   data?: User | null;
+  requires_verification?: boolean;
   errors?: Record<string, string[]>;
 }
 
@@ -47,7 +49,7 @@ interface AuthState {
   error: string | null;
   localProfileOverrides: Partial<User> | null;
 
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
   loginWithGoogle: (googleId: string) => Promise<void>;
   register: (
     fullname: string,
@@ -55,7 +57,9 @@ interface AuthState {
     password: string,
     phone?: string,
     country?: string,
-  ) => Promise<void>;
+  ) => Promise<any>;
+  verifyEmail: (email: string, code: string) => Promise<any>;
+  resendVerificationCode: (email: string) => Promise<any>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   forgotPassword: (email: string) => Promise<string>;
@@ -186,12 +190,14 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data.status && data.token) {
+            const userObj = data.user || data.data || null;
             set({
-              user: data.user || data.data || null,
+              user: userObj,
               token: data.token,
               isAuthenticated: true,
               isLoading: false,
             });
+            return data;
           } else {
             throw new Error(data.message || "Login failed");
           }
@@ -266,16 +272,80 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(data.message || "Registration failed");
           }
 
+          const userObj = data.user || data.data || null;
           set({
-            user: data.user || data.data || null,
+            user: userObj,
             token: data.token || null,
-            isAuthenticated: true,
+            isAuthenticated: !data.requires_verification,
             isLoading: false,
           });
+          return data;
         } catch (error: unknown) {
           const message =
             error instanceof Error ? error.message : "Registration error";
 
+          set({ error: message, isLoading: false });
+          throw error;
+        }
+      },
+
+      verifyEmail: async (email: string, code: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch(`${API_URL}/v1/auth/verify-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ email, code }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.status) {
+            throw new Error(data.message || "Email verification failed");
+          }
+
+          if (data.user) {
+            set({
+              user: data.user,
+              token: data.token || get().token,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          }
+
+          return data;
+        } catch (error: any) {
+          const message = error.message || "Email verification failed";
+          set({ error: message, isLoading: false });
+          throw error;
+        }
+      },
+
+      resendVerificationCode: async (email: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch(`${API_URL}/v1/auth/resend-verification`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ email }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.status) {
+            throw new Error(data.message || "Failed to resend verification code");
+          }
+
+          set({ isLoading: false });
+          return data;
+        } catch (error: any) {
+          const message = error.message || "Failed to resend verification code";
           set({ error: message, isLoading: false });
           throw error;
         }

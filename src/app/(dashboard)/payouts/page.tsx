@@ -77,8 +77,8 @@ function PayoutSessionCard({
   uploadingId: string | number | null;
   onCopy: (text: string, id: string) => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>, id: string | number, isCrypto?: boolean) => void;
-  onCancelClick: (id: string | number, isCrypto?: boolean) => void;
-  onDeleteClick: (id: string | number, isCrypto?: boolean) => void;
+  onCancelClick: (id: string | number, isCrypto?: boolean, isDeposit?: boolean) => void;
+  onDeleteClick: (id: string | number, isCrypto?: boolean, isDeposit?: boolean) => void;
 }) {
   const [isReplacing, setIsReplacing] = useState(false);
   const hasReceipt = !!tx.receipt;
@@ -90,20 +90,25 @@ function PayoutSessionCard({
   const isCrypto = !!tx.isCryptoSession;
   const isCryptoBuy = !!tx.isCryptoBuy;
   const isCryptoSell = !!tx.isCryptoSell;
+  const isDeposit = !!tx.isDepositSession;
   
   const method = isCrypto 
     ? (isCryptoSell ? `Sell ${tx.tokenSymbol} (${tx.networkName})` : `Buy ${tx.tokenSymbol} (${tx.networkName})`)
-    : (tx.payment_method?.name || "Global Payout");
+    : (tx.payment_method?.name || (isDeposit ? "Wallet Deposit" : "Global Payout"));
     
   const account = tx.account || {};
   
   const expectedAmountStr = isCrypto 
     ? `₦${parseFloat(tx.expected_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : `${account.currency || "USD"} ${parseFloat(tx.expected_amount).toFixed(2)}`;
+    : isDeposit
+    ? `₦${parseFloat(tx.expected_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : `${account.currency || "NGN"} ${parseFloat(tx.expected_amount).toFixed(2)}`;
     
   const payoutStr = isCrypto
     ? `${parseFloat(tx.cryptoAmount).toFixed(6)} ${tx.tokenSymbol}`
-    : `₦${parseFloat(tx.fiat_equivalent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    : isDeposit
+    ? `₦${parseFloat(tx.fiat_equivalent || tx.expected_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : `₦${parseFloat(tx.fiat_equivalent || tx.expected_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   // Build dynamic display label
   let statusLabel = "WAITING FOR RECEIPT";
@@ -133,7 +138,7 @@ function PayoutSessionCard({
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-bold text-slate-800 text-xs truncate">{method}</span>
-            <span className="text-[9px] text-slate-400 font-mono truncate">Ref: {tx.reference || tx.id}</span>
+            <span className="text-[9px] text-slate-400 font-mono truncate">Ref: {tx.reference || tx.transaction?.reference || `#INT-${String(tx.id).padStart(6, "0")}`}</span>
           </div>
         </div>
         <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-wider shrink-0 whitespace-nowrap ${statusStyle}`}>
@@ -153,7 +158,7 @@ function PayoutSessionCard({
       <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-4 space-y-2.5">
         <div className="flex justify-between items-center text-xs">
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-            {isCryptoSell ? "YOU PAY" : (isCryptoBuy ? "YOU PAY (NGN)" : "EXPECTED TRANSFER")}
+            {isCryptoSell ? "YOU PAY" : (isCryptoBuy ? "YOU PAY (NGN)" : (isDeposit ? "DEPOSIT AMOUNT" : "EXPECTED TRANSFER"))}
           </span>
           <span className="font-extrabold text-slate-800 text-sm whitespace-nowrap">
             {isCryptoSell ? payoutStr : expectedAmountStr}
@@ -184,7 +189,7 @@ function PayoutSessionCard({
                 <span className="text-xs font-mono font-bold text-slate-800 break-all">{account.wallet_address}</span>
                 <button 
                   onClick={() => onCopy(account.wallet_address, `${tx.id}-addr`)} 
-                  className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition"
+                  className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
                 >
                   {copiedId === `${tx.id}-addr` ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
@@ -213,7 +218,7 @@ function PayoutSessionCard({
                   <span className="text-xs font-bold text-slate-800 break-all">{account.account_name}</span>
                   <button 
                     onClick={() => onCopy(account.account_name, `${tx.id}-name`)} 
-                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition"
+                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
                   >
                     {copiedId === `${tx.id}-name` ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   </button>
@@ -228,7 +233,7 @@ function PayoutSessionCard({
                   <span className="text-xs font-bold text-slate-800 font-mono break-all">{account.email}</span>
                   <button 
                     onClick={() => onCopy(account.email, `${tx.id}-email`)} 
-                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition"
+                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
                   >
                     {copiedId === `${tx.id}-email` ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   </button>
@@ -243,7 +248,7 @@ function PayoutSessionCard({
                   <span className="text-xs font-bold text-slate-800 font-mono break-all">{account.account_number}</span>
                   <button 
                     onClick={() => onCopy(account.account_number, `${tx.id}-num`)} 
-                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition"
+                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
                   >
                     {copiedId === `${tx.id}-num` ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   </button>
@@ -267,7 +272,7 @@ function PayoutSessionCard({
                   <span className="text-xs font-bold text-slate-800 font-mono break-all">{account.username}</span>
                   <button 
                     onClick={() => onCopy(account.username, `${tx.id}-tag`)} 
-                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition"
+                    className="shrink-0 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
                   >
                     {copiedId === `${tx.id}-tag` ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   </button>
@@ -349,13 +354,10 @@ function PayoutSessionCard({
                 className="flex-1 h-[40px] border border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition cursor-pointer"
               >
                 <Upload className="h-4 w-4 text-emerald-600" />
-                <span>Upload {isReplacing ? "New Receipt" : "Receipt"}</span>
+                <span className="truncate">
+                  {uploadingId === tx.id ? "Uploading..." : "Select File"}
+                </span>
               </label>
-              {uploadingId === tx.id && (
-                <div className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center shrink-0">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600" />
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -364,7 +366,7 @@ function PayoutSessionCard({
         <div className="flex flex-col gap-2">
           {(!isExpired && !isRejected && tx.status !== "approved") && (
             <button
-              onClick={() => onCancelClick(tx.id, isCrypto)}
+              onClick={() => onCancelClick(tx.id, isCrypto, isDeposit)}
               className="w-full h-10 rounded-xl hover:bg-rose-50/50 text-rose-600 text-xs font-bold flex items-center justify-center gap-1.5 transition border border-rose-100 cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5 shrink-0" />
@@ -374,7 +376,7 @@ function PayoutSessionCard({
 
           {(isExpired || isRejected) && (
             <button
-              onClick={() => onDeleteClick(tx.id, isCrypto)}
+              onClick={() => onDeleteClick(tx.id, isCrypto, isDeposit)}
               className="w-full h-10 rounded-xl hover:bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition border border-slate-200 cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5 shrink-0" />
@@ -410,10 +412,11 @@ export default function PayoutsPage() {
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | number | null>(null);
+  const [expirationHours, setExpirationHours] = useState<number>(48);
   
   // Custom states for Visual Modals
-  const [cancellingTx, setCancellingTx] = useState<{ id: string | number; isCrypto: boolean } | null>(null);
-  const [deletingTx, setDeletingTx] = useState<{ id: string | number; isCrypto: boolean } | null>(null);
+  const [cancellingTx, setCancellingTx] = useState<{ id: string | number; isCrypto: boolean; isDeposit?: boolean } | null>(null);
+  const [deletingTx, setDeletingTx] = useState<{ id: string | number; isCrypto: boolean; isDeposit?: boolean } | null>(null);
   const [toastMessage, setToastMessage] = useState("");
 
   // Base API URL resolver
@@ -431,6 +434,27 @@ export default function PayoutsPage() {
   useEffect(() => {
     fetchIntlTransactions();
     fetchGeneralTransactions(true);
+
+    // Fetch global payout expiration setting set by admin
+    const fetchSettings = async () => {
+      try {
+        const token = useAuthStore.getState().token;
+        const res = await fetch(`${BASE_URL}/settings`, {
+          headers: {
+            Accept: "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const hrs = data.settings?.global_payout_expiration_hours;
+          if (hrs) setExpirationHours(Number(hrs));
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings:", err);
+      }
+    };
+    fetchSettings();
   }, [fetchIntlTransactions, fetchGeneralTransactions]);
 
   const handleCopy = (text: string, fieldId: string) => {
@@ -458,7 +482,21 @@ export default function PayoutsPage() {
         if (isCrypto) {
           await uploadCryptoReceipt(txId, file);
         } else {
-          await uploadIntlReceipt(txId, file);
+          const token = useAuthStore.getState().token;
+          const formData = new FormData();
+          formData.append("receipt", file);
+          const res = await fetch(`${BASE_URL}/transactions/${txId}/notify-payment`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: formData,
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.message || "Failed to upload receipt");
+          }
         }
         triggerToast("Proof uploaded successfully!");
         fetchIntlTransactions();
@@ -471,11 +509,10 @@ export default function PayoutsPage() {
     }
   };
 
-  const performCancel = async (txId: string | number, isCrypto?: boolean) => {
+  const performCancel = async (txId: string | number, isCrypto?: boolean, isDeposit?: boolean) => {
     try {
-      if (isCrypto) {
-        // General transactions: delete completely as requested!
-        const token = useAuthStore.getState().token;
+      const token = useAuthStore.getState().token;
+      if (isCrypto || isDeposit) {
         const res = await fetch(`${BASE_URL}/transactions/${txId}`, {
           method: "DELETE",
           headers: {
@@ -486,8 +523,20 @@ export default function PayoutsPage() {
         if (!res.ok) throw new Error("Failed to delete transaction");
         fetchGeneralTransactions(true);
       } else {
-        await cancelIntlTransaction(String(txId));
+        try {
+          await cancelIntlTransaction(String(txId));
+        } catch {
+          // Fallback to deleting via general transactions table ID
+          await fetch(`${BASE_URL}/transactions/${txId}`, {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`
+            }
+          });
+        }
         fetchIntlTransactions();
+        fetchGeneralTransactions(true);
       }
       triggerToast("Payout session cancelled.");
     } catch (err: any) {
@@ -495,10 +544,10 @@ export default function PayoutsPage() {
     }
   };
 
-  const performDelete = async (txId: string | number, isCrypto?: boolean) => {
+  const performDelete = async (txId: string | number, isCrypto?: boolean, isDeposit?: boolean) => {
     try {
-      if (isCrypto) {
-        const token = useAuthStore.getState().token;
+      const token = useAuthStore.getState().token;
+      if (isCrypto || isDeposit) {
         const res = await fetch(`${BASE_URL}/transactions/${txId}`, {
           method: "DELETE",
           headers: {
@@ -509,8 +558,20 @@ export default function PayoutsPage() {
         if (!res.ok) throw new Error("Failed to delete transaction");
         fetchGeneralTransactions(true);
       } else {
-        await deleteIntlTransaction(String(txId));
+        try {
+          await deleteIntlTransaction(String(txId));
+        } catch {
+          // Fallback to deleting via general transactions table ID
+          await fetch(`${BASE_URL}/transactions/${txId}`, {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`
+            }
+          });
+        }
         fetchIntlTransactions();
+        fetchGeneralTransactions(true);
       }
       triggerToast("Payout session deleted.");
     } catch (err: any) {
@@ -540,9 +601,9 @@ export default function PayoutsPage() {
       const cryptoTx = tx.crypto || {};
       const adminCrypto = cryptoTx.crypto || {};
       
-      // Active for 48 hours from creation time
+      // Active using global payout expiration hours configured by admin
       const createdTime = new Date(tx.created_at).getTime();
-      const expiresAt = new Date(createdTime + 48 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(createdTime + expirationHours * 60 * 60 * 1000).toISOString();
       
       const isCryptoSell = tx.direction === "credit";
       
@@ -567,8 +628,38 @@ export default function PayoutsPage() {
       };
     });
 
+  // 3. Pending/Active deposit sessions
+  const depositSessions = generalTransactions
+    .filter((tx: any) => 
+      tx.type === "deposit" && 
+      (tx.status === "pending" || tx.status === "processing" || tx.status === "expired" || tx.status === "rejected")
+    )
+    .map((tx: any) => {
+      const createdTime = new Date(tx.created_at).getTime();
+      const expiresAt = new Date(createdTime + expirationHours * 60 * 60 * 1000).toISOString();
+      return {
+        id: tx.id,
+        reference: tx.reference,
+        status: tx.status,
+        expires_at: expiresAt,
+        created_at: tx.created_at,
+        isCryptoSession: false,
+        isDepositSession: true,
+        payment_method: { name: "Wallet Deposit (Bank Transfer)" },
+        expected_amount: tx.amount,
+        fiat_equivalent: tx.amount,
+        receipt: tx.receipt || null,
+        account: {
+          bank_name: "Access Bank",
+          account_number: "2141536385",
+          account_name: "Cash Connect",
+          currency: "NGN",
+        }
+      };
+    });
+
   // Combine and sort by date descending (latest sessions first)
-  const allSessions = [...intlSessions, ...cryptoSessions].sort((a: any, b: any) => {
+  const allSessions = [...intlSessions, ...cryptoSessions, ...depositSessions].sort((a: any, b: any) => {
     const timeA = new Date(a.created_at || a.expires_at).getTime();
     const timeB = new Date(b.created_at || b.expires_at).getTime();
     return timeB - timeA;

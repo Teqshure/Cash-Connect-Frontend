@@ -115,7 +115,7 @@ export default function TransactionDetailModal({
       const rowHeight = 12;
 
       const fields = [
-        { label: "Transaction ID", value: `#${currentTx.id.padStart(8, "0")}` },
+        { label: "Transaction ID", value: currentTx.reference || `#${currentTx.id.padStart(8, "0")}` },
         { label: "Transaction Type", value: currentTx.type },
         { label: "Date & Time", value: `${currentTx.date} ${currentTx.time || ""}` },
         { label: "Status", value: currentTx.status.toUpperCase() },
@@ -224,7 +224,7 @@ export default function TransactionDetailModal({
           <div className="flex justify-between items-center">
             <span className="text-[13px] text-slate-500 font-medium">Transaction ID</span>
             <span className="text-[13px] text-slate-800 font-semibold font-mono">
-              #{currentTx.id.padStart(8, "0")}
+              {currentTx.reference || `#${currentTx.id.padStart(8, "0")}`}
             </span>
           </div>
 

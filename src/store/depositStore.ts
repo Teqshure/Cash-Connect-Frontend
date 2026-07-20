@@ -25,11 +25,13 @@ export interface DepositAccount {
 interface DepositState {
   depositAccount: DepositAccount | null;
   transactionRef: string;
+  transactionId: number | null;
   isLoading: boolean;
   error: string | null;
 
   // Actions
   createDeposit: (amount: number) => Promise<void>;
+  uploadReceipt: (transactionId: number, file: File) => Promise<any>;
   reset: () => void;
 }
 
@@ -53,6 +55,7 @@ function authHeaders() {
 export const useDepositStore = create<DepositState>()((set: any) => ({
   depositAccount: null,
   transactionRef: "",
+  transactionId: null,
   isLoading: false,
   error: null,
 
@@ -81,13 +84,13 @@ export const useDepositStore = create<DepositState>()((set: any) => ({
       if (!accountRes.ok)
         throw new Error(accountData.message || "Failed to get deposit account");
 
-      // transaction is an object — use transaction.reference ✅
       set({
         transactionRef: depositData.transaction.reference,
+        transactionId: depositData.transaction.id,
         depositAccount: {
-          bank_name: accountData.bank_name,
-          account_number: accountData.account_number,
-          account_name: accountData.account_name,
+          bank_name: depositData.bank_account?.bank_name || accountData.bank_name,
+          account_number: depositData.bank_account?.account_number || accountData.account_number,
+          account_name: depositData.bank_account?.account_name || accountData.account_name,
         },
         isLoading: false,
       });
@@ -100,6 +103,24 @@ export const useDepositStore = create<DepositState>()((set: any) => ({
     }
   },
 
-  reset: () => set({ depositAccount: null, transactionRef: "", error: null }),
-}));
+  uploadReceipt: async (transactionId: number, file: File) => {
+    const token = useAuthStore.getState().token;
+    const formData = new FormData();
+    formData.append("receipt", file);
 
+    const res = await fetch(`${BASE_URL}/transactions/${transactionId}/notify-payment`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to upload receipt");
+    return data;
+  },
+
+  reset: () => set({ depositAccount: null, transactionRef: "", transactionId: null, error: null }),
+}));

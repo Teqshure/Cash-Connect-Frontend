@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%">
+  <rect width="400" height="240" rx="16" fill="#E01A2B"/>
+  <polygon fill="#FFFFFF" points="200,40 208,63 232,63 213,77 220,100 200,86 180,100 187,77 168,63 192,63"/>
+  <text x="200" y="155" fill="#FFFFFF" font-family="'Georgia', serif" font-size="38" font-weight="bold" text-anchor="middle">macy's</text>
+</svg>

@@ -19,6 +19,7 @@ export default function FundWalletCard({ currency = "₦" }: Props) {
     createDeposit,
     depositAccount,
     transactionRef,
+    transactionId,
     isLoading,
     error,
     reset,
@@ -165,6 +166,7 @@ export default function FundWalletCard({ currency = "₦" }: Props) {
           accountNumber={depositAccount.account_number}
           accountName={depositAccount.account_name}
           transactionRef={transactionRef}
+          transactionId={transactionId}
         />
       )}
     </div>

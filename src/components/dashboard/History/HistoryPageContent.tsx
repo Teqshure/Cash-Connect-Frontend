@@ -79,6 +79,8 @@ function mapTransaction(tx: ApiTransaction): Transaction {
   const icon = getIcon(tx);
   const status = getStatus(tx.status);
 
+  let result: any = null;
+
   // ── International transaction: special display logic ──────────────────
   if (tx.type === "international" && tx.international) {
     const intl = tx.international as any;
@@ -96,11 +98,9 @@ function mapTransaction(tx: ApiTransaction): Transaction {
       maximumFractionDigits: 2,
     });
 
-    // Before approval: show foreign currency so user knows what they sent
-    // After approval:  show credited NGN amount
     const isApproved = status === "successful";
 
-    return {
+    result = {
       id: String(tx.id),
       date,
       time,
@@ -123,7 +123,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
   }
 
   // ── Gift Card Transaction Mapping ──────────────────────────────────────
-  if ((tx.type as any) === "gift" || (tx.type as any) === "giftcard") {
+  else if ((tx.type as any) === "gift" || (tx.type as any) === "giftcard") {
     const isDebit = tx.direction === "debit"; // Buy
     const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
       minimumFractionDigits: 2,
@@ -138,7 +138,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
       const cardQty = gco?.quantity ?? 1;
       const faceVal = product?.amount ? `$${product.amount}` : "";
 
-      return {
+      result = {
         id: String(tx.id),
         date,
         time,
@@ -164,7 +164,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
       const brand = stx?.card_brand ?? "Giftcard";
       const faceVal = stx?.card_value ? `$${stx.card_value}` : "";
 
-      return {
+      result = {
         id: String(tx.id),
         date,
         time,
@@ -187,7 +187,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
   }
 
   // ── Crypto Transaction Mapping ────────────────────────────────────────
-  if (tx.type === "crypto") {
+  else if (tx.type === "crypto") {
     const isDebit = tx.direction === "debit"; // Buy
     const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
       minimumFractionDigits: 2,
@@ -197,7 +197,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     const tokenSymbol = ctx?.crypto_type ?? tx.currency ?? "USDT";
     const cryptoAmt = ctx?.crypto_amount ? parseFloat(ctx.crypto_amount).toFixed(6) : "0.00";
 
-    return {
+    result = {
       id: String(tx.id),
       date,
       time,
@@ -216,22 +216,27 @@ function mapTransaction(tx: ApiTransaction): Transaction {
   }
 
   // ── All other transaction types ────────────────────────────────────────
-  const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  else {
+    const amount = parseFloat(tx.amount).toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
-  return {
-    id: String(tx.id),
-    date,
-    time,
-    type: getLabel(tx),
-    amountPrimary: `${tx.currency === "NGN" ? "₦" : tx.currency} ${amount}`,
-    status,
-    icon,
-    receipt: tx.receipt || null,
-    isCrypto: (tx.type as any) === "crypto",
-  };
+    result = {
+      id: String(tx.id),
+      date,
+      time,
+      type: getLabel(tx),
+      amountPrimary: `${tx.currency === "NGN" ? "₦" : tx.currency} ${amount}`,
+      status,
+      icon,
+      receipt: tx.receipt || null,
+      isCrypto: (tx.type as any) === "crypto",
+    };
+  }
+
+  result.reference = tx.reference || "#INT-" + String(tx.id).padStart(6, "0");
+  return result;
 }
 
 // ----------------------------------------------------------------
@@ -488,7 +493,7 @@ export default function HistoryPageContent() {
                 {/* Type + ID */}
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-slate-800 truncate">{shortType(tx.type)}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">#{tx.id.padStart(6, "0")}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">{tx.reference}</p>
                 </div>
 
                 {/* Status badge */}
