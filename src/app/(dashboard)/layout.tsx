@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/layout/DashboardShell";
 import { Quicksand } from "next/font/google";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTransactionStore } from "@/store/Transactionstore";
 import { useGlobalPaymentStore } from "@/store/globalPayment";
 
@@ -17,8 +17,16 @@ const quicksand = Quicksand({
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const isHydrated = useAuthStore((s: any) => s.isHydrated);
   const token = useAuthStore((s: any) => s.token);
+
+  // Scroll to top on route change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname]);
 
   // Refresh user balance and transactions on mount
   useEffect(() => {

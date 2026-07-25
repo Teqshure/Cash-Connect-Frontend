@@ -415,8 +415,8 @@ export default function PayoutsPage() {
   const [expirationHours, setExpirationHours] = useState<number>(48);
   
   // Custom states for Visual Modals
-  const [cancellingTx, setCancellingTx] = useState<{ id: string | number; isCrypto: boolean; isDeposit?: boolean } | null>(null);
-  const [deletingTx, setDeletingTx] = useState<{ id: string | number; isCrypto: boolean; isDeposit?: boolean } | null>(null);
+  const [cancellingTx, setCancellingTx] = useState<{ id: string | number; isCrypto: boolean; isDeposit?: boolean; transactionId?: string | number } | null>(null);
+  const [deletingTx, setDeletingTx] = useState<{ id: string | number; isCrypto: boolean; isDeposit?: boolean; transactionId?: string | number } | null>(null);
   const [toastMessage, setToastMessage] = useState("");
 
   // Base API URL resolver
@@ -455,7 +455,7 @@ export default function PayoutsPage() {
       }
     };
     fetchSettings();
-  }, [fetchIntlTransactions, fetchGeneralTransactions]);
+  }, []);
 
   const handleCopy = (text: string, fieldId: string) => {
     navigator.clipboard.writeText(text);
@@ -482,21 +482,7 @@ export default function PayoutsPage() {
         if (isCrypto) {
           await uploadCryptoReceipt(txId, file);
         } else {
-          const token = useAuthStore.getState().token;
-          const formData = new FormData();
-          formData.append("receipt", file);
-          const res = await fetch(`${BASE_URL}/transactions/${txId}/notify-payment`, {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              Authorization: `Bearer ${token}`
-            },
-            body: formData,
-          });
-          if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.message || "Failed to upload receipt");
-          }
+          await uploadIntlReceipt(txId, file);
         }
         triggerToast("Proof uploaded successfully!");
         fetchIntlTransactions();
@@ -509,7 +495,7 @@ export default function PayoutsPage() {
     }
   };
 
-  const performCancel = async (txId: string | number, isCrypto?: boolean, isDeposit?: boolean) => {
+  const performCancel = async (txId: string | number, isCrypto?: boolean, isDeposit?: boolean, fallbackTxId?: string | number) => {
     try {
       const token = useAuthStore.getState().token;
       if (isCrypto || isDeposit) {
@@ -527,7 +513,8 @@ export default function PayoutsPage() {
           await cancelIntlTransaction(String(txId));
         } catch {
           // Fallback to deleting via general transactions table ID
-          await fetch(`${BASE_URL}/transactions/${txId}`, {
+          const fallbackId = fallbackTxId || txId;
+          await fetch(`${BASE_URL}/transactions/${fallbackId}`, {
             method: "DELETE",
             headers: {
               Accept: "application/json",
@@ -544,7 +531,7 @@ export default function PayoutsPage() {
     }
   };
 
-  const performDelete = async (txId: string | number, isCrypto?: boolean, isDeposit?: boolean) => {
+  const performDelete = async (txId: string | number, isCrypto?: boolean, isDeposit?: boolean, fallbackTxId?: string | number) => {
     try {
       const token = useAuthStore.getState().token;
       if (isCrypto || isDeposit) {
@@ -562,7 +549,8 @@ export default function PayoutsPage() {
           await deleteIntlTransaction(String(txId));
         } catch {
           // Fallback to deleting via general transactions table ID
-          await fetch(`${BASE_URL}/transactions/${txId}`, {
+          const fallbackId = fallbackTxId || txId;
+          await fetch(`${BASE_URL}/transactions/${fallbackId}`, {
             method: "DELETE",
             headers: {
               Accept: "application/json",
@@ -711,8 +699,8 @@ export default function PayoutsPage() {
               uploadingId={uploadingId}
               onCopy={handleCopy}
               onUpload={handleFileUpload}
-              onCancelClick={(id, isC) => setCancellingTx({ id, isCrypto: !!isC })}
-              onDeleteClick={(id, isC) => setDeletingTx({ id, isCrypto: !!isC })}
+              onCancelClick={(id, isC, isD) => setCancellingTx({ id, isCrypto: !!isC, isDeposit: !!isD, transactionId: tx.transaction_id || tx.id })}
+              onDeleteClick={(id, isC, isD) => setDeletingTx({ id, isCrypto: !!isC, isDeposit: !!isD, transactionId: tx.transaction_id || tx.id })}
             />
           ))}
         </div>
@@ -742,7 +730,7 @@ export default function PayoutsPage() {
                 onClick={async () => {
                   const target = cancellingTx;
                   setCancellingTx(null);
-                  await performCancel(target.id, target.isCrypto);
+                  await performCancel(target.id, target.isCrypto, target.isDeposit, target.transactionId);
                 }}
                 className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
               >
@@ -777,7 +765,7 @@ export default function PayoutsPage() {
                 onClick={async () => {
                   const target = deletingTx;
                   setDeletingTx(null);
-                  await performDelete(target.id, target.isCrypto);
+                  await performDelete(target.id, target.isCrypto, target.isDeposit, target.transactionId);
                 }}
                 className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
               >

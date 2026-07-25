@@ -49,8 +49,9 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
     setCardProducts(filtered);
 
     const initialQty: Record<number, number> = {};
-    filtered.forEach((p: GiftCardProduct) => {
-      initialQty[p.id] = 0;
+    filtered.forEach((p: GiftCardProduct, index: number) => {
+      // Default initial quantity to 1 for the first available in-stock product
+      initialQty[p.id] = (index === 0 && Number(p.quantity) > 0) ? 1 : 0;
     });
 
     setQuantities(initialQty);
@@ -100,11 +101,19 @@ export default function BuyGiftCardAmount({ card, onBack, onContinue }: Props) {
     }, 0);
   }, [cardProducts, quantities]);
 
-  // ✅ FIXED: Using getGiftCardBuyRate with rates dependency for hot reload
-  const rate = useMemo(
-    () => getGiftCardBuyRate(card.id) || 0,
-    [getGiftCardBuyRate, card.id, rates],
-  );
+  // Robust multi-source rate resolution (store -> card object -> product relation -> fallback)
+  const rate = useMemo(() => {
+    const storeRate = getGiftCardBuyRate(card.id);
+    if (storeRate > 0) return storeRate;
+
+    const directRate = (card as any)?.rate?.buy_rate;
+    if (directRate && Number(directRate) > 0) return Number(directRate);
+
+    const productCardRate = (cardProducts[0] as any)?.giftCard?.rate?.buy_rate;
+    if (productCardRate && Number(productCardRate) > 0) return Number(productCardRate);
+
+    return 0;
+  }, [getGiftCardBuyRate, card, cardProducts, rates]);
 
   const totalNGN = useMemo(() => totalUSD * rate, [totalUSD, rate]);
 

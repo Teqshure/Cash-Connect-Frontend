@@ -38,6 +38,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
+  const [isLocalSubmitting, setIsLocalSubmitting] = useState(false);
 
   // Store hooks
   const { buyCrypto, submitting, error } = useBuyCrypto();
@@ -91,6 +92,9 @@ export default function BuyCryptoFlow({ onBack }: Props) {
     a: number,
     account: PaymentAccountOption,
   ) => {
+    if (isLocalSubmitting) return;
+    setIsLocalSubmitting(true);
+
     setToken(t);
     setWalletAddress(wallet);
     setAmount(a);
@@ -98,6 +102,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
 
     if (account.type === "wallet") {
       setShowWarningModal(true);
+      setIsLocalSubmitting(false);
     } else {
       // Crypto payment method: create pending transaction immediately so it is tracked in Payouts
       try {
@@ -144,16 +149,21 @@ export default function BuyCryptoFlow({ onBack }: Props) {
       } catch (err: any) {
         console.error("Failed to initiate crypto session:", err);
         alert(err.message || "Failed to initiate session. Please try again.");
+      } finally {
+        setIsLocalSubmitting(false);
       }
     }
   };
 
   const handlePaymentContinue = async (account: PaymentAccountOption) => {
+    if (isLocalSubmitting) return;
+    setIsLocalSubmitting(true);
     setPaymentAccount(account);
     setShowPaymentModal(false);
 
     if (account.type === "wallet") {
       setShowWarningModal(true);
+      setIsLocalSubmitting(false);
     } else {
       if (token) {
         try {
@@ -185,7 +195,11 @@ export default function BuyCryptoFlow({ onBack }: Props) {
           }
         } catch (err: any) {
           console.error("Failed to initiate session on payment update:", err);
+        } finally {
+          setIsLocalSubmitting(false);
         }
+      } else {
+        setIsLocalSubmitting(false);
       }
       setStep("confirm");
     }
@@ -203,6 +217,8 @@ export default function BuyCryptoFlow({ onBack }: Props) {
   // ✅ FIXED: fetches fresh rate directly from /rates/crypto/{id} before submitting
   const handleDeposited = async (file: File | null) => {
     if (!token) return;
+    if (isLocalSubmitting) return;
+    setIsLocalSubmitting(true);
 
     try {
       // Step 1: Wallet transactions must call buyCrypto to deduct wallet balance
@@ -253,6 +269,8 @@ export default function BuyCryptoFlow({ onBack }: Props) {
     } catch (err: any) {
       console.error("Buy crypto validation/upload failed:", err);
       alert(err.message || "Confirmation failed. Please try again.");
+    } finally {
+      setIsLocalSubmitting(false);
     }
   };
 
@@ -288,7 +306,7 @@ export default function BuyCryptoFlow({ onBack }: Props) {
     <div className="w-full">
       {/* Step 1: Form */}
       {step === "form" && (
-        <BuyCryptoForm onBack={onBack} onContinue={handleFormContinue} isSubmitting={submitting} />
+        <BuyCryptoForm onBack={onBack} onContinue={handleFormContinue} isSubmitting={isLocalSubmitting || submitting} />
       )}
 
       {/* Step 2 (modal): Payment Account */}

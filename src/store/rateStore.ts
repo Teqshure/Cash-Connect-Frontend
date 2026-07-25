@@ -68,7 +68,7 @@ function rateMatchesItem(rate: Rate, itemId: number | string, type: string): boo
   if (typeof itemId === 'string' && itemId.toLowerCase() === 'other') {
     return (rate as any).rateable?.name === 'Other';
   }
-  if (rate.rateable_id !== itemId) return false;
+  if (String(rate.rateable_id) !== String(itemId)) return false;
 
   const rateType = (rate.rateable_type || "").toLowerCase();
   const searchType = type.toLowerCase();
