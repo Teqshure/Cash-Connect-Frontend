@@ -60,10 +60,29 @@ export default function BuyCryptoForm({ onBack, onContinue, isSubmitting = false
   const { isLoading: ratesLoading } = useLoadRates();
 
   const tokenId = selectedToken ? parseInt(selectedToken.id) : 0;
-  const { sellRate, minAmount, maxAmount, currency } = useRateForItem(
+  const { sellRate, minAmount: rawMin, maxAmount: rawMax, currency } = useRateForItem(
     tokenId,
     "crypto",
   );
+
+  // Fallback limits if rate is not set or returns 0
+  const minAmount = useMemo(() => {
+    if (rawMin && rawMin > 0) return rawMin;
+    if (cryptoWithRate?.rate?.min_amount) {
+      const parsed = parseFloat(cryptoWithRate.rate.min_amount);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    return 10;
+  }, [rawMin, cryptoWithRate]);
+
+  const maxAmount = useMemo(() => {
+    if (rawMax && rawMax > 0) return rawMax;
+    if (cryptoWithRate?.rate?.max_amount) {
+      const parsed = parseFloat(cryptoWithRate.rate.max_amount);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    return 10000;
+  }, [rawMax, cryptoWithRate]);
 
   // Load cryptos on mount
   useEffect(() => {
@@ -320,6 +339,7 @@ export default function BuyCryptoForm({ onBack, onContinue, isSubmitting = false
               <input
                 type="text"
                 value={walletAddress}
+                disabled={isSubmitting}
                 onChange={(e) => setWalletAddress(e.target.value)}
                 placeholder={`Enter your destination ${selectedToken.symbol} wallet address`}
                 className="w-full h-[52px] rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-emerald-500 transition"
@@ -340,6 +360,8 @@ export default function BuyCryptoForm({ onBack, onContinue, isSubmitting = false
               {BUY_AMOUNT_PRESETS.map((value) => (
                 <button
                   key={value}
+                  type="button"
+                  disabled={isSubmitting}
                   onClick={() => handlePresetAmount(value)}
                   className={`h-11 rounded-lg border text-sm font-medium transition ${
                     amount === value
@@ -357,6 +379,7 @@ export default function BuyCryptoForm({ onBack, onContinue, isSubmitting = false
               type="text"
               inputMode="numeric"
               value={amount || ""}
+              disabled={isSubmitting}
               onChange={handleCustomAmount}
               placeholder="Enter other amount"
               className="w-full h-12 rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none focus:border-emerald-500 transition"

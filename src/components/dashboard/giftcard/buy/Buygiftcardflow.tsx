@@ -45,7 +45,11 @@ export default function BuyGiftCardFlow({ onBack }: Props) {
 
   // Only display gift cards that have active products in stock
   const activeBuyCards = giftCards.filter((card) =>
-    products.some((prod) => prod.gift_card_id === card.id && prod.quantity > 0)
+    products.some(
+      (prod) =>
+        String(prod.gift_card_id) === String(card.id) &&
+        Number(prod.quantity) > 0
+    )
   );
 
   /* SELECT CARD */

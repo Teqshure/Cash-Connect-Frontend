@@ -153,10 +153,10 @@ export default function ReceiveP2PTradeScreen({ tx, onCancel, onComplete }: Prop
     <div className="w-full max-w-xl mx-auto px-4 py-6 space-y-6">
       {/* P2P Header */}
       <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-            <h2 className="text-[16px] font-bold text-slate-800">Active P2P Trade Session</h2>
+            <h2 className="text-[16px] font-bold text-slate-800">Active Trade Session</h2>
           </div>
           <P2PTimer expiresAt={tx.expires_at} onExpire={() => {
             alert("Session expired! Please start a new expected payment transaction.");

@@ -4,14 +4,29 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export default function Preloader() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !sessionStorage.getItem("cc_app_loaded");
+    }
+    return true;
+  });
   const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
-    // Start fading out 300ms before unmount
-    const fadeTimer = setTimeout(() => setOpacity(0), 2700);
-    // Unmount at 3000ms
-    const unmountTimer = setTimeout(() => setVisible(false), 3000);
+    if (typeof window !== "undefined" && sessionStorage.getItem("cc_app_loaded")) {
+      setVisible(false);
+      return;
+    }
+
+    // Quick fade out as soon as hydration finishes (~250ms)
+    const fadeTimer = setTimeout(() => {
+      setOpacity(0);
+      try {
+        sessionStorage.setItem("cc_app_loaded", "true");
+      } catch (e) {}
+    }, 300);
+
+    const unmountTimer = setTimeout(() => setVisible(false), 550);
 
     return () => {
       clearTimeout(fadeTimer);
